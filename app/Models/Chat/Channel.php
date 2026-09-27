@@ -452,7 +452,8 @@ class Channel extends Model
             ->expire($key, $window)
             ->exec();
 
-        if (count($sent) >= $limit) {
+        // TomYum: a message copied from the game was already sent there; don't drop the copy.
+        if (count($sent) >= $limit && !\App\Libraries\TomYumChatBridge::isReceivingFromGame()) {
             throw new API\ExcessiveChatMessagesException(osu_trans('api.error.chat.limit_exceeded'));
         }
 
@@ -480,6 +481,8 @@ class Channel extends Model
 
             $message->dispatchNotification();
             new ChatMessageEvent($message)->broadcast(true);
+            // TomYum: deliver website messages in-game too.
+            \App\Libraries\TomYumChatBridge::publish($message);
         });
 
         datadog_increment('chat.channel.send', ['target' => $this->type]);

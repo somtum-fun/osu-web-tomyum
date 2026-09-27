@@ -707,6 +707,9 @@ Route::group(['prefix' => '_lio', 'middleware' => 'lio', 'as' => 'interop.'], fu
     Route::post('tomyum/index-beatmapset-document/{beatmapset}', 'TomYumInterOpController@indexBeatmapsetDocument');
     // TomYum: rebuild a country's ranking data after a player's stats changed.
     Route::post('tomyum/recalculate-country/{acronym}', 'TomYumInterOpController@recalculateCountry');
+    // TomYum: in-game chat into website chat, and the game's channels on the website.
+    Route::post('tomyum/chat-message', 'TomYumInterOpController@chatMessage');
+    Route::post('tomyum/chat-channels', 'TomYumInterOpController@chatChannels');
 
     Route::group(['namespace' => 'InterOp'], function () {
         Route::post('artist-tracks/reindex-all', 'ArtistTracksController@reindexAll');
