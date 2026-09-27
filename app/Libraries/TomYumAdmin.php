@@ -26,6 +26,20 @@ class TomYumAdmin
     {
     }
 
+    /** The replay data of website score $scoreId from TomYum, or null when it has none / can't be reached. */
+    public static function replayFor(int $scoreId): ?string
+    {
+        try {
+            $response = (new static())->get("/replays/website-score/{$scoreId}");
+        } catch (InvariantException $e) {
+            log_error($e);
+
+            return null;
+        }
+
+        return $response->successful() ? $response->body() : null;
+    }
+
     public function get(string $path, array $query = []): Response
     {
         return $this->send('GET', $path, $query);

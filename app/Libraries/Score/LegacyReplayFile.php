@@ -35,7 +35,10 @@ class LegacyReplayFile implements ScoreReplayFileInterface
 
     public function get(): ?string
     {
-        $body = $this->storage()->get($this->path());
+        // TomYum: its scores have no legacy score id and their replays live on the game server.
+        $body = $this->score->legacy_best_id === null
+            ? \App\Libraries\TomYumAdmin::replayFor($this->score->getKey())
+            : $this->storage()->get($this->path());
 
         return $body === null
             ? null
