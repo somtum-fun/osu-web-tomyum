@@ -177,6 +177,28 @@ services:
       <<: *x-env
       SCHEMA: "${SCHEMA:-1}"
 
+
+  # ppy's score processor (lazer support, TomYum docs/lazer.md): pp, total pp, ranks and grade
+  # counts from stable (TomYum's legacy rows) and lazer scores together.
+  score-processor:
+    image: pppy/osu-queue-score-statistics:latest
+    command: ["queue", "watch"]
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+    environment:
+      <<: *x-env
+      DB_USER: osuweb
+      DB_NAME: osu
+      # TomYum's stable rows have no osu_scores_high counterpart to write pp to.
+      WRITE_LEGACY_SCORE_PP: "0"
+      SHARED_INTEROP_DOMAIN: http://nginx
+      SHARED_INTEROP_SECRET: "${SHARED_INTEROP_SECRET:-}"
+      CLIENT_CHECK_VERSION: "false"
+
   score-indexer-test:
     image: pppy/osu-elastic-indexer:master
     command: ["queue", "watch"]
