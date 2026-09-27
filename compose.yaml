@@ -197,7 +197,8 @@ services:
       WRITE_LEGACY_SCORE_PP: "0"
       SHARED_INTEROP_DOMAIN: http://nginx
       SHARED_INTEROP_SECRET: "${SHARED_INTEROP_SECRET:-}"
-      CLIENT_CHECK_VERSION: "false"
+      # Exactly "0" turns the build check off here (ppy's processor tests != "0").
+      CLIENT_CHECK_VERSION: "0"
 
   # ppy's spectator server (TomYum docs/lazer.md): lazer's multiplayer, spectating, online
   # presence and replays. Caddy serves it as https://spectator.localtest.me.
