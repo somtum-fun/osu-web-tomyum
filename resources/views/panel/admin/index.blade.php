@@ -45,6 +45,18 @@
         </div>
 
         <div class="tomyum-panel__card">
+            <h2>Performance points</h2>
+            <p class="tomyum-panel__hint">
+                After a pp update: recalculates every score's pp, the players' stats and rankings, in-game and here.
+                Takes a while on a big server.
+            </p>
+            <form method="POST" action="{{ route('panel.admin.recalculate') }}">
+                @csrf
+                <button class="tomyum-panel__button" type="submit">Recalculate all pp</button>
+            </form>
+        </div>
+
+        <div class="tomyum-panel__card">
             <h2>Online now</h2>
             @if (count($online) === 0)
                 <p class="tomyum-panel__hint">Nobody is online.</p>

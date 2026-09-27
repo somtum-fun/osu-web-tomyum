@@ -273,6 +273,17 @@ class AdminController extends Controller
         return $this->done($target->fresh(), 'admin.delete', "Deleted {$old}'s account.", "Deleted {$old}: renamed, banned from the game, removed from all groups. Their scores stay on record but hidden.");
     }
 
+    /** Recalculates every score's pp on the game server (after a pp update), which also updates this site. */
+    public function recalculate()
+    {
+        $response = $this->tomyum()->post('/scores/recalculate');
+        $status = $response->successful()
+            ? ['type' => 'success', 'message' => "Recalculated pp on {$response->json('maps')} map(s): {$response->json('changed')} of {$response->json('scores')} score(s) changed."]
+            : ['type' => 'error', 'message' => "Recalculating failed (HTTP {$response->status()})."];
+
+        return redirect(route('panel.admin.index'))->with('panel_status', $status + ['link' => null]);
+    }
+
     private function done(User $target, string $action, string $summary, ?string $message = null)
     {
         $this->staffLog($action, $target->getKey(), $summary);

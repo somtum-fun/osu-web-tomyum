@@ -64,6 +64,7 @@ Route::group(['middleware' => ['web']], function () {
 
         Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
             Route::get('/', 'AdminController@index')->name('index');
+            Route::post('recalculate', 'AdminController@recalculate')->name('recalculate');
             Route::get('users', 'AdminController@users')->name('users.index');
             Route::get('users/{user}', 'AdminController@show')->name('users.show');
             Route::post('users/{user}/profile', 'AdminController@profile')->name('users.profile');
