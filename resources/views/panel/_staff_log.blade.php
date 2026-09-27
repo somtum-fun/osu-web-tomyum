@@ -11,6 +11,13 @@
         'user.unsilence' => 'Lift silence',
         'user.wipe_scores' => 'Wipe scores',
         'score.remove' => 'Remove score',
+        'admin.profile' => 'Edit profile',
+        'admin.password' => 'Set password',
+        'admin.groups' => 'Groups',
+        'admin.supporter' => 'Supporter',
+        'admin.delete' => 'Delete account',
+        'beatmapset.import' => 'Import set',
+        'beatmapset.status' => 'Set status',
     ];
 @endphp
 <table class="tomyum-panel__table">
@@ -35,8 +42,10 @@
             </td>
             @isset($targets)
                 <td>
-                    @if ($entry['targetId'] ?? null)
-                        <a href="{{ route('panel.gmt.users.show', ['user' => $entry['targetId']]) }}">{{ $targets[$entry['targetId']] ?? '#'.$entry['targetId'] }}</a>
+                    @if (str_starts_with($entry['action'], 'beatmapset.'))
+                        <a href="{{ route('panel.bn.sets.show', ['set' => $entry['targetId']]) }}">set #{{ $entry['targetId'] }}</a>
+                    @elseif ($entry['targetId'] ?? null)
+                        <a href="{{ route(str_starts_with($entry['action'], 'admin.') ? 'panel.admin.users.show' : 'panel.gmt.users.show', ['user' => $entry['targetId']]) }}">{{ $targets[$entry['targetId']] ?? '#'.$entry['targetId'] }}</a>
                     @endif
                 </td>
             @endisset

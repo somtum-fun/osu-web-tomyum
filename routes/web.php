@@ -61,6 +61,17 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('users/{user}/wipe', 'GmtController@wipe')->name('users.wipe');
             Route::post('users/{user}/scores/{score}/remove', 'GmtController@removeScore')->name('users.scores.remove');
         });
+
+        Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
+            Route::get('/', 'AdminController@index')->name('index');
+            Route::get('users', 'AdminController@users')->name('users.index');
+            Route::get('users/{user}', 'AdminController@show')->name('users.show');
+            Route::post('users/{user}/profile', 'AdminController@profile')->name('users.profile');
+            Route::post('users/{user}/password', 'AdminController@password')->name('users.password');
+            Route::post('users/{user}/groups', 'AdminController@groups')->name('users.groups');
+            Route::post('users/{user}/supporter', 'AdminController@supporter')->name('users.supporter');
+            Route::post('users/{user}/delete', 'AdminController@delete')->name('users.delete');
+        });
     });
 
     Route::resource('authenticator-app', 'UserTotpController', ['only' => ['create', 'store']]);

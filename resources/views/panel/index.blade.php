@@ -21,10 +21,10 @@
                 </a>
             @endif
             @if ($panels['admin'])
-                <div class="tomyum-panel__link">
+                <a class="tomyum-panel__link" href="{{ route('panel.admin.index') }}">
                     <h2>Admin panel</h2>
-                    <p class="tomyum-panel__hint">Users, groups, supporter and the server dashboard. Coming next.</p>
-                </div>
+                    <p class="tomyum-panel__hint">Server dashboard, and editing accounts: name, email, country, password, groups, supporter.</p>
+                </a>
             @endif
         </div>
     </div>
