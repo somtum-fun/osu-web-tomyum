@@ -20,7 +20,7 @@ class TomYumSetup extends Command
 {
     protected $signature = 'tomyum:setup {--mirror-url= : Where beatmap downloads go (TomYum serves /d/{id}); defaults to APP_URL}';
 
-    protected $description = 'Prepare osu-web to run with the TomYum game server (groups, genres, languages, countries, forum, download mirror).';
+    protected $description = 'Prepare osu-web to run with the TomYum game server (groups, genres, languages, countries, forum, download mirror, lazer login).';
 
     /** identifier => [name, badge, colour, display order (null = no badge), listed]. */
     private const GROUPS = [
@@ -56,6 +56,7 @@ class TomYumSetup extends Command
         $this->countries();
         $this->userPageForum();
         $this->mirror();
+        $this->lazerClient();
         $this->checkConfig();
 
         $this->info('Done. Restart the php container (docker compose restart php) so it picks up the groups.');
@@ -146,6 +147,33 @@ class TomYumSetup extends Command
         ]);
         BeatmapMirror::where('base_url', '<>', $url)->update(['is_master' => 0]);
         $this->line("Download mirror: {$url}d/{id} (TomYum).");
+    }
+
+    /**
+     * The OAuth client osu!(lazer) logs in with: it's built into the game (id 5 and this secret, see
+     * ppy/osu osu.Game/Online/ProductionEndpointConfiguration.cs), so the site needs the same one.
+     * Lazer also needs the Passport keys (php artisan passport:keys). See TomYum's docs/lazer.md.
+     */
+    private function lazerClient(): void
+    {
+        DB::table('oauth_clients')->upsert([[
+            'id' => 5,
+            'user_id' => null,
+            'name' => 'osu!lazer',
+            'secret' => 'FGc9GAtyHzeQDshWP5Ah7dega8hJACAJpQtw6OXk',
+            'redirect' => '',
+            'personal_access_client' => 0,
+            'password_client' => 1,
+            'revoked' => 0,
+            'provider' => 'users',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]], ['id'], ['name', 'secret', 'password_client', 'revoked', 'provider', 'updated_at']);
+
+        if (!file_exists(storage_path('oauth-private.key'))) {
+            $this->warn("No Passport keys: run php artisan passport:keys, or lazer (and API logins) can't sign in.");
+        }
+        $this->line('osu!lazer login client: id 5.');
     }
 
     private function checkConfig(): void
