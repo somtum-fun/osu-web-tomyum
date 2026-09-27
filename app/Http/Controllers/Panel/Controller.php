@@ -85,16 +85,18 @@ abstract class Controller extends BaseController
     }
 
     /**
-     * Whether the current user may moderate $target: never themselves, and only admins may act
-     * on staff (admins, GMT).
+     * Whether the current user may moderate $target: anyone may moderate themselves; otherwise only
+     * admins may act on staff (admins, GMT).
      */
     protected static function canModerate(User $target): bool
     {
         $actor = Auth::user();
-        if ($actor === null || $actor->getKey() === $target->getKey()) {
+        if ($actor === null) {
             return false;
         }
 
-        return $actor->isAdmin() || !($target->isAdmin() || $target->isGMT());
+        return $actor->getKey() === $target->getKey()
+            || $actor->isAdmin()
+            || !($target->isAdmin() || $target->isGMT());
     }
 }

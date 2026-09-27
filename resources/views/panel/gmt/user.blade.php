@@ -46,7 +46,7 @@
 
         @if (!$canModerate)
             <div class="tomyum-panel__status tomyum-panel__status--error">
-                You can't moderate this account (it's yours, or staff only an admin can moderate).
+                You can't moderate this account: it belongs to staff, and only an admin can moderate staff.
             </div>
         @else
             <div class="tomyum-panel__card">
