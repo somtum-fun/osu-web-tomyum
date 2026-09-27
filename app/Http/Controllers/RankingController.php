@@ -398,7 +398,8 @@ class RankingController extends Controller
                 $maxResults = static::MAX_RESULTS;
 
                 if ($countryStats === null) {
-                    return $maxResults;
+                    // TomYum: a country without statistics (no players yet) has nothing to page through.
+                    return $params['country'] === null ? $maxResults : 0;
                 }
 
                 // use slower row count as there's no country statistics entry for variants
