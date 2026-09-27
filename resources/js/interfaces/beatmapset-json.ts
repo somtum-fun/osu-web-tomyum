@@ -83,6 +83,8 @@ export interface BeatmapsetJsonAvailableIncludes {
   beatmaps: BeatmapJson[];
   converts: BeatmapExtendedJson[];
   current_nominations: BeatmapsetNominationJson[];
+  // TomYum: osu! users who nominated the set (no accounts on this server).
+  tomyum_nominators: { id: number; username: string }[];
   current_user_attributes: CurrentUserAttributes;
   description: BeatmapsetDescription;
   discussions: BeatmapsetDiscussionJson[];

@@ -454,6 +454,7 @@ class BeatmapsetsController extends Controller
             'recent_favourites',
             'related_tags',
             'related_users',
+            'tomyum_nominators',
             'user',
             'version_count',
         ]);

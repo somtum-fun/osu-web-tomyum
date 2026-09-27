@@ -55,6 +55,7 @@ class TomYumSetup extends Command
         $this->genresAndLanguages();
         $this->countries();
         $this->userPageForum();
+        $this->beatmapDescriptionForum();
         $this->mirror();
         $this->lazerClient();
         $this->checkConfig();
@@ -118,6 +119,22 @@ class TomYumSetup extends Command
             TomYumCountryStats::recalculate($country);
         }
         $this->line('Countries: '.Country::count().' present, rankings for '.$withPlayers->count().' recalculated.');
+    }
+
+    /** The forum beatmap description posts live in (locked topics, like osu.ppy.sh). */
+    private function beatmapDescriptionForum(): void
+    {
+        $forumId = $GLOBALS['cfg']['osu']['forum']['beatmap_description_forum_id'];
+        DB::table('phpbb_forums')->insertOrIgnore([
+            'forum_id' => $forumId,
+            'parent_id' => 0,
+            'forum_name' => 'Beatmap descriptions',
+            'forum_desc' => 'Beatmap set descriptions (managed by the website).',
+            'forum_parents' => '',
+            'forum_rules' => '',
+            'forum_type' => 1,
+        ]);
+        $this->line("Beatmap description forum: #{$forumId} present.");
     }
 
     private function userPageForum(): void

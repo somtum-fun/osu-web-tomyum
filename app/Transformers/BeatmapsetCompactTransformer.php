@@ -28,6 +28,7 @@ class BeatmapsetCompactTransformer extends TransformerAbstract
         'converts',
         'current_nominations',
         'current_user_attributes',
+        'tomyum_nominators',
         'description',
         'discussions',
         'eligible_main_rulesets',
@@ -129,6 +130,19 @@ class BeatmapsetCompactTransformer extends TransformerAbstract
     public function includeCurrentNominations(Beatmapset $beatmapset): Collection
     {
         return $this->collection($beatmapset->beatmapsetNominationsCurrent, new BeatmapsetNominationTransformer());
+    }
+
+    /** TomYum: the set's osu! nominators (no accounts here), for links to their osu! profiles. */
+    public function includeTomyumNominators(Beatmapset $beatmapset)
+    {
+        return $this->primitive(
+            \DB::table('tomyum_beatmapset_nominators')
+                ->where('beatmapset_id', $beatmapset->getKey())
+                ->orderBy('username')
+                ->get(['osu_user_id', 'username'])
+                ->map(fn ($row) => ['id' => $row->osu_user_id, 'username' => $row->username])
+                ->all()
+        );
     }
 
     public function includeCurrentUserAttributes(Beatmapset $beatmapset)

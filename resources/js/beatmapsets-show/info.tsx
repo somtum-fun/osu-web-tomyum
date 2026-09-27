@@ -52,6 +52,11 @@ export default class Info extends React.Component<Props> {
     };
   }
 
+  // TomYum: nominators known only from osu!, linked to their osu! profiles.
+  private get osuNominators() {
+    return this.nominators.length > 0 ? [] : (this.controller.beatmapset.tomyum_nominators ?? []);
+  }
+
   @computed
   private get nominators() {
     const ret: UserJson[] = [];
@@ -128,6 +133,26 @@ export default class Info extends React.Component<Props> {
 
         <div className='beatmapset-info__box'>
           <div className='beatmapset-info__scrollable'>
+            {this.osuNominators.length > 0 &&
+              <div className='beatmapset-info__row'>
+                <h3 className='beatmapset-info__header'>
+                  {trans('beatmapsets.show.info.nominators')}
+                </h3>
+                <div>
+                  {this.osuNominators.map((user, i) => (
+                    <React.Fragment key={user.id}>
+                      <UserLink
+                        className='beatmapset-info__link'
+                        fallbackHref={`https://osu.ppy.sh/users/${user.id}`}
+                        user={{ username: user.username }}
+                      />
+                      {i < this.osuNominators.length - 1 && ', '}
+                    </React.Fragment>
+                  ))}
+                </div>
+              </div>
+            }
+
             {this.nominators.length > 0 &&
               <div className='beatmapset-info__row'>
                 <h3 className='beatmapset-info__header'>

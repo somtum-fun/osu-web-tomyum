@@ -52,6 +52,39 @@ class TomYumInterOpController extends Controller
             : ['message_id' => $message->getKey()];
     }
 
+    /**
+     * A set's osu! description (`description`, BBCode, null = leave as is) and current nominators
+     * (`nominators`: [{id, username, rulesets}], osu! users), from TomYum's osu! API v2 import.
+     */
+    public function beatmapsetExtras($id)
+    {
+        $beatmapset = \App\Models\Beatmapset::findOrFail(get_int($id));
+        $description = get_string(request()->input('description'));
+        if ($description !== null && trim($description) !== trim($beatmapset->description()->bbcode()->toEditor())) {
+            $author = User::find($GLOBALS['cfg']['osu']['legacy']['bancho_bot_user_id']) ?? User::firstOrFail();
+            $beatmapset->description()->update($description, $author);
+        }
+
+        \DB::transaction(function () use ($beatmapset) {
+            \DB::table('tomyum_beatmapset_nominators')->where('beatmapset_id', $beatmapset->getKey())->delete();
+            foreach ((array) request()->input('nominators', []) as $nominator) {
+                $userId = get_int($nominator['id'] ?? null);
+                $username = get_string($nominator['username'] ?? null);
+                if ($userId === null || $username === null) {
+                    continue;
+                }
+                \DB::table('tomyum_beatmapset_nominators')->insertOrIgnore([
+                    'beatmapset_id' => $beatmapset->getKey(),
+                    'osu_user_id' => $userId,
+                    'username' => mb_substr($username, 0, 32),
+                    'rulesets' => isset($nominator['rulesets']) ? json_encode(array_values((array) $nominator['rulesets'])) : null,
+                ]);
+            }
+        });
+
+        return response()->noContent();
+    }
+
     /** Creates the game's public channels on the website (`channels`: [{name, description, moderated}]). */
     public function chatChannels()
     {

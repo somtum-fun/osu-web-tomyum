@@ -710,6 +710,7 @@ Route::group(['prefix' => '_lio', 'middleware' => 'lio', 'as' => 'interop.'], fu
     // TomYum: in-game chat into website chat, and the game's channels on the website.
     Route::post('tomyum/chat-message', 'TomYumInterOpController@chatMessage');
     Route::post('tomyum/chat-channels', 'TomYumInterOpController@chatChannels');
+    Route::post('tomyum/beatmapset-extras/{beatmapset}', 'TomYumInterOpController@beatmapsetExtras');
 
     Route::group(['namespace' => 'InterOp'], function () {
         Route::post('artist-tracks/reindex-all', 'ArtistTracksController@reindexAll');
