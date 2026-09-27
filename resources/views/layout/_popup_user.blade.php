@@ -54,6 +54,10 @@
         {{ osu_trans('layout.popup_user.links.account-edit') }}
     </a>
 
+    @if (App\Http\Controllers\Panel\Controller::canUseAny($currentUser))
+        <a class="simple-menu__item" href="{{ route('panel.index') }}">Staff panel</a>
+    @endif
+
     <button
         class="js-logout-link simple-menu__item"
         type="button"

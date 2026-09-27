@@ -34,6 +34,18 @@ Route::group(['middleware' => ['web']], function () {
         });
     });
 
+    // TomYum staff panels.
+    Route::group(['as' => 'panel.', 'prefix' => 'panel', 'namespace' => 'Panel'], function () {
+        Route::get('/', 'PagesController@index')->name('index');
+
+        Route::group(['as' => 'bn.', 'prefix' => 'bn'], function () {
+            Route::get('/', 'BnController@index')->name('index');
+            Route::post('import', 'BnController@import')->name('import');
+            Route::post('import-bulk', 'BnController@importBulk')->name('import-bulk');
+            Route::get('jobs/{job}', 'BnController@job')->name('job');
+        });
+    });
+
     Route::resource('authenticator-app', 'UserTotpController', ['only' => ['create', 'store']]);
     Route::post('authenticator-app/cancel-create', 'UserTotpController@cancelCreate')->name('authenticator-app.cancel-create');
     Route::get('authenticator-app/edit', 'UserTotpController@edit')->name('authenticator-app.edit');
