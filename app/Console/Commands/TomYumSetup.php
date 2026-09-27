@@ -9,6 +9,7 @@ use App\Libraries\TomYumCountryStats;
 use App\Models\BeatmapMirror;
 use App\Models\Country;
 use App\Models\Group;
+use App\Models\User;
 use DB;
 use Illuminate\Console\Command;
 
@@ -18,7 +19,9 @@ use Illuminate\Console\Command;
  */
 class TomYumSetup extends Command
 {
-    protected $signature = 'tomyum:setup {--mirror-url= : Where beatmap downloads go (TomYum serves /d/{id}); defaults to APP_URL}';
+    protected $signature = 'tomyum:setup
+        {--mirror-url= : Where beatmap downloads go (TomYum serves /d/{id}); defaults to APP_URL}
+        {--owner= : Username of the server owner: gets the admin, developer and GMT groups}';
 
     protected $description = 'Prepare osu-web to run with the TomYum game server (groups, genres, languages, countries, forum, download mirror, lazer login).';
 
@@ -58,6 +61,8 @@ class TomYumSetup extends Command
         $this->beatmapDescriptionForum();
         $this->mirror();
         $this->lazerClient();
+        $this->banchoBotAvatar();
+        $this->owner();
         $this->checkConfig();
 
         $this->info('Done. Restart the php container (docker compose restart php) so it picks up the groups.');
@@ -208,6 +213,50 @@ class TomYumSetup extends Command
             DB::statement("SET SESSION sql_mode = REPLACE(@@SESSION.sql_mode, 'NO_AUTO_VALUE_ON_ZERO', '')");
         });
         $this->line('osu!lazer build 0 (unchecked clients): present.');
+    }
+
+    /** BanchoBot's avatar from osu! (the user avatar service a.ppy.sh), when it has none. */
+    private function banchoBotAvatar(): void
+    {
+        $bot = User::find($GLOBALS['cfg']['osu']['legacy']['bancho_bot_user_id']);
+        if ($bot === null || present($bot->user_avatar)) {
+            return;
+        }
+
+        $response = \Http::timeout(15)->get('https://a.ppy.sh/3');
+        if (!$response->successful() || !str_starts_with($response->header('Content-Type'), 'image/')) {
+            $this->warn("BanchoBot avatar: couldn't download it from a.ppy.sh (HTTP {$response->status()}).");
+
+            return;
+        }
+
+        storage_disk('avatar')->put((string) $bot->getKey(), $response->body());
+        $bot->update(['user_avatar' => $bot->getKey().'_'.time().'.png']);
+        $this->line('BanchoBot avatar: set.');
+    }
+
+    /** The owner's staff groups (--owner=<username>). */
+    private function owner(): void
+    {
+        $username = presence($this->option('owner'));
+        if ($username === null) {
+            return;
+        }
+
+        $user = User::lookup($username, 'username');
+        if ($user === null) {
+            $this->warn("Owner: no user named {$username} (create the account first, in-game or on the website).");
+
+            return;
+        }
+
+        foreach (['admin', 'dev', 'gmt'] as $identifier) {
+            if (($group = Group::firstWhere('identifier', $identifier)) !== null && !$user->isGroup($group)) {
+                $user->addToGroup($group);
+            }
+        }
+        $user->setDefaultGroup(Group::firstWhere('identifier', 'admin'));
+        $this->line("Owner: {$user->username} is in admin, dev and gmt.");
     }
 
     private function checkConfig(): void
