@@ -42,6 +42,9 @@
     .tomyum-panel__link:hover { background: hsl(var(--hsl-b3)); color: inherit; text-decoration: none; }
     .tomyum-panel__progress { background: hsl(var(--hsl-b5)); border-radius: 4px; height: 8px; overflow: hidden; }
     .tomyum-panel__progress > div { background: hsl(var(--hsl-h1)); height: 100%; }
+    .tomyum-panel__badge { border-radius: 10px; font-size: 12px; padding: 2px 8px; white-space: nowrap; }
+    .tomyum-panel__badge--success { background: hsla(var(--hsl-lime-2), 0.3); }
+    .tomyum-panel__badge--error { background: hsla(var(--hsl-red-2), 0.35); }
 </style>
 @if ($status !== null)
     <div class="osu-page osu-page--admin">

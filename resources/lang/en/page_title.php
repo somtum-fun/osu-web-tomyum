@@ -7,6 +7,9 @@ return [
     'admin' => [
         '_' => 'admin',
     ],
+    'panel' => [
+        '_' => 'staff panel',
+    ],
     'error' => [
         'error' => [
             '400' => 'invalid request',

@@ -57,17 +57,31 @@
         </div>
 
         <div class="tomyum-panel__card">
-            <h2>Recent imports</h2>
+            <h2>Import log</h2>
+            <p class="tomyum-panel__hint">Every import, newest first: single sets and each set of a bulk import.</p>
+            @if ($logError !== null)
+                <p>{{ $logError }}</p>
+            @elseif (count($entries) === 0)
+                <p class="tomyum-panel__hint">Nothing imported yet.</p>
+            @else
+                @include('panel.bn._log_table', ['showJob' => true])
+            @endif
+        </div>
+
+        <div class="tomyum-panel__card">
+            <h2>Bulk imports</h2>
+            <p class="tomyum-panel__hint">Progress is kept until the game server restarts; the sets stay in the import log.</p>
             @if ($jobsError !== null)
                 <p>{{ $jobsError }}</p>
             @elseif (count($jobs) === 0)
                 <p class="tomyum-panel__hint">No bulk imports since the game server started.</p>
             @else
                 <table class="tomyum-panel__table">
-                    <tr><th>Started</th><th>What</th><th>Status</th><th>Imported</th><th>Not found</th><th>Failed</th><th></th></tr>
+                    <tr><th>Started</th><th>By</th><th>What</th><th>Status</th><th>Imported</th><th>Not found</th><th>Failed</th><th></th></tr>
                     @foreach ($jobs as $job)
                         <tr>
                             <td>{!! timeago(Carbon\Carbon::parse($job['createdAt'])) !!}</td>
+                            <td>{{ $actors[$job['startedBy']] ?? '—' }}</td>
                             <td>
                                 @if ($job['request']['rankedFrom'] ?? null)
                                     Ranked {{ substr($job['request']['rankedFrom'], 0, 10) }}

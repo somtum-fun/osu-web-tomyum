@@ -6,6 +6,7 @@
 namespace App\Http\Controllers\Panel;
 
 use App\Exceptions\InvariantException;
+use App\Models\User;
 use Auth;
 use Carbon\Carbon;
 use Request;
@@ -29,10 +30,17 @@ class BnController extends Controller
     public function index()
     {
         $jobs = $this->tomyum()->get('/beatmapsets/import-jobs');
+        $log = $this->tomyum()->get('/log', ['action' => 'beatmapset.import', 'limit' => 50]);
+        $entries = $log->successful() ? $log->json() : [];
+        $jobList = $jobs->successful() ? $jobs->json() : [];
+        $jobStarters = array_map(fn ($job) => ['actorId' => $job['startedBy']], $jobList);
 
         return ext_view('panel.bn.index', [
-            'jobs' => $jobs->successful() ? $jobs->json() : [],
-            'jobsError' => $jobs->successful() ? null : "Couldn't load recent imports (HTTP {$jobs->status()}).",
+            'jobs' => $jobList,
+            'jobsError' => $jobs->successful() ? null : "Couldn't load bulk imports (HTTP {$jobs->status()}).",
+            'entries' => $entries,
+            'logError' => $log->successful() ? null : "Couldn't load the import log (HTTP {$log->status()}).",
+            'actors' => static::actorNames(array_merge($entries, $jobStarters)),
         ]);
     }
 
@@ -84,15 +92,31 @@ class BnController extends Controller
 
     public function job(string $job)
     {
+        // Progress lives in the game server's memory (gone after a restart); the per-set log doesn't.
         $response = $this->tomyum()->get('/beatmapsets/import-jobs/'.rawurlencode($job));
-        if ($response->notFound()) {
-            abort(404);
-        }
-        if (!$response->successful()) {
+        if (!$response->successful() && !$response->notFound()) {
             throw new InvariantException("Couldn't load the import (HTTP {$response->status()}).");
         }
+        $log = $this->tomyum()->get('/log', ['jobId' => $job, 'limit' => 500]);
+        $entries = $log->successful() ? $log->json() : [];
 
-        return ext_view('panel.bn.job', ['job' => $response->json()]);
+        if ($response->notFound() && count($entries) === 0) {
+            abort(404);
+        }
+
+        return ext_view('panel.bn.job', [
+            'job' => $response->successful() ? $response->json() : null,
+            'entries' => $entries,
+            'actors' => static::actorNames($entries),
+        ]);
+    }
+
+    /** user id => username for the staff members in log entries (for display). */
+    public static function actorNames(array $entries): array
+    {
+        $ids = array_values(array_unique(array_filter(array_column($entries, 'actorId'))));
+
+        return count($ids) === 0 ? [] : User::whereIn('user_id', $ids)->pluck('username', 'user_id')->all();
     }
 
     /** A set id from an id or an osu! link (beatmapsets/123, s/123); null for anything else. */
