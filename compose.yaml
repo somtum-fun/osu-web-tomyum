@@ -195,6 +195,8 @@ services:
       DB_NAME: osu
       # TomYum's stable rows have no osu_scores_high counterpart to write pp to.
       WRITE_LEGACY_SCORE_PP: "0"
+      # Maps' .osu files from TomYum (custom maps are only there); it fetches from osu.ppy.sh.
+      BEATMAP_DOWNLOAD_PATH: http://server:8080/osu/{0}
       SHARED_INTEROP_DOMAIN: http://nginx
       SHARED_INTEROP_SECRET: "${SHARED_INTEROP_SECRET:-}"
       # Exactly "0" turns the build check off here (ppy's processor tests != "0").

@@ -12,6 +12,7 @@ use App\Models\Beatmap;
 use App\Models\Beatmapset;
 use Cache;
 use Closure;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Http\Request;
 
 /**
@@ -29,9 +30,15 @@ class TomYumImportMissingBeatmaps
     /** At most this many imports per request (a batch lookup can list many maps). */
     private const MAX_IMPORTS = 10;
 
+    /** At most this many imports per client IP per hour (each is an osu! API lookup). */
+    private const IMPORTS_PER_HOUR = 60;
+
     public function handle(Request $request, Closure $next)
     {
-        if (present($GLOBALS['cfg']['osu']['legacy']['shared_interop_secret'])) {
+        // Only for signed-in clients (lazer always sends a token; site visitors have a session),
+        // so anonymous traffic can't make the server fetch arbitrary maps.
+        $signedIn = $request->bearerToken() !== null || $request->cookies->has(config('session.cookie'));
+        if ($signedIn && present($GLOBALS['cfg']['osu']['legacy']['shared_interop_secret'])) {
             try {
                 $this->importMissing($request);
             } catch (\Throwable $e) {
@@ -96,6 +103,12 @@ class TomYumImportMissingBeatmaps
         if (Cache::has($key)) {
             return;
         }
+
+        $ip = request()->ip() ?? 'unknown';
+        if (RateLimiter::tooManyAttempts("tomyum-import:{$ip}", static::IMPORTS_PER_HOUR)) {
+            return;
+        }
+        RateLimiter::hit("tomyum-import:{$ip}", 3600);
 
         $response = $send(new TomYumAdmin(auth()->user()));
         if ($response->status() === 404) {
