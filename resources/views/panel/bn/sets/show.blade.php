@@ -38,7 +38,8 @@
             <h2>Ranked status</h2>
             <p class="tomyum-panel__hint">
                 Tick difficulties to change only those, or none for the whole set. A status set here is kept when the set
-                is refreshed from bancho, and takes effect in-game immediately (leaderboards and pp for new scores).
+                is refreshed from bancho, and takes effect in-game immediately. Existing scores are recalculated (pp, bests,
+                players' stats and rankings). "Back to bancho" undoes staff changes: the difficulties follow osu!'s status again.
             </p>
             @if ($serverError !== null)
                 <p>{{ $serverError }}</p>

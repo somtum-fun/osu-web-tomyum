@@ -23,6 +23,7 @@ class BnSetsController extends Controller
         'qualified' => 'Qualified',
         'loved' => 'Loved',
         'pending' => 'Pending (unranked)',
+        'bancho' => "Back to bancho (osu!'s own status)",
     ];
 
     /** osu-web `approved` value => label. */
@@ -124,10 +125,21 @@ class BnSetsController extends Controller
         }
 
         $changed = $response->json('changed');
-        $label = static::SETTABLE_STATUSES[$status];
-        $message = count($beatmapIds) === 0
-            ? "The whole set is now {$label}."
-            : count($changed).' difficult'.(count($changed) === 1 ? 'y is' : 'ies are')." now {$label}: ".implode(', ', $changed).'.';
+        if ($status === 'bancho') {
+            $message = count($changed) === 0
+                ? "Nothing to unlock: no staff-set status there (or osu! doesn't know the set)."
+                : count($changed).' difficult'.(count($changed) === 1 ? 'y is' : 'ies are')." back to bancho's status: ".implode(', ', $changed).'.';
+        } else {
+            $label = static::SETTABLE_STATUSES[$status];
+            $message = count($beatmapIds) === 0
+                ? "The whole set is now {$label}."
+                : count($changed).' difficult'.(count($changed) === 1 ? 'y is' : 'ies are')." now {$label}: ".implode(', ', $changed).'.';
+        }
+        $recalculated = $response->json('scores.changed') ?? 0;
+        if ($recalculated > 0) {
+            $players = $response->json('scores.players') ?? 0;
+            $message .= " Recalculated {$recalculated} score(s) of {$players} player(s).";
+        }
 
         return $this->back($setId, 'success', $message);
     }
