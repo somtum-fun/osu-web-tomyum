@@ -199,6 +199,36 @@ services:
       SHARED_INTEROP_SECRET: "${SHARED_INTEROP_SECRET:-}"
       CLIENT_CHECK_VERSION: "false"
 
+  # ppy's spectator server (TomYum docs/lazer.md): lazer's multiplayer, spectating, online
+  # presence and replays. Caddy serves it as https://spectator.localtest.me.
+  spectator:
+    build:
+      context: docker/spectator
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+    environment:
+      <<: *x-env
+      DB_USER: osuweb
+      SERVER_PORT: "80"
+      # Empty = no error reports (ppy's release build insists on the variable).
+      SENTRY_DSN: ""
+      SAVE_REPLAYS: "true"
+      REPLAYS_PATH: /replays
+      SHARED_INTEROP_DOMAIN: http://nginx
+      SHARED_INTEROP_SECRET: "${SHARED_INTEROP_SECRET:-}"
+      BANCHO_BOT_USER_ID: "${BANCHO_BOT_USER_ID:-1}"
+      CLIENT_CHECK_VERSION: "false"
+    volumes:
+      # Checks lazer's logins with the website's Passport key.
+      - ./storage/oauth-public.key:/app/oauth-public.key:ro
+      - ./public/uploads/replay:/replays
+    ports:
+      - "${SPECTATOR_PORT:-127.0.0.1:8190}:80"
+
   score-indexer-test:
     image: pppy/osu-elastic-indexer:master
     command: ["queue", "watch"]
