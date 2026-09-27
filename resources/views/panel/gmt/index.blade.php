@@ -1,0 +1,51 @@
+{{--
+    Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
+    See the LICENCE file in the repository root for full licence text.
+--}}
+@extends('master', ['titlePrepend' => 'GMT panel'])
+
+@section('content')
+    @include('panel._header', ['crumbs' => [['url' => route('panel.gmt.index'), 'title' => 'GMT panel']]])
+    <div class="osu-page osu-page--admin tomyum-panel">
+        <div class="tomyum-panel__card">
+            <h2>Find a player</h2>
+            <form method="GET" action="{{ route('panel.gmt.index') }}" class="tomyum-panel__row">
+                <label class="tomyum-panel__field">
+                    Username or user id
+                    <input type="text" name="q" value="{{ $query }}" autofocus>
+                </label>
+                <button class="tomyum-panel__button" type="submit">Open</button>
+                <a class="tomyum-panel__button" href="{{ route('panel.gmt.chat') }}" style="background: hsl(var(--hsl-b3)); color: inherit">Chat logs</a>
+            </form>
+            @if ($query !== '')
+                @if (count($matches) === 0)
+                    <p class="tomyum-panel__hint">Nobody matches "{{ $query }}".</p>
+                @else
+                    <ul>
+                        @foreach ($matches as $match)
+                            <li><a href="{{ route('panel.gmt.users.show', ['user' => $match->getKey()]) }}">{{ $match->username }}</a> <span class="tomyum-panel__hint">#{{ $match->getKey() }}</span></li>
+                        @endforeach
+                    </ul>
+                @endif
+            @endif
+        </div>
+
+        <div class="tomyum-panel__card">
+            <h2>Recent reports</h2>
+            @if (count($reports) === 0)
+                <p class="tomyum-panel__hint">No reports yet. Players report others from their profile (the "…" menu) or scores.</p>
+            @else
+                @include('panel.gmt._reports', ['reports' => $reports, 'showPlayer' => true])
+            @endif
+        </div>
+
+        <div class="tomyum-panel__card">
+            <h2>Recent moderation</h2>
+            @if (count($entries) === 0)
+                <p class="tomyum-panel__hint">No restrictions, silences or score removals yet.</p>
+            @else
+                @include('panel._staff_log')
+            @endif
+        </div>
+    </div>
+@endsection

@@ -53,4 +53,48 @@ abstract class Controller extends BaseController
     {
         return new TomYumAdmin(Auth::user());
     }
+
+    /** Records an action in TomYum's staff log (best effort: the action already happened). */
+    protected function staffLog(string $action, ?int $targetId, string $summary, ?string $result = null): void
+    {
+        try {
+            $this->tomyum()->post('/log', [
+                'action' => $action,
+                'targetId' => $targetId,
+                'summary' => $summary,
+                'result' => $result,
+            ]);
+        } catch (\Throwable $e) {
+            log_error($e);
+        }
+    }
+
+    /**
+     * Applies a change to a user in-game right away (restriction, silence, name, groups). Returns
+     * false when the game server couldn't be reached: the change still applies on their next login.
+     */
+    protected function refreshInGame(int $userId): bool
+    {
+        try {
+            return $this->tomyum()->post("/users/{$userId}/refresh")->successful();
+        } catch (\Throwable $e) {
+            log_error($e);
+
+            return false;
+        }
+    }
+
+    /**
+     * Whether the current user may moderate $target: never themselves, and only admins may act
+     * on staff (admins, GMT).
+     */
+    protected static function canModerate(User $target): bool
+    {
+        $actor = Auth::user();
+        if ($actor === null || $actor->getKey() === $target->getKey()) {
+            return false;
+        }
+
+        return $actor->isAdmin() || !($target->isAdmin() || $target->isGMT());
+    }
 }

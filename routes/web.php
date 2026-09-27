@@ -49,6 +49,18 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('sets/{set}/status', 'BnSetsController@status')->name('sets.status');
             Route::post('sets/{set}/refresh', 'BnSetsController@refresh')->name('sets.refresh');
         });
+
+        Route::group(['as' => 'gmt.', 'prefix' => 'gmt'], function () {
+            Route::get('/', 'GmtController@index')->name('index');
+            Route::get('chat', 'GmtController@chat')->name('chat');
+            Route::get('users/{user}', 'GmtController@show')->name('users.show');
+            Route::post('users/{user}/restrict', 'GmtController@restrict')->name('users.restrict');
+            Route::post('users/{user}/unrestrict', 'GmtController@unrestrict')->name('users.unrestrict');
+            Route::post('users/{user}/silence', 'GmtController@silence')->name('users.silence');
+            Route::post('users/{user}/unsilence', 'GmtController@unsilence')->name('users.unsilence');
+            Route::post('users/{user}/wipe', 'GmtController@wipe')->name('users.wipe');
+            Route::post('users/{user}/scores/{score}/remove', 'GmtController@removeScore')->name('users.scores.remove');
+        });
     });
 
     Route::resource('authenticator-app', 'UserTotpController', ['only' => ['create', 'store']]);

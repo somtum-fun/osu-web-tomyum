@@ -15,10 +15,10 @@
                 </a>
             @endif
             @if ($panels['gmt'])
-                <div class="tomyum-panel__link">
+                <a class="tomyum-panel__link" href="{{ route('panel.gmt.index') }}">
                     <h2>GMT panel</h2>
-                    <p class="tomyum-panel__hint">Restrictions, silences, reports, chat logs and scores. Coming next.</p>
-                </div>
+                    <p class="tomyum-panel__hint">Restrictions, silences, reports, chat logs and score removal.</p>
+                </a>
             @endif
             @if ($panels['admin'])
                 <div class="tomyum-panel__link">
