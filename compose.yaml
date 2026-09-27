@@ -45,6 +45,11 @@ services:
     <<: *x-web
     command: ['job']
 
+  # Runs the scheduled commands (rankings, cleanups, daily challenge, …); see app/Console/Kernel.php.
+  scheduler:
+    <<: *x-web
+    command: ['schedule']
+
   testjs:
     <<: *x-web
     volumes:

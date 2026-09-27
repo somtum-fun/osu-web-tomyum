@@ -59,10 +59,14 @@ class Kernel extends ConsoleKernel
             ->cron('35 0,3,6,9,12,15,18,21 * * *')
             ->onOneServer();
 
-        $schedule->command('modding:rank')
-            ->cron('*/20 * * * *')
-            ->withoutOverlapping(120)
-            ->onOneServer();
+        // TomYum decides ranked status (osu! API + BN panel); auto-ranking qualified sets here would
+        // only change the website and put it out of step with the game.
+        if (!$GLOBALS['cfg']['tomyum']['manages_ranking']) {
+            $schedule->command('modding:rank')
+                ->cron('*/20 * * * *')
+                ->withoutOverlapping(120)
+                ->onOneServer();
+        }
 
         $schedule->command('oauth:delete-expired-tokens')
             ->cron('14 1 * * *')
