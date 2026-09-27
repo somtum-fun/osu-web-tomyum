@@ -33,9 +33,14 @@ export default class BeatmapsetMapping extends React.PureComponent<Props> {
       displayUser.avatar_url = user.avatar_url;
     }
 
+    // TomYum: sets imported from osu! have no local mapper account; link their osu! profile instead.
+    const fallbackHref = (displayUser.id ?? 0) > 0
+      ? undefined
+      : `https://osu.ppy.sh/users/${encodeURIComponent(displayUser.username)}`;
+
     return (
       <div className={bn}>
-        <UserLink user={displayUser}>
+        <UserLink fallbackHref={fallbackHref} user={displayUser}>
           <UserAvatar modifiers='beatmapset' user={displayUser} />
         </UserLink>
 
@@ -43,7 +48,7 @@ export default class BeatmapsetMapping extends React.PureComponent<Props> {
           <div className={`${bn}__mapper`}>
             <StringWithComponent
               mappings={{
-                mapper: <UserLink className={`${bn}__user`} user={displayUser} />,
+                mapper: <UserLink className={`${bn}__user`} fallbackHref={fallbackHref} user={displayUser} />,
               }}
               pattern={trans('beatmapsets.show.details.mapped_by')}
             />

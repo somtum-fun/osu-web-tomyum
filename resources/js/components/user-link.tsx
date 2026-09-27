@@ -10,6 +10,8 @@ import * as React from 'react';
 interface Props {
   children?: React.ReactNode;
   className?: string;
+  /** Where to link when the user has no page here (TomYum: a mapper known only from osu!). */
+  fallbackHref?: string;
   mode?: Ruleset;
   reportable?: Reportable;
   tooltipPosition?: string;
@@ -25,7 +27,7 @@ export default class UserLink extends React.PureComponent<Props> {
 
     const href = (this.props.user.id ?? -1) > 0
       ? route('users.show', { mode: this.props.mode, user: this.props.user.id })
-      : undefined;
+      : this.props.fallbackHref;
 
     return (
       <a
