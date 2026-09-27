@@ -17,6 +17,8 @@ class Kernel extends HttpKernel
     protected $middleware = [
         Middleware\DatadogMetrics::class,
         Middleware\SentryMetrics::class,
+        // TomYum: import maps lazer asks about from bancho first (TomYum docs/lazer.md).
+        Middleware\TomYumImportMissingBeatmaps::class,
     ];
 
     protected $middlewareGroups = [
