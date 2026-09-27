@@ -174,6 +174,23 @@ class TomYumSetup extends Command
             $this->warn("No Passport keys: run php artisan passport:keys, or lazer (and API logins) can't sign in.");
         }
         $this->line('osu!lazer login client: id 5.');
+
+        // Lazer's scores carry build 0 while client checks are off (CLIENT_CHECK_VERSION=false), and
+        // the spectator server needs that build to exist to save their replays. Private: it's not
+        // a release, so it stays off the changelog.
+        DB::transaction(function () {
+            DB::statement("SET SESSION sql_mode = CONCAT(@@SESSION.sql_mode, ',NO_AUTO_VALUE_ON_ZERO')");
+            DB::table('osu_builds')->insertOrIgnore([
+                'build_id' => 0,
+                'version' => 'lazer (unchecked)',
+                'allow_ranking' => 1,
+                'allow_bancho' => 1,
+                'allow_performance' => 1,
+                'private' => 1,
+            ]);
+            DB::statement("SET SESSION sql_mode = REPLACE(@@SESSION.sql_mode, 'NO_AUTO_VALUE_ON_ZERO', '')");
+        });
+        $this->line('osu!lazer build 0 (unchecked clients): present.');
     }
 
     private function checkConfig(): void
