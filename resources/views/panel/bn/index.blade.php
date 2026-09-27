@@ -7,6 +7,11 @@
 @section('content')
     @include('panel._header', ['crumbs' => [['url' => route('panel.bn.index'), 'title' => 'BN panel']]])
     <div class="osu-page osu-page--admin tomyum-panel">
+        <a class="tomyum-panel__link" href="{{ route('panel.bn.sets.index') }}">
+            <h2 style="margin: 0">Manage beatmap sets &rarr;</h2>
+            <p class="tomyum-panel__hint" style="margin: 4px 0 0">Search sets on the server, change their ranked status, refresh them from bancho.</p>
+        </a>
+
         <div class="tomyum-panel__card">
             <h2>Import a beatmap set</h2>
             <p class="tomyum-panel__hint">

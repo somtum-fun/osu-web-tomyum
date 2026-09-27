@@ -43,6 +43,11 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('import', 'BnController@import')->name('import');
             Route::post('import-bulk', 'BnController@importBulk')->name('import-bulk');
             Route::get('jobs/{job}', 'BnController@job')->name('job');
+
+            Route::get('sets', 'BnSetsController@index')->name('sets.index');
+            Route::get('sets/{set}', 'BnSetsController@show')->name('sets.show');
+            Route::post('sets/{set}/status', 'BnSetsController@status')->name('sets.status');
+            Route::post('sets/{set}/refresh', 'BnSetsController@refresh')->name('sets.refresh');
         });
     });
 
@@ -673,6 +678,10 @@ Route::group(['prefix' => '_lio', 'middleware' => 'lio', 'as' => 'interop.'], fu
     Route::post('user-index/{user}', 'LegacyInterOpController@userIndex');
     Route::post('user-recalculate-ranked-scores/{user}', 'LegacyInterOpController@userRecalculateRankedScores');
     Route::get('/news', 'LegacyInterOpController@news');
+
+    // TomYum: search-index a beatmap set without index-beatmapset's media regeneration (which
+    // downloads the .osz through the mirror; TomYum's covers come from ppy's asset server).
+    Route::post('tomyum/index-beatmapset-document/{beatmapset}', 'TomYumInterOpController@indexBeatmapsetDocument');
 
     Route::group(['namespace' => 'InterOp'], function () {
         Route::post('artist-tracks/reindex-all', 'ArtistTracksController@reindexAll');

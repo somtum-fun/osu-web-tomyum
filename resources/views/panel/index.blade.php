@@ -11,7 +11,7 @@
             @if ($panels['bn'])
                 <a class="tomyum-panel__link" href="{{ route('panel.bn.index') }}">
                     <h2>BN panel</h2>
-                    <p class="tomyum-panel__hint">Import beatmap sets from bancho.</p>
+                    <p class="tomyum-panel__hint">Import beatmap sets from bancho and manage their ranked status.</p>
                 </a>
             @endif
             @if ($panels['gmt'])

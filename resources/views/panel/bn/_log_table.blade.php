@@ -22,7 +22,8 @@
     </tr>
     @foreach ($entries as $entry)
         @php
-            [$label, $tone] = $resultLabels[$entry['result']] ?? [$entry['result'], 'success'];
+            // Status changes carry the new status as their result.
+            [$label, $tone] = $resultLabels[$entry['result']] ?? ['Set to '.ucfirst($entry['result'] ?? '?'), 'success'];
             $actorName = $actors[$entry['actorId']] ?? null;
         @endphp
         <tr>
@@ -35,8 +36,8 @@
                 @endif
             </td>
             <td>
-                @if ($entry['result'] === 'imported')
-                    <a href="{{ route('beatmapsets.show', ['beatmapset' => $entry['targetId']]) }}">{{ $entry['summary'] }}</a>
+                @if ($entry['result'] !== 'not_found' && $entry['result'] !== 'failed')
+                    <a href="{{ route('panel.bn.sets.show', ['set' => $entry['targetId']]) }}">{{ $entry['summary'] }}</a>
                 @else
                     {{ $entry['summary'] }}
                 @endif
