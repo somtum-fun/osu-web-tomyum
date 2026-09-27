@@ -705,6 +705,8 @@ Route::group(['prefix' => '_lio', 'middleware' => 'lio', 'as' => 'interop.'], fu
     // TomYum: search-index a beatmap set without index-beatmapset's media regeneration (which
     // downloads the .osz through the mirror; TomYum's covers come from ppy's asset server).
     Route::post('tomyum/index-beatmapset-document/{beatmapset}', 'TomYumInterOpController@indexBeatmapsetDocument');
+    // TomYum: rebuild a country's ranking data after a player's stats changed.
+    Route::post('tomyum/recalculate-country/{acronym}', 'TomYumInterOpController@recalculateCountry');
 
     Route::group(['namespace' => 'InterOp'], function () {
         Route::post('artist-tracks/reindex-all', 'ArtistTracksController@reindexAll');

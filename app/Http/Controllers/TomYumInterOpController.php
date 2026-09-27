@@ -5,6 +5,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Libraries\TomYumCountryStats;
 use App\Models\Beatmapset;
 
 /**
@@ -15,6 +16,13 @@ class TomYumInterOpController extends Controller
     public function indexBeatmapsetDocument($id)
     {
         Beatmapset::withTrashed()->findOrFail($id)->esIndexDocument();
+
+        return response()->noContent();
+    }
+
+    public function recalculateCountry($acronym)
+    {
+        TomYumCountryStats::recalculate($acronym);
 
         return response()->noContent();
     }

@@ -218,7 +218,7 @@ class RankingController extends Controller
                     $countryStats = CountryStatistics::where('display', true)
                         ->where('country_code', $params['country'])
                         ->where('mode', $rulesetId)
-                        ->firstOrFail();
+                        ->first(); // TomYum: a country nobody plays from yet shows an empty ranking, not a 404
                 }
 
                 $class = UserStatistics\Model::getClass($mode, $params['variant']);

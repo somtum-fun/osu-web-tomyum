@@ -6,10 +6,13 @@
 namespace App\Http\Controllers\Panel;
 
 use App\Exceptions\ChangeUsernameException;
+use App\Libraries\TomYumCountryStats;
 use App\Libraries\User\PasswordHelper;
+use App\Models\Beatmap;
 use App\Models\Country;
 use App\Models\Group;
 use App\Models\User;
+use App\Models\UserStatistics;
 use Auth;
 use Carbon\Carbon;
 use DB;
@@ -129,7 +132,14 @@ class AdminController extends Controller
             if (!Country::where('acronym', $country)->exists()) {
                 return $this->back($target, 'error', 'Unknown country.');
             }
+            $oldCountry = $target->country_acronym;
             $target->update(['country_acronym' => $country]);
+            // Rankings filter on the copy of the country in each ruleset's stats row.
+            foreach (array_keys(Beatmap::MODES) as $modeStr) {
+                UserStatistics\Model::getClass($modeStr)::where('user_id', $target->getKey())->update(['country_acronym' => $country]);
+            }
+            TomYumCountryStats::recalculate($oldCountry);
+            TomYumCountryStats::recalculate($country);
             $changes[] = "country → {$country}";
         }
 
@@ -257,6 +267,8 @@ class AdminController extends Controller
                 'osu_subscriber' => false,
             ]);
         });
+
+        TomYumCountryStats::recalculate($target->country_acronym);
 
         return $this->done($target->fresh(), 'admin.delete', "Deleted {$old}'s account.", "Deleted {$old}: renamed, banned from the game, removed from all groups. Their scores stay on record but hidden.");
     }

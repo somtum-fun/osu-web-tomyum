@@ -5,6 +5,7 @@
 
 namespace App\Http\Controllers\Panel;
 
+use App\Libraries\TomYumCountryStats;
 use App\Models\User;
 use App\Models\UserAccountHistory;
 use App\Models\UserReport;
@@ -308,6 +309,10 @@ class GmtController extends Controller
     /** Logs the action, applies it in-game and goes back to the user page. */
     private function done(User $target, string $action, string $summary, string $message)
     {
+        // Restricted players drop out of their country's ranking (and come back when unrestricted).
+        if (in_array($action, ['user.restrict', 'user.unrestrict'], true)) {
+            TomYumCountryStats::recalculate($target->country_acronym);
+        }
         $this->staffLog($action, $target->getKey(), $summary);
         if (!$this->refreshInGame($target->getKey())) {
             $message .= " The game server couldn't be reached, so it applies when they next log in.";
