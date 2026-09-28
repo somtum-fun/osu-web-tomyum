@@ -27,6 +27,9 @@ return [
     'achievement' => [
         'icon_prefix' => env('USER_ACHIEVEMENT_ICON_PREFIX', 'https://assets.ppy.sh/user-achievements/'),
     ],
+    'badge' => [
+        'image_prefix' => env('USER_BADGE_IMAGE_PREFIX', 'https://assets.ppy.sh/profile-badges/'),
+    ],
 
     'api' => [
         // changing the throttle rate doesn't reset any existing timers,
