@@ -14,7 +14,7 @@
     @include('panel._header', ['crumbs' => [['url' => route('panel.admin.index'), 'title' => 'Admin panel']]])
     <div class="osu-page osu-page--admin tomyum-panel">
         <div class="tomyum-panel__links">
-            <div class="tomyum-panel__link">
+            <div class="tomyum-panel__link js-tomyum-live">
                 <p class="tomyum-panel__hint" style="margin: 0">Game server</p>
                 @if ($server !== null)
                     <h2 style="margin: 4px 0">{{ $server['online'] }} online</h2>
@@ -56,7 +56,7 @@
             </form>
         </div>
 
-        <div class="tomyum-panel__card">
+        <div class="tomyum-panel__card js-tomyum-live">
             <h2>Online now</h2>
             @if (count($online) === 0)
                 <p class="tomyum-panel__hint">Nobody is online.</p>
@@ -94,4 +94,30 @@
             @endif
         </div>
     </div>
+    {{-- The online count and list follow along without reloading (the account search keeps its text). --}}
+    <script>
+        if (window.tomyumLiveRefresh == null) {
+            window.tomyumLiveRefresh = setInterval(async function () {
+                const path = {!! json_encode(parse_url(route('panel.admin.index'), PHP_URL_PATH)) !!};
+                const live = document.querySelectorAll('.js-tomyum-live');
+                if (location.pathname !== path || live.length === 0 || document.hidden) {
+                    return;
+                }
+                try {
+                    const response = await fetch(location.href, { credentials: 'same-origin' });
+                    if (!response.ok) {
+                        return;
+                    }
+                    const fresh = new DOMParser().parseFromString(await response.text(), 'text/html').querySelectorAll('.js-tomyum-live');
+                    live.forEach(function (element, i) {
+                        if (fresh[i] != null) {
+                            element.innerHTML = fresh[i].innerHTML;
+                        }
+                    });
+                } catch (e) {
+                    // Offline for a moment: the next tick tries again.
+                }
+            }, 10000);
+        }
+    </script>
 @endsection
