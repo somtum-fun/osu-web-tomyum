@@ -65,6 +65,14 @@ class TomYumInterOpController extends Controller
             $beatmapset->description()->update($description, $author);
         }
 
+        // Featured artist track (osu!'s track id): the listing's "Featured Artists" filter and the badge.
+        if (request()->has('track_id')) {
+            $trackId = get_int(request()->input('track_id'));
+            if ($beatmapset->track_id !== $trackId) {
+                \DB::table('osu_beatmapsets')->where('beatmapset_id', $beatmapset->getKey())->update(['track_id' => $trackId]);
+            }
+        }
+
         \DB::transaction(function () use ($beatmapset) {
             \DB::table('tomyum_beatmapset_nominators')->where('beatmapset_id', $beatmapset->getKey())->delete();
             foreach ((array) request()->input('nominators', []) as $nominator) {

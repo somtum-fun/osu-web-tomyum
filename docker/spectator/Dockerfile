@@ -1,5 +1,5 @@
 # ppy's osu-server-spectator (multiplayer, spectating, online presence, lazer replays) for TomYum.
-# Built from ppy's source with two changes: the database password comes from DB_PASS, and lazer
+# Built from ppy's source with three changes (plus a presence feed for TomYum, below): the database password comes from DB_PASS, and lazer
 # replays are written to a local folder (mounted
 # as the website's public/uploads/replay, where osu-web's "local-replay" disk reads them) instead
 # of Amazon S3, which ppy's build always uses. See TomYum docs/lazer.md.
@@ -14,6 +14,9 @@ RUN grep -q 'IScoreStorage, S3ScoreStorage>' Extensions/ServiceCollectionExtensi
 # take it from DB_PASS, like ppy's score processor does.
 RUN grep -q 'User ID={AppSettings.DatabaseUser};' Database/DatabaseAccess.cs \
     && sed -i 's/User ID={AppSettings.DatabaseUser};/User ID={AppSettings.DatabaseUser};Password={System.Environment.GetEnvironmentVariable("DB_PASS")};/' Database/DatabaseAccess.cs
+# Publish lazer presence to Redis for TomYum (online lists, the website's online graph).
+COPY TomYumPresencePublisher.cs Hubs/Metadata/TomYumPresencePublisher.cs
+RUN grep -q '.AddHostedService<MultiplayerRoomLifetimeBackgroundService>();' Extensions/ServiceCollectionExtensions.cs     && sed -i 's/.AddHostedService<MultiplayerRoomLifetimeBackgroundService>();/.AddHostedService<MultiplayerRoomLifetimeBackgroundService>().AddHostedService<TomYumPresencePublisher>();/' Extensions/ServiceCollectionExtensions.cs
 RUN dotnet publish -c Release -o /out && rm -rf /out/runtimes /out/osu.Game.Resources.dll
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
