@@ -206,7 +206,8 @@ services:
   # presence and replays. Caddy serves it as https://spectator.localtest.me.
   spectator:
     build:
-      context: docker/spectator
+      # TomYum's build of ppy's server: a checkout of sundeiii/tomyum-spectator next to this one.
+      context: ${SPECTATOR_PATH:-../tomyum-spectator}
     restart: unless-stopped
     depends_on:
       redis:
