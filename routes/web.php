@@ -43,6 +43,7 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('import', 'BnController@import')->name('import');
             Route::post('import-bulk', 'BnController@importBulk')->name('import-bulk');
             Route::get('jobs/{job}', 'BnController@job')->name('job');
+            Route::post('upload-ticket', 'BnController@uploadTicket')->name('upload-ticket');
 
             Route::get('sets', 'BnSetsController@index')->name('sets.index');
             Route::get('sets/{set}', 'BnSetsController@show')->name('sets.show');

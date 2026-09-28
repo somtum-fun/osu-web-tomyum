@@ -509,6 +509,11 @@ class Beatmapset extends Model implements AfterCommit, CommentableInterface, Ind
 
     public function previewUrl(): string
     {
+        // TomYum: custom (uploaded) sets' audio is on this server, next to their covers.
+        if ($this->getKey() >= \App\Http\Controllers\Panel\BnController::CUSTOM_ID_FLOOR) {
+            return $GLOBALS['cfg']['app']['url']."/uploads/default/beatmaps/{$this->getKey()}/preview.mp3";
+        }
+
         return "https://b.ppy.sh/preview/{$this->getKey()}.mp3";
     }
 

@@ -29,6 +29,35 @@
         </div>
 
         <div class="tomyum-panel__card">
+            <h2>Upload a custom beatmap set</h2>
+            <p class="tomyum-panel__hint">
+                An .osz from the osu! editor (up to 100 MB). It becomes a pending set with its own ids (from
+                {{ number_format(App\Http\Controllers\Panel\BnController::CUSTOM_ID_FLOOR) }}), which players can
+                download in-game (osu!direct) and on the website. The mapper named in the difficulties owns it
+                when they have an account here. To update a custom set, give its link or id: difficulties with
+                the same name keep their ids and scores, and the ones left out are removed.
+            </p>
+            <form class="js-tomyum-upload" data-ticket-url="{{ route('panel.bn.upload-ticket') }}">
+                <div class="tomyum-panel__row">
+                    <label class="tomyum-panel__field">
+                        .osz file
+                        <input type="file" name="osz" accept=".osz" required>
+                    </label>
+                    <label class="tomyum-panel__field">
+                        Update custom set (optional)
+                        <input type="text" name="set" placeholder="{{ App\Http\Controllers\Panel\BnController::CUSTOM_ID_FLOOR }}">
+                    </label>
+                    <button class="tomyum-panel__button" type="submit">Upload</button>
+                </div>
+                <p class="js-tomyum-upload-status" hidden></p>
+            </form>
+            @if (count($uploads) > 0)
+                <h3>Recent uploads</h3>
+                @include('panel.bn._log_table', ['entries' => $uploads, 'showJob' => false])
+            @endif
+        </div>
+
+        <div class="tomyum-panel__card">
             <h2>Bulk import</h2>
             <p class="tomyum-panel__hint">Runs in the background; you can leave the page and check back under "Recent imports".</p>
 
@@ -106,4 +135,91 @@
             @endif
         </div>
     </div>
+    <script>
+        // Uploads go straight to the game server (the website only signs them), with progress.
+        if (window.tomyumUpload == null) {
+            window.tomyumUpload = true;
+            document.addEventListener('submit', async function (event) {
+                const form = event.target.closest('.js-tomyum-upload');
+                if (form == null) {
+                    return;
+                }
+                event.preventDefault();
+                const status = form.querySelector('.js-tomyum-upload-status');
+                const button = form.querySelector('button[type=submit]');
+                const show = function (text, link) {
+                    status.hidden = false;
+                    status.textContent = text;
+                    if (link != null) {
+                        const a = document.createElement('a');
+                        a.href = link;
+                        a.textContent = ' Open the set';
+                        status.append(a);
+                    }
+                };
+
+                button.disabled = true;
+                try {
+                    const ticket = await fetch(form.dataset.ticketUrl, {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': document.querySelector('meta[name=csrf-token]').content,
+                        },
+                        body: JSON.stringify({ set: form.elements.set.value }),
+                    });
+                    const ticketBody = await ticket.json();
+                    if (!ticket.ok) {
+                        show(ticketBody.error ?? ('Couldn\'t start the upload (HTTP ' + ticket.status + ').'));
+                        return;
+                    }
+
+                    const data = new FormData();
+                    data.append('osz', form.elements.osz.files[0]);
+                    const result = await new Promise(function (resolve) {
+                        const request = new XMLHttpRequest();
+                        request.open('POST', ticketBody.url);
+                        request.upload.onprogress = function (e) {
+                            if (e.lengthComputable) {
+                                show('Uploading… ' + Math.round(e.loaded / e.total * 100) + '%');
+                            }
+                        };
+                        request.upload.onload = function () {
+                            show('Processing…');
+                        };
+                        request.onload = function () {
+                            let body = null;
+                            try {
+                                body = JSON.parse(request.responseText);
+                            } catch (e) {
+                                // Not JSON: the proxy refused it (too big) or the server is down.
+                            }
+                            resolve({ status: request.status, body: body });
+                        };
+                        request.onerror = function () {
+                            resolve({ status: 0, body: null });
+                        };
+                        request.send(data);
+                    });
+
+                    if (result.status === 200 && result.body != null) {
+                        const b = result.body;
+                        show((b.updated ? 'Updated ' : 'Uploaded ') + b.artist + ' - ' + b.title + ' (' + b.creator + '), '
+                            + b.difficulties.length + ' difficulties, set ' + b.set_id + '.', '/beatmapsets/' + b.set_id);
+                        form.reset();
+                    } else if (result.status === 413) {
+                        show('The file is too big.');
+                    } else {
+                        show(result.body?.error ?? ('The upload failed (HTTP ' + result.status + ').'));
+                    }
+                } catch (e) {
+                    show('The upload failed: ' + e.message);
+                } finally {
+                    button.disabled = false;
+                }
+            });
+        }
+    </script>
 @endsection

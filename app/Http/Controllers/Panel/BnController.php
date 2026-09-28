@@ -12,10 +12,14 @@ use Carbon\Carbon;
 use Request;
 
 /**
- * BN panel: import beatmap sets from bancho (the osu! API) into TomYum and the website.
+ * BN panel: import beatmap sets from bancho (the osu! API) into TomYum and the website, and upload
+ * custom sets (.osz files) to TomYum.
  */
 class BnController extends Controller
 {
+    /** Custom (uploaded) sets and difficulties have ids from here (TomYum's Beatmap.CustomIdFloor). */
+    public const CUSTOM_ID_FLOOR = 10_000_000;
+
     public function __construct()
     {
         parent::__construct();
@@ -32,6 +36,8 @@ class BnController extends Controller
         $jobs = $this->tomyum()->get('/beatmapsets/import-jobs');
         $log = $this->tomyum()->get('/log', ['action' => 'beatmapset.import', 'limit' => 50]);
         $entries = $log->successful() ? $log->json() : [];
+        $uploadLog = $this->tomyum()->get('/log', ['action' => 'beatmapset.upload', 'limit' => 20]);
+        $uploads = $uploadLog->successful() ? $uploadLog->json() : [];
         $jobList = $jobs->successful() ? $jobs->json() : [];
         $jobStarters = array_map(fn ($job) => ['actorId' => $job['startedBy']], $jobList);
 
@@ -40,8 +46,42 @@ class BnController extends Controller
             'jobsError' => $jobs->successful() ? null : "Couldn't load bulk imports (HTTP {$jobs->status()}).",
             'entries' => $entries,
             'logError' => $log->successful() ? null : "Couldn't load the import log (HTTP {$log->status()}).",
-            'actors' => static::actorNames(array_merge($entries, $jobStarters)),
+            'actors' => static::actorNames(array_merge($entries, $uploads, $jobStarters)),
+            'uploads' => $uploads,
         ]);
+    }
+
+    /**
+     * Permission to upload one .osz (a new custom set, or a new version of custom set `set`): the
+     * browser sends the file straight to TomYum with this signed link, valid for an hour.
+     */
+    public function uploadTicket()
+    {
+        $setId = null;
+        if (present(Request::input('set'))) {
+            $setId = static::parseSetId(Request::input('set'));
+            if ($setId === null || $setId < static::CUSTOM_ID_FLOOR) {
+                return response()->json(['error' => 'Only custom sets (ids from '.number_format(static::CUSTOM_ID_FLOOR).') can be updated. Leave it empty to upload a new set.'], 422);
+            }
+        }
+
+        $secret = $GLOBALS['cfg']['osu']['legacy']['shared_interop_secret'];
+        if (!present($secret)) {
+            return response()->json(['error' => 'Uploads are not set up on this server (SHARED_INTEROP_SECRET).'], 503);
+        }
+
+        $userId = Auth::user()->getKey();
+        $expires = time() + 3600;
+        $query = [
+            'user' => $userId,
+            'expires' => $expires,
+            'signature' => hash_hmac('sha256', "upload\n{$userId}\n".($setId ?? '')."\n{$expires}", $secret),
+        ];
+        if ($setId !== null) {
+            $query['set'] = $setId;
+        }
+
+        return response()->json(['url' => '/web/tomyum/beatmapset-upload?'.http_build_query($query)]);
     }
 
     public function import()

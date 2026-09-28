@@ -8,6 +8,9 @@
         'imported' => ['Imported', 'success'],
         'not_found' => ['Not on osu!', 'error'],
         'failed' => ['Failed', 'error'],
+        'uploaded' => ['Uploaded', 'success'],
+        'updated' => ['Updated', 'success'],
+        'rejected' => ['Refused', 'error'],
     ];
 @endphp
 <table class="tomyum-panel__table">
@@ -36,7 +39,7 @@
                 @endif
             </td>
             <td>
-                @if ($entry['result'] !== 'not_found' && $entry['result'] !== 'failed')
+                @if (($entry['targetId'] ?? null) !== null && !in_array($entry['result'], ['not_found', 'failed', 'rejected'], true))
                     <a href="{{ route('panel.bn.sets.show', ['set' => $entry['targetId']]) }}">{{ $entry['summary'] }}</a>
                 @else
                     {{ $entry['summary'] }}
