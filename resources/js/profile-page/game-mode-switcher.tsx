@@ -9,7 +9,6 @@ import { action, observable, makeObservable } from 'mobx';
 import { observer } from 'mobx-react';
 import * as React from 'react';
 import { onErrorWithCallback } from 'utils/ajax';
-import { classWithModifiers } from 'utils/css';
 import { trans } from 'utils/lang';
 import Controller from './controller';
 
@@ -66,20 +65,31 @@ export default class GameModeSwitcher extends React.Component<Props> {
     const user = this.props.controller.state.user.id;
 
     return (
-      <ul className='game-mode'>
-        {[['VN', mode, 'Vanilla'] as [string, string, string], ...list].map(([label, target, title]) => (
-          <li key={target}>
+      <div style={{ alignItems: 'center', display: 'flex', gap: 6, marginLeft: 16 }}>
+        {[['Vanilla', mode], ...list.map(([, target, title]) => [title, target])].map(([label, target]) => {
+          const active = shown === target;
+
+          return (
             <a
-              className={classWithModifiers('game-mode-link', { active: shown === target })}
+              key={target}
               href={route('users.show', { mode: target, user })}
-              style={{ fontWeight: 700 }}
-              title={title}
+              style={{
+                background: active ? 'hsl(var(--hsl-h1))' : 'hsl(var(--hsl-b4))',
+                borderRadius: 999,
+                color: active ? 'hsl(var(--hsl-b6))' : 'hsl(var(--hsl-c1))',
+                fontSize: 12,
+                fontWeight: 600,
+                lineHeight: '20px',
+                padding: '2px 12px',
+                textDecoration: 'none',
+                whiteSpace: 'nowrap',
+              }}
             >
               {label}
             </a>
-          </li>
-        ))}
-      </ul>
+          );
+        })}
+      </div>
     );
   }
 
