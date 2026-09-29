@@ -47,8 +47,14 @@ class MatchmakingController extends Controller
             ->get()
             ->groupBy('pool_id');
 
+        $automaticMaps = [];
+        foreach ($pools as $pool) {
+            $automaticMaps[$pool->id] = static::automaticMaps((int) $pool->ruleset_id, (int) $pool->variant_id);
+        }
+
         return ext_view('panel.admin.matchmaking', [
             'pools' => $pools,
+            'automaticMaps' => $automaticMaps,
             'added' => $added,
             'automatic' => static::automaticCounts(),
             'rulesets' => static::RULESETS,
@@ -187,6 +193,26 @@ class MatchmakingController extends Controller
         }
 
         return $counts;
+    }
+
+    /** The maps the spectator server puts in a pool by itself (its query), easiest first. */
+    private static function automaticMaps(int $ruleset, int $variant)
+    {
+        $query = DB::table('osu_beatmaps as b')
+            ->join('osu_beatmapsets as s', 's.beatmapset_id', '=', 'b.beatmapset_id')
+            ->whereNotNull('s.track_id')
+            ->whereNull('b.deleted_at')
+            ->whereNull('s.download_disabled_url')
+            ->whereBetween('b.approved', [1, 2])
+            ->whereBetween('b.hit_length', [60, 300])
+            ->where('b.playmode', $ruleset)
+            ->select('b.beatmap_id', 'b.version', 'b.difficultyrating', 'b.hit_length', 's.artist', 's.title')
+            ->orderBy('b.difficultyrating');
+        if ($ruleset === 3) {
+            $query->where('b.diff_size', $variant);
+        }
+
+        return $query->get();
     }
 
     private function pool(string $id): object

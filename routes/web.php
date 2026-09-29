@@ -83,6 +83,13 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('seasonal-backgrounds/settings', 'SeasonalBackgroundsController@settings')->name('seasonal-backgrounds.settings');
             Route::post('seasonal-backgrounds/{entry}/toggle', 'SeasonalBackgroundsController@toggle')->name('seasonal-backgrounds.toggle');
             Route::post('seasonal-backgrounds/{entry}/remove', 'SeasonalBackgroundsController@destroy')->name('seasonal-backgrounds.destroy');
+            Route::get('badges', 'BadgesController@index')->name('badges.index');
+            Route::post('badges/{user}', 'BadgesController@store')->name('badges.store');
+            Route::post('badges/{user}/remove', 'BadgesController@destroy')->name('badges.destroy');
+            Route::get('titles', 'TitlesController@index')->name('titles.index');
+            Route::post('titles', 'TitlesController@store')->name('titles.store');
+            Route::post('titles/assign', 'TitlesController@assign')->name('titles.assign');
+            Route::post('titles/{title}/remove', 'TitlesController@destroy')->name('titles.destroy');
             Route::get('news', 'NewsController@index')->name('news.index');
             Route::post('news', 'NewsController@store')->name('news.store');
             Route::post('news/{post}/remove', 'NewsController@destroy')->name('news.destroy');

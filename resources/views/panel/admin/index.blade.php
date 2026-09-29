@@ -38,8 +38,18 @@
             </a>
             <a class="tomyum-panel__link" href="{{ route('panel.admin.matchmaking.index') }}">
                 <p class="tomyum-panel__hint" style="margin: 0">lazer</p>
-                <h2 style="margin: 4px 0">Quick Play &amp; Ranked Play</h2>
-                <p class="tomyum-panel__hint" style="margin: 0">Matchmaking pools and maps</p>
+                <h2 style="margin: 4px 0">Ranked Play</h2>
+                <p class="tomyum-panel__hint" style="margin: 0">Pools and their maps</p>
+            </a>
+            <a class="tomyum-panel__link" href="{{ route('panel.admin.badges.index') }}">
+                <p class="tomyum-panel__hint" style="margin: 0">profiles</p>
+                <h2 style="margin: 4px 0">Badges</h2>
+                <p class="tomyum-panel__hint" style="margin: 0">Give and take profile badges</p>
+            </a>
+            <a class="tomyum-panel__link" href="{{ route('panel.admin.titles.index') }}">
+                <p class="tomyum-panel__hint" style="margin: 0">profiles</p>
+                <h2 style="margin: 4px 0">Titles</h2>
+                <p class="tomyum-panel__hint" style="margin: 0">The line under a player's name</p>
             </a>
             <a class="tomyum-panel__link" href="{{ route('panel.admin.news.index') }}">
                 <p class="tomyum-panel__hint" style="margin: 0">website &amp; lazer</p>
@@ -117,14 +127,14 @@
     {{-- The online count and list follow along without reloading (the account search keeps its text). --}}
     <script>
         if (window.tomyumLiveRefresh == null) {
-            window.tomyumLiveRefresh = setInterval(async function () {
+            const refresh = async function () {
                 const path = {!! json_encode(parse_url(route('panel.admin.index'), PHP_URL_PATH)) !!};
                 const live = document.querySelectorAll('.js-tomyum-live');
                 if (location.pathname !== path || live.length === 0 || document.hidden) {
                     return;
                 }
                 try {
-                    const response = await fetch(location.href, { credentials: 'same-origin' });
+                    const response = await fetch(location.href, { credentials: 'same-origin', cache: 'no-store' });
                     if (!response.ok) {
                         return;
                     }
@@ -137,7 +147,14 @@
                 } catch (e) {
                     // Offline for a moment: the next tick tries again.
                 }
-            }, 10000);
+            };
+            window.tomyumLiveRefresh = setInterval(refresh, 10000);
+            // It pauses while the tab is in the background: catch up as soon as it's back.
+            document.addEventListener('visibilitychange', function () {
+                if (!document.hidden) {
+                    refresh();
+                }
+            });
         }
     </script>
 @endsection

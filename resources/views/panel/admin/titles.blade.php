@@ -1,0 +1,86 @@
+{{--
+    Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
+    See the LICENCE file in the repository root for full licence text.
+--}}
+@extends('master', ['titlePrepend' => 'Titles'])
+
+@section('content')
+    @include('panel._header', ['crumbs' => [
+        ['url' => route('panel.admin.index'), 'title' => 'Admin panel'],
+        ['title' => 'Titles'],
+    ]])
+    <div class="osu-page osu-page--admin tomyum-panel">
+        <div class="tomyum-panel__card">
+            <h2>Give a title</h2>
+            <p class="tomyum-panel__hint">A title shows under the player's name on their profile (like osu!'s "Community Contributor").</p>
+            @if (count($titles) === 0)
+                <p class="tomyum-panel__hint">Make a title below first.</p>
+            @else
+                <form method="POST" action="{{ route('panel.admin.titles.assign') }}" class="tomyum-panel__row">
+                    @csrf
+                    <label class="tomyum-panel__field">
+                        Player (name or id)
+                        <input type="text" name="user" required>
+                    </label>
+                    <label class="tomyum-panel__field">
+                        Title
+                        <select name="title">
+                            @foreach ($titles as $title)
+                                <option value="{{ $title->getKey() }}">{{ $title->rank_title }}</option>
+                            @endforeach
+                            <option value="0">(no title)</option>
+                        </select>
+                    </label>
+                    <div><button class="tomyum-panel__button" type="submit">Save</button></div>
+                </form>
+            @endif
+        </div>
+
+        <div class="tomyum-panel__card">
+            <h2>Titles</h2>
+            @if (count($titles) === 0)
+                <p class="tomyum-panel__hint">None yet.</p>
+            @else
+                <table class="tomyum-panel__table">
+                    <tr><th>Title</th><th>Link</th><th>Players</th><th></th></tr>
+                    @foreach ($titles as $title)
+                        <tr>
+                            <td>{{ $title->rank_title }}</td>
+                            <td>@if (present($title->url))<a href="{{ $title->url }}" rel="nofollow noopener" target="_blank">link</a>@else – @endif</td>
+                            <td>
+                                @forelse ($holders[$title->getKey()] ?? [] as $holder)
+                                    <a href="{{ route('users.show', ['user' => $holder->getKey()]) }}">{{ $holder->username }}</a>@if (!$loop->last), @endif
+                                @empty
+                                    <span class="tomyum-panel__hint">nobody</span>
+                                @endforelse
+                            </td>
+                            <td>
+                                <form method="POST" action="{{ route('panel.admin.titles.destroy', ['title' => $title->getKey()]) }}"
+                                    onsubmit="return confirm('Remove this title (and take it from everyone who has it)?')">
+                                    @csrf
+                                    <button class="tomyum-panel__button tomyum-panel__button--danger" type="submit">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                    @endforeach
+                </table>
+            @endif
+        </div>
+
+        <div class="tomyum-panel__card">
+            <h2>Make a title</h2>
+            <form method="POST" action="{{ route('panel.admin.titles.store') }}" class="tomyum-panel__row">
+                @csrf
+                <label class="tomyum-panel__field">
+                    Title
+                    <input type="text" name="title" required maxlength="100" placeholder="Server Tester">
+                </label>
+                <label class="tomyum-panel__field">
+                    Link when clicked (optional)
+                    <input type="text" name="url" maxlength="255" placeholder="https://…">
+                </label>
+                <div><button class="tomyum-panel__button" type="submit">Make it</button></div>
+            </form>
+        </div>
+    </div>
+@endsection

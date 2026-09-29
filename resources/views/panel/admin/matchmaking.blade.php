@@ -2,7 +2,7 @@
     Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
     See the LICENCE file in the repository root for full licence text.
 --}}
-@extends('master', ['titlePrepend' => 'Quick Play & Ranked Play'])
+@extends('master', ['titlePrepend' => 'Ranked Play'])
 
 @php
     $poolName = fn ($pool) => $rulesets[(int) $pool->ruleset_id].((int) $pool->ruleset_id === 3 ? " {$pool->variant_id}K" : '');
@@ -13,7 +13,7 @@
 @section('content')
     @include('panel._header', ['crumbs' => [
         ['url' => route('panel.admin.index'), 'title' => 'Admin panel'],
-        ['title' => 'Quick Play & Ranked Play'],
+        ['title' => 'Ranked Play'],
     ]])
     <div class="osu-page osu-page--admin tomyum-panel">
         <div class="tomyum-panel__card">
@@ -37,7 +37,7 @@
                 </h2>
                 <p class="tomyum-panel__hint">
                     {{ $pool->type === 'ranked_play' ? '1v1' : "Lobbies of {$pool->lobby_size}" }} ·
-                    {{ $autoCount($pool) }} maps from the server, {{ count($maps) }} added here
+                    {{ $autoCount($pool) }} maps from the server, {{ count($maps) }} with their own entry (added here, or rated from play)
                     @if ($pool->type === 'ranked_play' && $total < \App\Http\Controllers\Panel\MatchmakingController::RANKED_DECK)
                         · <strong>fewer than {{ \App\Http\Controllers\Panel\MatchmakingController::RANKED_DECK }} maps: matches repeat them</strong>
                     @elseif ($total === 0)
@@ -88,6 +88,25 @@
                         @endforeach
                     </table>
                 @endif
+
+                @php($auto = $automaticMaps[$pool->id] ?? collect())
+                <details style="margin: 10px 0">
+                    <summary style="cursor: pointer">The {{ count($auto) }} maps the server picks by itself (ranked featured-artist maps, 1-5 minutes), easiest first</summary>
+                    @if (count($auto) === 0)
+                        <p class="tomyum-panel__hint">None: add maps below.</p>
+                    @else
+                        <table class="tomyum-panel__table">
+                            <tr><th>Map</th><th>Stars</th><th>Length</th></tr>
+                            @foreach ($auto as $map)
+                                <tr>
+                                    <td><a href="{{ route('beatmaps.show', ['beatmap' => $map->beatmap_id]) }}">{{ $map->artist }} - {{ $map->title }} [{{ $map->version }}]</a></td>
+                                    <td>★{{ number_format($map->difficultyrating, 2) }}</td>
+                                    <td>{{ gmdate('i:s', (int) $map->hit_length) }}</td>
+                                </tr>
+                            @endforeach
+                        </table>
+                    @endif
+                </details>
 
                 <form method="POST" action="{{ route('panel.admin.matchmaking.add-beatmap', ['pool' => $pool->id]) }}" class="tomyum-panel__row">
                     @csrf
