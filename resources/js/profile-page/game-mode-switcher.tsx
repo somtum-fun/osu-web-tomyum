@@ -34,17 +34,19 @@ export default class GameModeSwitcher extends React.Component<Props> {
     return (
       <>
         {this.renderSetDefault()}
-        {/* TomYum: the Relax/Autopilot pills sit with the mode icons, on their left. */}
-        <div style={{ alignItems: 'center', display: 'flex', gap: 14, marginLeft: 'auto' }}>
+        {/* TomYum: the Relax/Autopilot pills sit with the mode icons, on their left: one pinned group (the
+            icons are pinned to the right on their own otherwise, and would overlap anything next to them). */}
+        <div className='game-mode'>
           {this.renderVariants()}
           <PlaymodeTabs
-          currentMode={this.props.controller.currentMode}
-          defaultMode={this.props.controller.state.user.playmode}
-          entries={rulesets.map((mode) => ({
-            disabled: false,
-            href: route('users.show', { mode, user: this.props.controller.state.user.id }),
-            mode,
-          }))}
+            currentMode={this.props.controller.currentMode}
+            defaultMode={this.props.controller.state.user.playmode}
+            entries={rulesets.map((mode) => ({
+              disabled: false,
+              href: route('users.show', { mode, user: this.props.controller.state.user.id }),
+              mode,
+            }))}
+            modifiers='inline'
           />
         </div>
       </>
