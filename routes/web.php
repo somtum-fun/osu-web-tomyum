@@ -78,6 +78,17 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('daily-challenge', 'DailyChallengeController@store')->name('daily-challenge.store');
             Route::post('daily-challenge/{item}/move', 'DailyChallengeController@move')->name('daily-challenge.move');
             Route::post('daily-challenge/{item}/remove', 'DailyChallengeController@destroy')->name('daily-challenge.destroy');
+            Route::get('seasonal-backgrounds', 'SeasonalBackgroundsController@index')->name('seasonal-backgrounds.index');
+            Route::post('seasonal-backgrounds', 'SeasonalBackgroundsController@store')->name('seasonal-backgrounds.store');
+            Route::post('seasonal-backgrounds/settings', 'SeasonalBackgroundsController@settings')->name('seasonal-backgrounds.settings');
+            Route::post('seasonal-backgrounds/{entry}/toggle', 'SeasonalBackgroundsController@toggle')->name('seasonal-backgrounds.toggle');
+            Route::post('seasonal-backgrounds/{entry}/remove', 'SeasonalBackgroundsController@destroy')->name('seasonal-backgrounds.destroy');
+            Route::get('matchmaking', 'MatchmakingController@index')->name('matchmaking.index');
+            Route::post('matchmaking', 'MatchmakingController@store')->name('matchmaking.store');
+            Route::post('matchmaking/{pool}', 'MatchmakingController@update')->name('matchmaking.update');
+            Route::post('matchmaking/{pool}/remove', 'MatchmakingController@destroy')->name('matchmaking.destroy');
+            Route::post('matchmaking/{pool}/beatmaps', 'MatchmakingController@addBeatmap')->name('matchmaking.add-beatmap');
+            Route::post('matchmaking/{pool}/beatmaps/{entry}/remove', 'MatchmakingController@removeBeatmap')->name('matchmaking.remove-beatmap');
         });
     });
 

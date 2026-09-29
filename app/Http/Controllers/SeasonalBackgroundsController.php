@@ -5,26 +5,27 @@
 
 namespace App\Http\Controllers;
 
+use App\Libraries\TomYumSeasonal;
 use App\Models\Contest;
 use App\Transformers\SeasonalBackgroundTransformer;
-use Carbon\Carbon;
 use stdClass;
 
 class SeasonalBackgroundsController extends Controller
 {
     public function index()
     {
-        $contest = Contest::find($GLOBALS['cfg']['osu']['seasonal']['contest_id']);
+        // TomYum: the contest and end date the admin panel sets (TomYumSeasonal), unless the env gives them.
+        $contest = Contest::find(TomYumSeasonal::contestId());
+        $endsAt = TomYumSeasonal::endsAt();
 
-        if ($contest === null) {
+        if ($contest === null || $endsAt === null) {
             return response()->json(new stdClass());
         }
 
         $backgrounds = $contest->userContestEntries()->where('show_in_client', true)->get();
 
         return [
-            'ends_at' => json_time(Carbon::parse($GLOBALS['cfg']['osu']['seasonal']['ends_at'])),
-
+            'ends_at' => json_time($endsAt),
             'backgrounds' => json_collection($backgrounds, new SeasonalBackgroundTransformer()),
         ];
     }

@@ -36,6 +36,16 @@
                 <h2 style="margin: 4px 0">Daily challenge</h2>
                 <p class="tomyum-panel__hint" style="margin: 0">Pick and order the maps</p>
             </a>
+            <a class="tomyum-panel__link" href="{{ route('panel.admin.matchmaking.index') }}">
+                <p class="tomyum-panel__hint" style="margin: 0">lazer</p>
+                <h2 style="margin: 4px 0">Quick Play &amp; Ranked Play</h2>
+                <p class="tomyum-panel__hint" style="margin: 0">Matchmaking pools and maps</p>
+            </a>
+            <a class="tomyum-panel__link" href="{{ route('panel.admin.seasonal-backgrounds.index') }}">
+                <p class="tomyum-panel__hint" style="margin: 0">lazer &amp; stable</p>
+                <h2 style="margin: 4px 0">Seasonal backgrounds</h2>
+                <p class="tomyum-panel__hint" style="margin: 0">Menu backgrounds and the season's end</p>
+            </a>
         </div>
 
         <div class="tomyum-panel__card">
