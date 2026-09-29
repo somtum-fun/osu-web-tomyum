@@ -9,7 +9,8 @@ import * as React from 'react';
 import { trans } from 'utils/lang';
 import Controller from './controller';
 
-const serverHost = 'irc.ppy.sh';
+// The IRC server sits next to the website: osu.example.com -> irc.example.com.
+const serverHost = window.location.hostname.replace(/^osu\./, 'irc.');
 const serverPort = '6667';
 
 interface Props {

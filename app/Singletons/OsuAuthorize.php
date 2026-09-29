@@ -1815,11 +1815,7 @@ class OsuAuthorize
         $this->ensureLoggedIn($user);
         $this->ensureCleanRecord($user);
 
-        // isBot checks user primary group
-        if (!$user->isGroup(app('groups')->byIdentifier('bot')) && $user->playCount() < 100) {
-            return 'play_more';
-        }
-
+        // TomYum: no play count needed (IRC was open to everyone through BanchoBot's !irc).
         return 'ok';
     }
 
