@@ -30,8 +30,12 @@ class TomYumImportMissingBeatmaps
     /** At most this many imports per request (a batch lookup can list many maps). */
     private const MAX_IMPORTS = 10;
 
-    /** At most this many imports per client IP per hour (each is an osu! API lookup). */
-    private const IMPORTS_PER_HOUR = 60;
+    /**
+     * At most this many imports per client IP per hour (each is a few osu! API lookups, far under
+     * osu!'s limit). lazer asks about every set a player looks at in song select, so a big library
+     * went through 60 in minutes and the rest of the maps 404'd.
+     */
+    private const IMPORTS_PER_HOUR = 600;
 
     public function handle(Request $request, Closure $next)
     {
