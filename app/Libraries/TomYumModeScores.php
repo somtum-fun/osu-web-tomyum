@@ -86,8 +86,6 @@ class TomYumModeScores
         $json['user'] = json_item($user, new UserCompactTransformer(), UserCompactTransformer::CARD_INCLUDES);
         $json['rank_global'] = $data['position'];
         $json['has_replay'] = $json['replay'] = (bool) $data['hasReplay'];
-        // osu!stable uploads a replay with every play; relax plays taken from lazer keep theirs on the website.
-        $json['legacy_score_id'] = $data['hasReplay'] ? $scoreId : null;
         $json['tomyum_replay_url'] = $data['hasReplay'] ? route('scores.tomyum.download', ['score' => $scoreId]) : null;
         $json['replay_views'] = 0;
 
@@ -120,11 +118,16 @@ class TomYumModeScores
             'has_replay' => false,
             'is_perfect_combo' => $score['perfect'],
             'legacy_perfect' => $score['perfect'],
-            'legacy_score_id' => null,
+            // Stable or lazer (the score page's "Played on").
+            'legacy_score_id' => ($score['stable'] ?? true) ? $score['id'] : null,
             'legacy_total_score' => $score['score'],
             'max_combo' => $score['maxCombo'],
             'maximum_statistics' => [],
-            'mods' => array_map(fn ($acronym) => ['acronym' => $acronym], app('mods')->bitsetToIds($score['mods'])),
+            // osu!stable plays carry the Classic mod, as osu! shows them; lazer's don't.
+            'mods' => array_map(
+                fn ($acronym) => ['acronym' => $acronym],
+                [...app('mods')->bitsetToIds($score['mods']), ...(($score['stable'] ?? true) ? ['CL'] : [])],
+            ),
             'passed' => $score['passed'],
             'pp' => $score['pp'],
             'preserve' => true,
