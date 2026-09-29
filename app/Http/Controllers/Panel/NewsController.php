@@ -44,32 +44,44 @@ class NewsController extends Controller
 
     public function store()
     {
-        $title = trim((string) Request::input('title'));
-        $body = trim(str_replace("\r\n", "\n", (string) Request::input('body')));
+        // A whole osu-wiki news file can be pasted: its YAML header fills the fields left empty.
+        [$front, $body] = static::splitFrontMatter(str_replace("\r\n", "\n", (string) Request::input('body')));
+        $title = trim((string) (presence(Request::input('title')) ?? $front['title'] ?? ''));
         if ($title === '' || $body === '') {
-            return $this->back('error', 'A post needs a title and some text.');
+            return $this->back('error', 'A post needs a title (in the field or its header) and some text.');
         }
         try {
-            $date = Carbon::parse(presence(Request::input('date')) ?? 'now', 'UTC');
+            $date = Carbon::parse(presence(Request::input('date')) ?? $front['date'] ?? 'now', 'UTC');
         } catch (\Throwable) {
             return $this->back('error', 'That date isn\'t a date.');
         }
+        $seriesInput = presence(Request::input('series'));
+        $series = $seriesInput !== null && $seriesInput !== NewsPost::SERIES_NONE ? $seriesInput : ($front['series'] ?? $seriesInput);
 
         $post = present(Request::input('id'))
             ? NewsPost::where('hash', NewsPost::LOCAL_HASH)->findOrFail((int) Request::input('id'))
             : new NewsPost(['slug' => $this->slug($date, $title)]);
 
+        // The author: the field, the header, or the post's own sign-off ("—Name" as its last line, which
+        // the site reads itself, like osu!'s posts); else whoever posts it.
+        $author = presence(Request::input('author')) ?? presence($front['author'] ?? null);
+        $lastLine = trim((string) array_last(explode("\n", trim($body))));
+        if ($author === null && preg_match('/^[—–][^—–]/u', $lastLine) !== 1) {
+            $author = Auth::user()->username;
+        }
         $header = array_filter([
             'layout' => 'post',
             'title' => $title,
             'date' => $date->format('Y-m-d H:i:s +0000'),
-            'author' => presence(Request::input('author')) ?? Auth::user()->username,
-            'series' => in_array(Request::input('series'), NewsPost::SERIES, true) ? Request::input('series') : null,
+            'author' => $author,
+            'series' => in_array($series, NewsPost::SERIES, true) ? $series : null,
         ]);
         $page = (new OsuMarkdown('news', osuExtensionConfig: ['relative_url_root' => route('news.show', $post->slug)]))
             ->load("---\n".Yaml::dump($header)."---\n\n".$body)
             ->toArray();
-        $page['author'] = $header['author'];
+        if ($author !== null) {
+            $page['author'] = $author;
+        }
         $page['tomyum_markdown'] = $body;
 
         $post->fill([
@@ -94,6 +106,25 @@ class NewsController extends Controller
         $this->staffLog('news.remove', $model->getKey(), "Removed the news post \"{$model->title()}\"");
 
         return $this->back('success', 'Removed.');
+    }
+
+    /** A news file's YAML header (between --- lines at the top) and the text after it. */
+    private static function splitFrontMatter(string $text): array
+    {
+        $text = trim($text);
+        if (preg_match('/^---\n(.*?)\n---\n?(.*)$/s', $text, $match) !== 1) {
+            return [[], $text];
+        }
+        try {
+            $front = Yaml::parse($match[1]);
+        } catch (\Throwable) {
+            return [[], $text];
+        }
+        if (isset($front['date']) && is_int($front['date'])) {
+            $front['date'] = '@'.$front['date'];
+        }
+
+        return [is_array($front) ? $front : [], trim($match[2])];
     }
 
     /** "2026-09-29-server-update", unique. */

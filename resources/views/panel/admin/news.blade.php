@@ -15,7 +15,8 @@
             <p class="tomyum-panel__hint">
                 Shown on the website's news page, the dashboard and in lazer. Written in the osu! wiki's markdown:
                 **bold**, *italic*, [links](https://osu.sundei.eu), ![images](https://…/image.jpg) (the first image is
-                the post's cover), ## headings, - lists.
+                the post's cover), ## headings, - lists. A whole osu-wiki news file works too: its header (between the
+                --- lines: title, date, series) fills whatever is left empty here, and a last line like "—Name" signs it.
             </p>
             <form method="POST" action="{{ route('panel.admin.news.store') }}" class="tomyum-panel">
                 @csrf
@@ -25,7 +26,7 @@
                 <div class="tomyum-panel__row">
                     <label class="tomyum-panel__field">
                         Title
-                        <input type="text" name="title" required maxlength="200" value="{{ $editing?->title() }}">
+                        <input type="text" name="title" maxlength="200" value="{{ $editing?->title() }}" placeholder="or from the text's header">
                     </label>
                     <label class="tomyum-panel__field" style="flex: 0 1 200px">
                         Date (UTC; empty: now)
