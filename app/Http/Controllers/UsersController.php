@@ -45,6 +45,14 @@ use Sentry\State\Scope;
  */
 class UsersController extends Controller
 {
+    /** TomYum: lazer's Relax/Autopilot "rulesets" → [the ruleset, TomYum's mode]. */
+    private const TOMYUM_EXTRA_MODES = [
+        'osurx' => ['osu', 4],
+        'taikorx' => ['taiko', 5],
+        'fruitsrx' => ['fruits', 6],
+        'osuap' => ['osu', 8],
+    ];
+
     // more limited list of UserProfileCustomization::SECTIONS for now.
     const LAZY_EXTRA_PAGES = ['beatmaps', 'kudosu', 'recent_activity', 'top_ranks', 'historical'];
 
@@ -637,6 +645,13 @@ class UsersController extends Controller
      */
     public function show($id, $mode = null)
     {
+        // TomYum: lazer's Relax/Autopilot modes (LazerAuthlibInjection asks for them like rulesets):
+        // the normal profile, with TomYum's stats for that mode (the website has none).
+        $tomyumMode = is_api_request() ? (static::TOMYUM_EXTRA_MODES[$mode] ?? null) : null;
+        if ($tomyumMode !== null) {
+            $mode = $tomyumMode[0];
+        }
+
         $user = FindForProfilePage::find($id, get_string(request('key')));
 
         $currentMode = $mode ?? $user->playmode;
@@ -653,6 +668,15 @@ class UsersController extends Controller
             (new UserTransformer())->setMode($currentMode),
             $this->showUserIncludes(),
         ));
+
+        if ($tomyumMode !== null) {
+            $response = (new \App\Libraries\TomYumAdmin(auth()->user()))->get("/users/{$user->getKey()}/stats/{$tomyumMode[1]}");
+            abort_unless($response->successful(), 404);
+            $userArray['statistics'] = $response->json();
+            $userArray['rank_history'] = null;
+            $userArray['rankHistory'] = null;
+            $userArray['rank_highest'] = null;
+        }
 
         if (is_api_request()) {
             return $userArray;

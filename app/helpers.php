@@ -1272,11 +1272,7 @@ function nav_links()
         'page_title.main.livestreams_controller._' => route('livestreams.index'),
         'layout.menu.community.dev' => osu_url('dev'),
     ];
-    $links['store'] = [
-        'layout.header.store.products' => route('store.products.index'),
-        'layout.header.store.cart' => route('store.cart.show'),
-        'layout.header.store.orders' => route('store.orders.index'),
-    ];
+    // TomYum: no store here (see TomYumStoreUnavailable).
     $links['help'] = [
         'page_title.main.wiki_controller._' => wiki_url('Main_page'),
         'layout.menu.help.getFaq' => wiki_url('FAQ'),

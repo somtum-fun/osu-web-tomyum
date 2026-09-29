@@ -449,7 +449,8 @@ Route::group(['middleware' => ['web']], function () {
     Route::put('wiki/{locale}/{path}', 'WikiController@update')->where('path', '.+');
 
     // FIXME: someone split this crap up into proper controllers
-    Route::group(['as' => 'store.', 'prefix' => 'store'], function () {
+    // TomYum: nothing is sold here; every store page says so (the routes stay for links to them).
+    Route::group(['as' => 'store.', 'prefix' => 'store', 'middleware' => [\App\Http\Middleware\TomYumStoreUnavailable::class]], function () {
         route_redirect('/', 'store.products.index');
 
         Route::get('listing', 'StoreController@getListing')->name('products.index');
