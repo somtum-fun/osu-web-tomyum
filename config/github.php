@@ -40,7 +40,8 @@ return [
 
         'main' => [
             'token' => env('GITHUB_TOKEN'),
-            'method' => 'token',
+            // TomYum: without a token, read the (public) wiki anonymously instead of failing.
+            'method' => empty(env('GITHUB_TOKEN')) ? 'none' : 'token',
             // 'backoff' => false,
             // 'cache' => false,
             // 'version' => 'v3',
