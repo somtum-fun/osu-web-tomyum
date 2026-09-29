@@ -58,7 +58,8 @@ export default class PlayDetail extends React.PureComponent<Props, State> {
 
     return (
       <div className={blockClass} {...additionalAttributes}>
-        <a className={`${bn}__bg-link`} href={route('scores.show', { score: score.id })} />
+        {/* TomYum: Relax/Autopilot scores have no score page here; they link to their map. */}
+        <a className={`${bn}__bg-link`} href={(score as { tomyum_url?: string }).tomyum_url ?? route('scores.show', { score: score.id })} />
 
         {this.renderPinSortableHandle()}
         <div className={`${bn}__group ${bn}__group--top`}>

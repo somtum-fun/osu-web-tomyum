@@ -71,6 +71,8 @@ export function validPage(page: unknown) {
 interface InitialData {
   achievements: AchievementJson[];
   current_mode: Ruleset;
+  // TomYum: the Relax/Autopilot variant shown (osurx, osuap, taikorx, fruitsrx), if any.
+  tomyum_variant?: string | null;
   score_processing_notice_url: string | null;
   user: ProfilePageUserJson;
   user_cover_presets: UserCoverPresetJson[];
@@ -98,6 +100,7 @@ interface State {
 export default class Controller {
   readonly achievements: Map<number, AchievementJson>;
   readonly currentMode: Ruleset;
+  readonly variant: string | null;
   @observable currentPage: Page = 'main';
   readonly debouncedSetDisplayCoverUrl = debounce((url: string | null) => this.setDisplayCoverUrl(url), 300);
   @observable displayCoverUrl: string | null;
@@ -162,6 +165,7 @@ export default class Controller {
       this.achievements.set(achievement.id, achievement);
     }
     this.currentMode = initialData.current_mode;
+    this.variant = initialData.tomyum_variant ?? null;
     this.scoreProcessingNoticeUrl = initialData.score_processing_notice_url;
     this.displayCoverUrl = this.state.user.cover.url;
     this.selectedHue = this.state.user.profile_hue;
@@ -398,7 +402,7 @@ export default class Controller {
           this.xhr[section] = apiShowMore(
             json,
             'users.scores',
-            { ...baseParams, mode: this.currentMode, type },
+            { ...baseParams, mode: this.currentMode, type, ...(this.variant == null ? {} : { variant: this.variant }) },
           );
         }
 
@@ -422,7 +426,7 @@ export default class Controller {
 
   @action
   get<T extends keyof LazyPages>(page: T) {
-    const xhr = getPage<LazyPages[T]>(this.state.user, page, this.currentMode)
+    const xhr = getPage<LazyPages[T]>(this.state.user, page, this.currentMode, this.variant)
       .done((json) => runInAction(() => {
         this.state.lazy[page] = json;
       }));

@@ -45,14 +45,6 @@ use Sentry\State\Scope;
  */
 class UsersController extends Controller
 {
-    /** TomYum: lazer's Relax/Autopilot "rulesets" → [the ruleset, TomYum's mode]. */
-    private const TOMYUM_EXTRA_MODES = [
-        'osurx' => ['osu', 4],
-        'taikorx' => ['taiko', 5],
-        'fruitsrx' => ['fruits', 6],
-        'osuap' => ['osu', 8],
-    ];
-
     // more limited list of UserProfileCustomization::SECTIONS for now.
     const LAZY_EXTRA_PAGES = ['beatmaps', 'kudosu', 'recent_activity', 'top_ranks', 'historical'];
 
@@ -155,6 +147,16 @@ class UsersController extends Controller
 
     public function extraPages($_id, $page)
     {
+        // TomYum: a Relax/Autopilot profile lists TomYum's plays in that mode.
+        $variant = \App\Libraries\TomYumModeScores::variant(request('variant'));
+        if ($variant !== null && $page === 'top_ranks') {
+            return [
+                'best' => \App\Libraries\TomYumModeScores::section($this->user, $variant, 'best', static::PER_PAGE['scoresBest']),
+                'firsts' => \App\Libraries\TomYumModeScores::section($this->user, $variant, 'firsts', static::PER_PAGE['scoresFirsts']),
+                'pinned' => ['items' => [], 'pagination' => ['hasMore' => false], 'count' => 0],
+            ];
+        }
+
         switch ($page) {
             case 'beatmaps':
                 return [
@@ -171,7 +173,9 @@ class UsersController extends Controller
                 return [
                     'beatmap_playcounts' => $this->getExtraSection('beatmapPlaycounts'),
                     'monthly_playcounts' => json_collection($this->user->monthlyPlaycounts, new UserMonthlyPlaycountTransformer()),
-                    'recent' => $this->getExtraSection('scoresRecent'),
+                    'recent' => $variant !== null
+                        ? \App\Libraries\TomYumModeScores::section($this->user, $variant, 'recent', static::PER_PAGE['scoresRecent'])
+                        : $this->getExtraSection('scoresRecent'),
                     'replays_watched_counts' => json_collection($this->user->replaysWatchedCounts, new UserReplaysWatchedCountTransformer()),
                     'score_replay_stats' => $this->getExtraSection('scoreReplayStats'),
                 ];
@@ -541,6 +545,15 @@ class UsersController extends Controller
             'includeFails' => get_bool(request('include_fails')) ?? false,
         ];
 
+        // TomYum: more of a Relax/Autopilot profile's list.
+        if (($variant = \App\Libraries\TomYumModeScores::variant(request('variant'))) !== null) {
+            if ($type === 'pinned') {
+                return response([]);
+            }
+
+            return response(\App\Libraries\TomYumModeScores::page($this->user, $variant, $type, $this->offset, $perPage, $options['includeFails'])['items']);
+        }
+
         $json = $this->getExtra($page, $options, $perPage, $this->offset);
 
         return response($json, is_null($json['error'] ?? null) ? 200 : 504);
@@ -647,7 +660,7 @@ class UsersController extends Controller
     {
         // TomYum: lazer's Relax/Autopilot modes (LazerAuthlibInjection asks for them like rulesets):
         // the normal profile, with TomYum's stats for that mode (the website has none).
-        $tomyumMode = static::TOMYUM_EXTRA_MODES[$mode] ?? null;
+        $tomyumMode = \App\Libraries\TomYumModeScores::variant($mode);
         $shownMode = $mode;
         if ($tomyumMode !== null) {
             $mode = $tomyumMode[0];
@@ -677,6 +690,11 @@ class UsersController extends Controller
             $userArray['rank_history'] = null;
             $userArray['rankHistory'] = null;
             $userArray['rank_highest'] = null;
+            // The profile's list headings count TomYum's plays in that mode.
+            foreach (['best' => 'scores_best_count', 'firsts' => 'scores_first_count', 'recent' => 'scores_recent_count'] as $type => $key) {
+                $userArray[$key] = \App\Libraries\TomYumModeScores::page($user, $tomyumMode, $type, 0, 1)['total'];
+            }
+            $userArray['scores_pinned_count'] = 0;
         }
 
         if (is_api_request()) {
@@ -691,6 +709,7 @@ class UsersController extends Controller
             $initialData = [
                 'achievements' => $achievements,
                 'current_mode' => $currentMode,
+                'tomyum_variant' => $tomyumMode !== null ? $shownMode : null,
                 'score_processing_notice_url' => $GLOBALS['cfg']['osu']['score']['processing_notice_url'],
                 'user' => $userArray,
                 'user_cover_presets' => $userCoverPresets ?? [],
