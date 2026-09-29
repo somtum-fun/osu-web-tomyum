@@ -19,8 +19,8 @@
         <div class="tomyum-panel__card">
             <h2>How it works</h2>
             <p class="tomyum-panel__hint">
-                lazer's Quick Play (a free-for-all of up to the lobby size) and Ranked Play (1v1, with ratings) put
-                players who queue in a pool together. The server fills each pool with the ranked featured-artist
+                lazer's Ranked Play (1v1, with ratings) puts players who queue in a pool together. (Quick Play, a
+                free-for-all of up to the lobby size, uses the same pools but isn't in lazer right now.) The server fills each pool with the ranked featured-artist
                 maps of 1-5 minutes in its ruleset by itself; add maps below when a ruleset has few (Ranked Play
                 deals {{ \App\Http\Controllers\Panel\MatchmakingController::RANKED_DECK }} per match), or to play
                 a map with mods. A match needs enough players queued in the same pool at the same time.
@@ -114,14 +114,15 @@
 
         <div class="tomyum-panel__card">
             <h2>Make a pool</h2>
+            <p class="tomyum-panel__hint">One Ranked Play pool per ruleset (per key count for mania) is enough; players pick it in lazer.</p>
             <form method="POST" action="{{ route('panel.admin.matchmaking.store') }}" class="tomyum-panel">
                 @csrf
                 <div class="tomyum-panel__row">
                     <label class="tomyum-panel__field" style="flex: 0 1 180px">
                         Type
                         <select name="type">
-                            <option value="quick_play">Quick Play</option>
                             <option value="ranked_play">Ranked Play (1v1)</option>
+                            <option value="quick_play">Quick Play (not in lazer right now)</option>
                         </select>
                     </label>
                     <label class="tomyum-panel__field" style="flex: 0 1 180px">
