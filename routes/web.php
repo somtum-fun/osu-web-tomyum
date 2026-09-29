@@ -73,6 +73,11 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('users/{user}/groups', 'AdminController@groups')->name('users.groups');
             Route::post('users/{user}/supporter', 'AdminController@supporter')->name('users.supporter');
             Route::post('users/{user}/delete', 'AdminController@delete')->name('users.delete');
+
+            Route::get('daily-challenge', 'DailyChallengeController@index')->name('daily-challenge.index');
+            Route::post('daily-challenge', 'DailyChallengeController@store')->name('daily-challenge.store');
+            Route::post('daily-challenge/{item}/move', 'DailyChallengeController@move')->name('daily-challenge.move');
+            Route::post('daily-challenge/{item}/remove', 'DailyChallengeController@destroy')->name('daily-challenge.destroy');
         });
     });
 

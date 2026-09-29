@@ -31,6 +31,11 @@
                     <h2 style="margin: 4px 0">{{ number_format($count) }}</h2>
                 </div>
             @endforeach
+            <a class="tomyum-panel__link" href="{{ route('panel.admin.daily-challenge.index') }}">
+                <p class="tomyum-panel__hint" style="margin: 0">lazer</p>
+                <h2 style="margin: 4px 0">Daily challenge</h2>
+                <p class="tomyum-panel__hint" style="margin: 0">Pick and order the maps</p>
+            </a>
         </div>
 
         <div class="tomyum-panel__card">
