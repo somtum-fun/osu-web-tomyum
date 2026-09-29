@@ -190,6 +190,9 @@ Route::group(['middleware' => ['web']], function () {
     Route::resource('beatmapsets', 'BeatmapsetsController', ['only' => ['destroy', 'index', 'show', 'update']]);
 
     Route::group(['prefix' => 'scores', 'as' => 'scores.'], function () {
+        // TomYum: Relax/Autopilot plays (TomYum's), with the website's score page.
+        Route::get('rx/{score}/download', 'TomYumScoresController@download')->name('tomyum.download');
+        Route::get('rx/{score}', 'TomYumScoresController@show')->name('tomyum');
         Route::get('{score}/download', 'ScoresController@download')->name('download');
         Route::get('{ruleset}/{score}/download', 'ScoresController@download')->name('download-legacy');
 

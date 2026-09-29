@@ -10,6 +10,8 @@ namespace App\Libraries;
 use App\Models\Beatmap;
 use App\Models\User;
 use App\Transformers\BeatmapCompactTransformer;
+use App\Transformers\BeatmapTransformer;
+use App\Transformers\UserCompactTransformer;
 use App\Transformers\BeatmapsetCompactTransformer;
 use Carbon\Carbon;
 
@@ -56,55 +58,92 @@ class TomYumModeScores
             if ($beatmap === null || $beatmap->beatmapset === null) {
                 continue;
             }
-            if ($beatmap->playmode !== $rulesetId) {
-                $beatmap->convert = true;
-                $beatmap->playmode = $rulesetId;
-            }
             $weight = $type === 'best' ? 0.95 ** ($offset + $index) : null;
-            $counts = [
+            $items[] = static::item($score, $user, $beatmap, $rulesetId, $weight);
+        }
+
+        return ['items' => $items, 'total' => (int) ($response->json('total') ?? 0)];
+    }
+
+    /** One play for its page: [score json, player, map], or null when TomYum doesn't have it. */
+    public static function one(int $scoreId): ?array
+    {
+        $response = (new TomYumAdmin(auth()->user()))->get("/mode-scores/{$scoreId}");
+        if (!$response->successful()) {
+            return null;
+        }
+        $data = $response->json();
+        $user = User::find($data['userId']);
+        $beatmap = Beatmap::with('beatmapset')->find($data['score']['beatmapId']);
+        if ($user === null || $beatmap === null || $beatmap->beatmapset === null) {
+            return null;
+        }
+
+        $variant = collect(static::MODES)->first(fn ($mode) => $mode[1] === $data['mode']) ?? ['osu', $data['mode']];
+        $rulesetId = Beatmap::MODES[$variant[0]];
+        $json = static::item($data['score'], $user, $beatmap, $rulesetId, null);
+        $json['beatmap'] = json_item($beatmap, new BeatmapTransformer(), ['max_combo', 'owners', 'user']);
+        $json['user'] = json_item($user, new UserCompactTransformer(), UserCompactTransformer::CARD_INCLUDES);
+        $json['rank_global'] = $data['position'];
+        $json['has_replay'] = $json['replay'] = (bool) $data['hasReplay'];
+        $json['tomyum_replay_url'] = $data['hasReplay'] ? route('scores.tomyum.download', ['score' => $scoreId]) : null;
+        $json['replay_views'] = 0;
+
+        return [$json, $user, $beatmap];
+    }
+
+    /** A TomYum play shaped like the website's scores. */
+    private static function item(array $score, User $user, Beatmap $beatmap, int $rulesetId, ?float $weight): array
+    {
+        if ($beatmap->playmode !== $rulesetId) {
+            $beatmap->convert = true;
+            $beatmap->playmode = $rulesetId;
+        }
+
+        return [
+            'id' => $score['id'],
+            // Not a website score: nothing may report, pin or link to it as one.
+            'type' => 'tomyum_score',
+            'user_id' => $user->getKey(),
+            'accuracy' => $score['accuracy'],
+            'beatmap' => json_item($beatmap, new BeatmapCompactTransformer()),
+            'beatmap_id' => $beatmap->getKey(),
+            'beatmapset' => json_item($beatmap->beatmapset, new BeatmapsetCompactTransformer()),
+            'best_id' => null,
+            'build_id' => null,
+            'classic_total_score' => $score['score'],
+            'current_user_attributes' => ['pin' => null],
+            'ended_at' => json_time(Carbon::parse($score['playedAt'])),
+            'has_replay' => false,
+            'is_perfect_combo' => $score['perfect'],
+            'legacy_perfect' => $score['perfect'],
+            'legacy_score_id' => null,
+            'legacy_total_score' => $score['score'],
+            'max_combo' => $score['maxCombo'],
+            'maximum_statistics' => [],
+            'mods' => array_map(fn ($acronym) => ['acronym' => $acronym], app('mods')->bitsetToIds($score['mods'])),
+            'passed' => $score['passed'],
+            'pp' => $score['pp'],
+            'preserve' => true,
+            'processed' => true,
+            'rank' => $score['passed'] ? $score['grade'] : 'F',
+            'ranked' => true,
+            'replay' => false,
+            'ruleset_id' => $rulesetId,
+            'started_at' => null,
+            'statistics' => array_filter([
                 'great' => $score['count300'],
                 'ok' => $score['count100'],
                 'meh' => $score['count50'],
                 'miss' => $score['countMiss'],
-            ];
-
-            $items[] = [
-                'id' => $score['id'],
-                'type' => 'solo_score',
-                'user_id' => $user->getKey(),
-                'accuracy' => $score['accuracy'],
-                'beatmap' => json_item($beatmap, new BeatmapCompactTransformer()),
-                'beatmap_id' => $beatmap->getKey(),
-                'beatmapset' => json_item($beatmap->beatmapset, new BeatmapsetCompactTransformer()),
-                'build_id' => null,
-                'classic_total_score' => $score['score'],
-                'current_user_attributes' => ['pin' => null],
-                'ended_at' => json_time(Carbon::parse($score['playedAt'])),
-                'has_replay' => false,
-                'is_perfect_combo' => $score['perfect'],
-                'legacy_perfect' => $score['perfect'],
-                'legacy_score_id' => null,
-                'legacy_total_score' => $score['score'],
-                'max_combo' => $score['maxCombo'],
-                'maximum_statistics' => [],
-                'mods' => array_map(fn ($acronym) => ['acronym' => $acronym], app('mods')->bitsetToIds($score['mods'])),
-                'passed' => $score['passed'],
-                'pp' => $score['pp'],
-                'preserve' => true,
-                'processed' => true,
-                'rank' => $score['passed'] ? $score['grade'] : 'F',
-                'ranked' => true,
-                'replay' => false,
-                'ruleset_id' => $rulesetId,
-                'started_at' => null,
-                'statistics' => $counts,
-                'total_score' => $score['score'],
-                'weight' => $weight === null ? null : ['percentage' => $weight * 100, 'pp' => $score['pp'] * $weight],
-                'tomyum_url' => route('beatmaps.show', ['beatmap' => $beatmap->getKey()]),
-            ];
-        }
-
-        return ['items' => $items, 'total' => (int) ($response->json('total') ?? 0)];
+                'perfect' => $score['countGeki'] ?: null,
+                'good' => $score['countKatu'] ?: null,
+            ], fn ($value) => $value !== null),
+            'total_score' => $score['score'],
+            'weight' => $weight === null ? null : ['percentage' => $weight * 100, 'pp' => $score['pp'] * $weight],
+            'tomyum_url' => route('scores.tomyum', ['score' => $score['id']]),
+            'tomyum_replay_url' => null,
+        ];
     }
 
     /** A profile section (the first page, and whether there's more), as getExtraSection gives it. */

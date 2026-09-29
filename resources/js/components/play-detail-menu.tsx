@@ -34,8 +34,9 @@ export class PlayDetailMenu extends React.Component<Props> {
           />
         )}
 
-        {hasShow(score) && (
-          <a className='simple-menu__item' href={route('scores.show', { score: score.id })}>
+        {/* TomYum: Relax/Autopilot plays have their own page (scores/rx/…). */}
+        {(hasShow(score) || tomyumUrl(score) != null) && (
+          <a className='simple-menu__item' href={tomyumUrl(score) ?? route('scores.show', { score: score.id })}>
             {trans('users.show.extra.top_ranks.view_details')}
           </a>
         )}
@@ -68,4 +69,8 @@ export class PlayDetailMenu extends React.Component<Props> {
       </PopupMenuPersistent>
     );
   }
+}
+
+function tomyumUrl(score: unknown) {
+  return (score as { tomyum_url?: string | null }).tomyum_url ?? null;
 }

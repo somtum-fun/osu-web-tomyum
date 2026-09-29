@@ -31,7 +31,7 @@ export default function Buttons(props: Props) {
       {hasReplay(props.score) && (
         <a
           className='js-login-required--click btn-osu-big btn-osu-big--rounded'
-          href={route('scores.download', { score: props.score.id })}
+          href={(props.score as { tomyum_replay_url?: string | null }).tomyum_replay_url ?? route('scores.download', { score: props.score.id })}
         >
           {trans('users.show.extra.top_ranks.download_replay')}
         </a>
