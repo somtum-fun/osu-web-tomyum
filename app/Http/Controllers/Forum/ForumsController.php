@@ -54,8 +54,13 @@ class ForumsController extends Controller
             ->orderBy('left_id')
             ->get();
 
-        $forums = $forums->filter(function ($forum) {
-            return priv_check('ForumView', $forum)->can();
+        // The forums the website keeps beatmap descriptions and user pages in aren't for browsing.
+        $internal = [
+            $GLOBALS['cfg']['osu']['forum']['beatmap_description_forum_id'],
+            $GLOBALS['cfg']['osu']['user']['user_page_forum_id'],
+        ];
+        $forums = $forums->filter(function ($forum) use ($internal) {
+            return !in_array($forum->getKey(), $internal, true) && priv_check('ForumView', $forum)->can();
         });
 
         if (is_api_request()) {

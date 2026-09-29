@@ -23,7 +23,10 @@ class ArchiveForumTopics extends Command
             ->archivable()
             ->hasAnyTags(['resolved', 'added', 'duplicate', 'denied', 'invalid'])
             ->get();
-        $targetForum = Forum::findOrFail($GLOBALS['cfg']['osu']['forum']['feature_completed_forum_id']);
+        $targetForum = Forum::find($GLOBALS['cfg']['osu']['forum']['feature_completed_forum_id']);
+        if ($targetForum === null) {
+            return;
+        }
 
         foreach ($topics as $topic) {
             $topic->moveTo($targetForum);
@@ -39,7 +42,10 @@ class ArchiveForumTopics extends Command
             ])->archivable()
             ->hasAnyTags(['resolved', 'added', 'duplicate', 'denied', 'invalid'])
             ->get();
-        $targetForum = Forum::findOrFail($GLOBALS['cfg']['osu']['forum']['help_archived_forum_id']);
+        $targetForum = Forum::find($GLOBALS['cfg']['osu']['forum']['help_archived_forum_id']);
+        if ($targetForum === null) {
+            return;
+        }
 
         foreach ($topics as $topic) {
             $topic->moveTo($targetForum);
@@ -56,7 +62,10 @@ class ArchiveForumTopics extends Command
             ->where('topic_last_post_time', '<', $maxTime)
             ->doesntHaveTags(['confirmed'])
             ->get();
-        $targetForum = Forum::findOrFail($GLOBALS['cfg']['osu']['forum']['help_archived_forum_id']);
+        $targetForum = Forum::find($GLOBALS['cfg']['osu']['forum']['help_archived_forum_id']);
+        if ($targetForum === null) {
+            return;
+        }
 
         foreach ($topics as $topic) {
             $topic->setIssueTag('archived', false);

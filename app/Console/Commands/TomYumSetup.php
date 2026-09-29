@@ -58,6 +58,7 @@ class TomYumSetup extends Command
         $this->genresAndLanguages();
         $this->countries();
         $this->userPageForum();
+        $this->forums();
         $this->beatmapDescriptionForum();
         $this->mirror();
         $this->lazerClient();
@@ -140,6 +141,101 @@ class TomYumSetup extends Command
             'forum_type' => 1,
         ]);
         $this->line("Beatmap description forum: #{$forumId} present.");
+    }
+
+    /**
+     * The forums players use, laid out like osu.ppy.sh's, with the ids osu-web's settings expect
+     * (help 5 with its confirmed 101 and archive 29, feature requests 4 with completed 30, the staff
+     * category 28), so the forum features tied to them work. Existing forums are left as they are.
+     * Everyone may start topics and reply, except in announcements (staff start them) and the
+     * archives (nobody); the staff category is only visible to moderators and admins.
+     */
+    private function forums(): void
+    {
+        // id => [parent, name, description, type (0 category, 1 forum), everyone posts, everyone replies]
+        $forums = [
+            10 => [0, 'General', 'The community.', 0, false, false],
+            11 => [10, 'Announcements', 'News from the staff.', 1, false, true],
+            12 => [10, 'General Discussion', 'Anything about osu! and this server.', 1, true, true],
+            13 => [10, 'Off-Topic', 'Everything else.', 1, true, true],
+            20 => [0, 'Help & Feedback', 'Problems, questions and ideas.', 0, false, false],
+            5 => [20, 'Help', 'Something not working? Ask here.', 1, true, true],
+            101 => [5, 'Help: Confirmed', 'Problems the staff confirmed.', 1, false, true],
+            29 => [5, 'Help: Archived', 'Old and solved help topics.', 1, false, false],
+            4 => [20, 'Feature Requests', 'What should the server do next?', 1, true, true],
+            30 => [4, 'Feature Requests: Completed', 'Requests that were done, or turned down.', 1, false, false],
+            40 => [0, 'Beatmaps', 'Mapping and maps.', 0, false, false],
+            41 => [40, 'Mapping', 'Help, tips and works in progress.', 1, true, true],
+            42 => [40, 'Beatmap Requests', 'Maps you would like to see ranked or loved.', 1, true, true],
+            43 => [40, 'Modding Queues', 'Ask for mods, or offer them.', 1, true, true],
+            50 => [0, 'Competitions', 'Tournaments and multiplayer.', 0, false, false],
+            51 => [50, 'Tournaments', 'Run or join a tournament.', 1, true, true],
+            52 => [50, 'Multiplayer', 'Find people to play with.', 1, true, true],
+            28 => [0, 'Staff', 'Only the staff can see this.', 0, false, false],
+            31 => [28, 'Staff Room', 'Staff talk.', 1, false, false],
+        ];
+
+        $order = 1;
+        foreach ($forums as $id => [$parent, $name, $description, $type]) {
+            $parents = [];
+            for ($at = $parent; $at !== 0; $at = $forums[$at][0]) {
+                $parents = [$at => [$forums[$at][1], $forums[$at][3]]] + $parents;
+            }
+            DB::table('phpbb_forums')->insertOrIgnore([
+                'forum_id' => $id,
+                'parent_id' => $parent,
+                'left_id' => $order,
+                'right_id' => $order + 1,
+                'forum_name' => $name,
+                'forum_desc' => $description,
+                'forum_parents' => count($parents) === 0 ? '' : serialize($parents),
+                'forum_rules' => '',
+                'forum_type' => $type,
+                'enable_indexing' => 1,
+            ]);
+            $order += 2;
+        }
+        // The internal forums (descriptions, user pages) go last, out of the way.
+        DB::table('phpbb_forums')->whereIn('forum_id', [
+            $GLOBALS['cfg']['osu']['forum']['beatmap_description_forum_id'],
+            $GLOBALS['cfg']['osu']['user']['user_page_forum_id'],
+        ])->where('left_id', 0)->update(['left_id' => 1000, 'right_id' => 1001]);
+
+        $options = [];
+        foreach (['f_post', 'f_reply', 'f_postcount'] as $option) {
+            $options[$option] = DB::table('phpbb_acl_options')->where('auth_option', $option)->value('auth_option_id')
+                ?? DB::table('phpbb_acl_options')->insertGetId(['auth_option' => $option, 'is_global' => 0, 'is_local' => 1, 'founder_only' => 0]);
+        }
+        $everyone = Group::where('identifier', 'default')->value('group_id');
+        $staff = Group::whereIn('identifier', ['admin', 'gmt'])->pluck('group_id')->all();
+        $grant = function (int $groupId, int $forumId, string $option) use ($options) {
+            DB::table('phpbb_acl_groups')->updateOrInsert([
+                'group_id' => $groupId,
+                'forum_id' => $forumId,
+                'auth_option_id' => $options[$option],
+                'auth_role_id' => 0,
+            ], ['auth_setting' => 1]);
+        };
+        foreach ($forums as $id => [, , , $type, $post, $reply]) {
+            if ($type !== 1) {
+                continue;
+            }
+            foreach ($staff as $groupId) {
+                foreach (['f_post', 'f_reply', 'f_postcount'] as $option) {
+                    $grant($groupId, $id, $option);
+                }
+            }
+            if ($everyone !== null && $id !== 31) {
+                if ($post) {
+                    $grant($everyone, $id, 'f_post');
+                }
+                if ($reply) {
+                    $grant($everyone, $id, 'f_reply');
+                    $grant($everyone, $id, 'f_postcount');
+                }
+            }
+        }
+        $this->line('Forums: '.count($forums).' present, with posting rights.');
     }
 
     private function userPageForum(): void
