@@ -34,7 +34,10 @@ export default class GameModeSwitcher extends React.Component<Props> {
     return (
       <>
         {this.renderSetDefault()}
-        <PlaymodeTabs
+        {/* TomYum: the Relax/Autopilot pills sit with the mode icons, on their left. */}
+        <div style={{ alignItems: 'center', display: 'flex', gap: 14, marginLeft: 'auto' }}>
+          {this.renderVariants()}
+          <PlaymodeTabs
           currentMode={this.props.controller.currentMode}
           defaultMode={this.props.controller.state.user.playmode}
           entries={rulesets.map((mode) => ({
@@ -42,8 +45,8 @@ export default class GameModeSwitcher extends React.Component<Props> {
             href: route('users.show', { mode, user: this.props.controller.state.user.id }),
             mode,
           }))}
-        />
-        {this.renderVariants()}
+          />
+        </div>
       </>
     );
   }
@@ -65,7 +68,7 @@ export default class GameModeSwitcher extends React.Component<Props> {
     const user = this.props.controller.state.user.id;
 
     return (
-      <div style={{ alignItems: 'center', display: 'flex', gap: 6, marginLeft: 16 }}>
+      <div style={{ alignItems: 'center', display: 'flex', gap: 6 }}>
         {[['Vanilla', mode], ...list.map(([, target, title]) => [title, target])].map(([label, target]) => {
           const active = shown === target;
 
