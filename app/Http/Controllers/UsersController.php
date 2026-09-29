@@ -647,7 +647,8 @@ class UsersController extends Controller
     {
         // TomYum: lazer's Relax/Autopilot modes (LazerAuthlibInjection asks for them like rulesets):
         // the normal profile, with TomYum's stats for that mode (the website has none).
-        $tomyumMode = is_api_request() ? (static::TOMYUM_EXTRA_MODES[$mode] ?? null) : null;
+        $tomyumMode = static::TOMYUM_EXTRA_MODES[$mode] ?? null;
+        $shownMode = $mode;
         if ($tomyumMode !== null) {
             $mode = $tomyumMode[0];
         }
@@ -697,7 +698,10 @@ class UsersController extends Controller
 
             set_opengraph($user, 'show', $currentMode);
 
-            return ext_view('users.show', compact('initialData', 'mode', 'user'));
+            // TomYum: the Vanilla / Relax / Autopilot switch above the profile.
+            $tomyumModes = static::tomyumModeLinks($currentMode, $tomyumMode !== null ? $shownMode : $currentMode);
+
+            return ext_view('users.show', compact('initialData', 'mode', 'user', 'tomyumModes'));
         }
     }
 
@@ -997,6 +1001,22 @@ class UsersController extends Controller
         }
 
         return $userIncludes;
+    }
+
+    /** TomYum: [label, mode in the link, whether it's the one shown] for the ruleset's variants; none for mania. */
+    private static function tomyumModeLinks(string $ruleset, string $shown): array
+    {
+        $variants = ['osu' => ['Relax' => 'osurx', 'Autopilot' => 'osuap'], 'taiko' => ['Relax' => 'taikorx'], 'fruits' => ['Relax' => 'fruitsrx']][$ruleset] ?? [];
+        if ($variants === []) {
+            return [];
+        }
+
+        $links = [['Vanilla', $ruleset, $shown === $ruleset]];
+        foreach ($variants as $label => $variant) {
+            $links[] = [$label, $variant, $shown === $variant];
+        }
+
+        return $links;
     }
 
     private function fillDeprecatedDuplicateFields(array $userJson): array
