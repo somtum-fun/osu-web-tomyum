@@ -717,10 +717,7 @@ class UsersController extends Controller
 
             set_opengraph($user, 'show', $currentMode);
 
-            // TomYum: the Vanilla / Relax / Autopilot switch above the profile.
-            $tomyumModes = static::tomyumModeLinks($currentMode, $tomyumMode !== null ? $shownMode : $currentMode);
-
-            return ext_view('users.show', compact('initialData', 'mode', 'user', 'tomyumModes'));
+            return ext_view('users.show', compact('initialData', 'mode', 'user'));
         }
     }
 
@@ -1020,22 +1017,6 @@ class UsersController extends Controller
         }
 
         return $userIncludes;
-    }
-
-    /** TomYum: [label, mode in the link, whether it's the one shown] for the ruleset's variants; none for mania. */
-    private static function tomyumModeLinks(string $ruleset, string $shown): array
-    {
-        $variants = ['osu' => ['Relax' => 'osurx', 'Autopilot' => 'osuap'], 'taiko' => ['Relax' => 'taikorx'], 'fruits' => ['Relax' => 'fruitsrx']][$ruleset] ?? [];
-        if ($variants === []) {
-            return [];
-        }
-
-        $links = [['Vanilla', $ruleset, $shown === $ruleset]];
-        foreach ($variants as $label => $variant) {
-            $links[] = [$label, $variant, $shown === $variant];
-        }
-
-        return $links;
     }
 
     private function fillDeprecatedDuplicateFields(array $userJson): array
