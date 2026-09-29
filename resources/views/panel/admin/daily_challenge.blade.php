@@ -5,7 +5,8 @@
 @extends('master', ['titlePrepend' => 'Daily challenge'])
 
 @php
-    $mods = fn ($list) => count($list ?? []) === 0 ? '–' : implode(' ', array_map(fn ($mod) => $mod['acronym'] ?? $mod->acronym ?? '?', $list));
+    // Mods come as arrays or objects (JSON columns), and the list itself may be either.
+    $mods = function ($list) { $list = array_values((array) ($list ?? [])); return count($list) === 0 ? '–' : implode(' ', array_map(fn ($mod) => (is_array($mod) ? $mod['acronym'] ?? null : $mod->acronym ?? null) ?? '?', $list)); };
     $mapName = fn ($beatmap) => $beatmap === null ? 'a map that is gone' : "{$beatmap->beatmapset->artist} - {$beatmap->beatmapset->title} [{$beatmap->version}]";
 @endphp
 
