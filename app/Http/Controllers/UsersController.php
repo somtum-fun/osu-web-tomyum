@@ -686,10 +686,14 @@ class UsersController extends Controller
         if ($tomyumMode !== null) {
             $response = (new \App\Libraries\TomYumAdmin(auth()->user()))->get("/users/{$user->getKey()}/stats/{$tomyumMode[1]}");
             abort_unless($response->successful(), 404);
-            $userArray['statistics'] = $response->json();
-            $userArray['rank_history'] = null;
-            $userArray['rankHistory'] = null;
-            $userArray['rank_highest'] = null;
+            $statistics = $response->json();
+            // The rank graph and highest rank in that mode (TomYum keeps them daily).
+            $history = $statistics['rank_history'] ?? null;
+            $highest = $statistics['rank_highest'] ?? null;
+            unset($statistics['rank_history'], $statistics['rank_highest']);
+            $userArray['statistics'] = $statistics;
+            $userArray['rank_history'] = $userArray['rankHistory'] = $history === null ? null : ['mode' => $currentMode, 'data' => $history];
+            $userArray['rank_highest'] = $highest;
             // The profile's list headings count TomYum's plays in that mode.
             foreach (['best' => 'scores_best_count', 'firsts' => 'scores_first_count', 'recent' => 'scores_recent_count'] as $type => $key) {
                 $userArray[$key] = \App\Libraries\TomYumModeScores::page($user, $tomyumMode, $type, 0, 1)['total'];
