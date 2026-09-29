@@ -226,20 +226,43 @@ class Beatmapset extends Model implements AfterCommit, CommentableInterface, Ind
     {
         $rulesetId = Beatmap::MODES[$ruleset];
 
+        // TomYum: what people played here this week (stable and lazer), by how many played it; a small
+        // server rarely has osu!'s favourites on newly ranked sets, which alone left this empty.
+        $played = DB::table('scores')
+            ->join('osu_beatmaps', 'osu_beatmaps.beatmap_id', '=', 'scores.beatmap_id')
+            ->join('osu_beatmapsets', 'osu_beatmapsets.beatmapset_id', '=', 'osu_beatmaps.beatmapset_id')
+            ->where('scores.ruleset_id', $rulesetId)
+            ->where('scores.ended_at', '>', now()->subDays(7))
+            ->where('osu_beatmapsets.approved', '>', 0)
+            ->where('osu_beatmapsets.nsfw', false)
+            ->whereNull('osu_beatmapsets.deleted_at')
+            ->groupBy('osu_beatmaps.beatmapset_id')
+            ->orderByRaw('COUNT(DISTINCT scores.user_id) DESC, COUNT(*) DESC')
+            ->limit(5)
+            ->pluck('osu_beatmaps.beatmapset_id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+        if (count($played) >= 5) {
+            return $played;
+        }
+
         $recentIds = static::ranked()
             ->hasMode($rulesetId)
             ->where('approved_date', '>', now()->subDays(30))
             ->where('nsfw', false)
             ->select('beatmapset_id');
 
-        return FavouriteBeatmapset::select('beatmapset_id')
+        $favourited = FavouriteBeatmapset::select('beatmapset_id')
             ->selectRaw('COUNT(*) as cnt')
             ->whereIn('beatmapset_id', $recentIds)
             ->where('dateadded', '>', now()->subDays(7))->groupBy('beatmapset_id')
             ->orderBy('cnt', 'DESC')
             ->limit(5)
             ->pluck('beatmapset_id')
+            ->map(fn ($id) => (int) $id)
             ->toArray();
+
+        return array_slice(array_values(array_unique([...$played, ...$favourited])), 0, 5);
     }
 
     public static function latestRanked($count = 5)
