@@ -111,6 +111,9 @@ return [
         'scores_controller' => [
             '_' => 'performance',
         ],
+        'tomyum_scores_controller' => [
+            '_' => 'performance',
+        ],
         'seasons_controller' => [
             '_' => 'rankings',
         ],

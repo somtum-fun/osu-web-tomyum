@@ -383,5 +383,19 @@ return [
             '7k' => '7K',
             'all' => 'All',
         ],
+        // TomYum: Relax/Autopilot rankings.
+        'osu' => [
+            'all' => 'Vanilla',
+            'ap' => 'Autopilot',
+            'rx' => 'Relax',
+        ],
+        'taiko' => [
+            'all' => 'Vanilla',
+            'rx' => 'Relax',
+        ],
+        'fruits' => [
+            'all' => 'Vanilla',
+            'rx' => 'Relax',
+        ],
     ],
 ];

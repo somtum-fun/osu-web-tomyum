@@ -12,7 +12,11 @@
             @include('rankings._user_filter')
 
             @php
-                $variants = App\Models\Beatmap::VARIANTS[$params['mode']] ?? null;
+                // TomYum: Relax/Autopilot switch the ranking too (osu!, taiko, catch).
+                $variants = App\Models\Beatmap::VARIANTS[$params['mode']]
+                    ?? (isset(App\Http\Controllers\RankingController::TOMYUM_VARIANTS[$params['mode']])
+                        ? array_keys(App\Http\Controllers\RankingController::TOMYUM_VARIANTS[$params['mode']])
+                        : null);
                 if ($variants !== null) {
                     array_unshift($variants, 'all');
                 }

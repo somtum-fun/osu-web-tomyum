@@ -110,6 +110,69 @@ class RankingController extends Controller
         return $sort;
     }
 
+    /** TomYum: the Relax/Autopilot "variants" of a ruleset's rankings → TomYum's mode. */
+    public const TOMYUM_VARIANTS = [
+        'osu' => ['rx' => 4, 'ap' => 8],
+        'taiko' => ['rx' => 5],
+        'fruits' => ['rx' => 6],
+    ];
+
+    /** TomYum: a Relax/Autopilot ranking page, with the website's table (its stats built from TomYum's). */
+    private function tomyumRanking(int $tomyumMode, array $params, array $rawParams, bool $isApi)
+    {
+        $page = max(1, get_int(cursor_from_params($rawParams)['page'] ?? null) ?? get_int($rawParams['page'] ?? null) ?? 1);
+        $query = [
+            'sort' => $params['sort'],
+            'offset' => ($page - 1) * static::PAGE_SIZE,
+            'limit' => static::PAGE_SIZE,
+        ];
+        if ($params['country'] !== null) {
+            $query['country'] = $params['country'];
+        }
+        if ($params['filter'] === 'friends' && \Auth::check()) {
+            $query['friendsOf'] = \Auth::id();
+        }
+
+        $response = (new \App\Libraries\TomYumAdmin(\Auth::user()))->get("/rankings/{$tomyumMode}", $query);
+        $data = $response->successful() ? $response->json() : ['total' => 0, 'rows' => []];
+        $users = User::with(['country', 'team'])->whereIn('user_id', array_column($data['rows'], 'userId'))->get()->keyBy('user_id');
+
+        $class = UserStatistics\Model::getClass($params['mode']);
+        $stats = collect($data['rows'])->filter(fn ($row) => isset($users[$row['userId']]))->map(function ($row) use ($class, $users) {
+            $stat = new $class([
+                'user_id' => $row['userId'],
+                'rank_score' => $row['pp'],
+                'accuracy_new' => $row['accuracy'] * 100,
+                'playcount' => $row['playCount'],
+                'ranked_score' => $row['rankedScore'],
+                'x_rank_count' => $row['ss'],
+                'xh_rank_count' => 0,
+                's_rank_count' => $row['s'],
+                'sh_rank_count' => 0,
+                'a_rank_count' => $row['a'],
+            ]);
+            $stat->setRelation('user', $users[$row['userId']]);
+
+            return $stat;
+        })->values();
+
+        $maxPages = max(1, (int) ceil($data['total'] / static::PAGE_SIZE));
+
+        if ($isApi) {
+            return [
+                ...cursor_for_response($page >= $maxPages ? null : ['page' => $page + 1]),
+                'ranking' => json_collection($stats, new UserStatisticsTransformer(), UserStatisticsTransformer::RANKING_INCLUDES),
+                'total' => $data['total'],
+            ];
+        }
+
+        $scores = new LengthAwarePaginator($stats, $maxPages * static::PAGE_SIZE, static::PAGE_SIZE, $page, ['path' => route('rankings', $params)]);
+        $countryStats = null;
+        $showRankChange = false;
+
+        return ext_view('rankings.global', compact('countryStats', 'params', 'scores', 'showRankChange'));
+    }
+
     private static function getVariant(?string $variant, $ruleset): ?string
     {
         if ($variant === 'all') {
@@ -212,6 +275,15 @@ class RankingController extends Controller
             case 'global':
                 $params['country'] = get_string($rawParams['country'] ?? null);
                 $params['filter'] = static::getFilter($rawParams['filter'] ?? null);
+
+                // TomYum: Relax/Autopilot rankings come from TomYum (the website has no such stats).
+                $tomyumMode = static::TOMYUM_VARIANTS[$mode][$rawParams['variant'] ?? ''] ?? null;
+                if ($tomyumMode !== null) {
+                    $params['variant'] = $rawParams['variant'];
+
+                    return $this->tomyumRanking($tomyumMode, $params, $rawParams, $isApi);
+                }
+
                 $params['variant'] = static::getVariant($rawParams['variant'] ?? null, $mode);
 
                 if ($params['country'] !== null) {

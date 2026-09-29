@@ -86,6 +86,8 @@ class TomYumModeScores
         $json['user'] = json_item($user, new UserCompactTransformer(), UserCompactTransformer::CARD_INCLUDES);
         $json['rank_global'] = $data['position'];
         $json['has_replay'] = $json['replay'] = (bool) $data['hasReplay'];
+        // osu!stable uploads a replay with every play; relax plays taken from lazer keep theirs on the website.
+        $json['legacy_score_id'] = $data['hasReplay'] ? $scoreId : null;
         $json['tomyum_replay_url'] = $data['hasReplay'] ? route('scores.tomyum.download', ['score' => $scoreId]) : null;
         $json['replay_views'] = 0;
 
@@ -109,7 +111,8 @@ class TomYumModeScores
             'beatmap' => json_item($beatmap, new BeatmapCompactTransformer()),
             'beatmap_id' => $beatmap->getKey(),
             'beatmapset' => json_item($beatmap->beatmapset, new BeatmapsetCompactTransformer()),
-            'best_id' => null,
+            // Its own best (TomYum keeps one per map): the site shows pp only for bests.
+            'best_id' => $score['id'],
             'build_id' => null,
             'classic_total_score' => $score['score'],
             'current_user_attributes' => ['pin' => null],
