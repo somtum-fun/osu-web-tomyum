@@ -83,6 +83,9 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('seasonal-backgrounds/settings', 'SeasonalBackgroundsController@settings')->name('seasonal-backgrounds.settings');
             Route::post('seasonal-backgrounds/{entry}/toggle', 'SeasonalBackgroundsController@toggle')->name('seasonal-backgrounds.toggle');
             Route::post('seasonal-backgrounds/{entry}/remove', 'SeasonalBackgroundsController@destroy')->name('seasonal-backgrounds.destroy');
+            Route::get('news', 'NewsController@index')->name('news.index');
+            Route::post('news', 'NewsController@store')->name('news.store');
+            Route::post('news/{post}/remove', 'NewsController@destroy')->name('news.destroy');
             Route::get('matchmaking', 'MatchmakingController@index')->name('matchmaking.index');
             Route::post('matchmaking', 'MatchmakingController@store')->name('matchmaking.store');
             Route::post('matchmaking/{pool}', 'MatchmakingController@update')->name('matchmaking.update');

@@ -78,6 +78,9 @@ class NewsPost extends Model implements CommentableInterface, Wiki\WikiObject
 
     const DEFAULT_SORT = 'published_desc';
 
+    /** TomYum: the hash of posts written in the admin panel (not osu-wiki files: never synced from GitHub). */
+    const LOCAL_HASH = 'tomyum';
+
     protected $casts = [
         'page' => 'array',
         'published_at' => 'datetime',
@@ -144,6 +147,9 @@ class NewsPost extends Model implements CommentableInterface, Wiki\WikiObject
         }
 
         foreach (static::all() as $post) {
+            if ($post->isLocal()) {
+                continue;
+            }
             if (array_key_exists($post->slug, $latestSlugs)) {
                 if ($post->published_at === null || $latestSlugs[$post->slug] !== $post->hash) {
                     $post->sync(true);
@@ -252,8 +258,17 @@ class NewsPost extends Model implements CommentableInterface, Wiki\WikiObject
         return $this->page !== null && $this->published_at !== null && $this->published_at->isPast();
     }
 
+    public function isLocal(): bool
+    {
+        return $this->hash === static::LOCAL_HASH;
+    }
+
     public function needsSync()
     {
+        if ($this->isLocal()) {
+            return false;
+        }
+
         return $this->page === null ||
             $this->version !== static::pageVersion() ||
             $this->updated_at < Carbon::now()->subMinutes(static::CACHE_DURATION);
@@ -271,6 +286,10 @@ class NewsPost extends Model implements CommentableInterface, Wiki\WikiObject
 
     public function editUrl()
     {
+        if ($this->isLocal()) {
+            return route('panel.admin.news.index', ['edit' => $this->getKey()]);
+        }
+
         return 'https://github.com/'.OsuWiki::user().'/'.OsuWiki::repository().'/tree/'.OsuWiki::branch().'/news/'.$this->filename();
     }
 
@@ -332,6 +351,11 @@ class NewsPost extends Model implements CommentableInterface, Wiki\WikiObject
 
     public function sync($force = false)
     {
+        // Written here: there's no osu-wiki file to fetch.
+        if ($this->isLocal()) {
+            return $this;
+        }
+
         if (!$force && !$this->needsSync()) {
             return $this;
         }
@@ -411,7 +435,20 @@ class NewsPost extends Model implements CommentableInterface, Wiki\WikiObject
 
     public function previewText()
     {
-        return first_paragraph($this->bodyHtml());
+        $preview = first_paragraph($this->bodyHtml());
+        if (present(trim(strip_tags((string) $preview)))) {
+            return $preview;
+        }
+
+        // TomYum: a post opening with its cover image: the first paragraph with words in it.
+        preg_match_all('#<p(?:\s[^>]*)?>(.*?)</p>#s', $this->bodyHtml(), $paragraphs);
+        foreach ($paragraphs[1] as $paragraph) {
+            if (present(trim(strip_tags($paragraph)))) {
+                return trim(strip_tags($paragraph));
+            }
+        }
+
+        return $preview;
     }
 
     public function title()

@@ -41,6 +41,11 @@
                 <h2 style="margin: 4px 0">Quick Play &amp; Ranked Play</h2>
                 <p class="tomyum-panel__hint" style="margin: 0">Matchmaking pools and maps</p>
             </a>
+            <a class="tomyum-panel__link" href="{{ route('panel.admin.news.index') }}">
+                <p class="tomyum-panel__hint" style="margin: 0">website &amp; lazer</p>
+                <h2 style="margin: 4px 0">News</h2>
+                <p class="tomyum-panel__hint" style="margin: 0">Write and edit posts</p>
+            </a>
             <a class="tomyum-panel__link" href="{{ route('panel.admin.seasonal-backgrounds.index') }}">
                 <p class="tomyum-panel__hint" style="margin: 0">lazer &amp; stable</p>
                 <h2 style="margin: 4px 0">Seasonal backgrounds</h2>
