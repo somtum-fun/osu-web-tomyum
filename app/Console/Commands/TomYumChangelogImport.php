@@ -26,7 +26,8 @@ use Illuminate\Console\Command;
  * Discord), its documentation to Wiki, and the website's to Web; each gets a category ("Stable:
  * friends" → Friends-less title in category Stable, otherwise from the files). Up to five changes
  * make a version (2026.930.0, 2026.930.1, …). Commits are credited to the GitHub account (and
- * through it the player) given for their author email. Already imported commits are skipped.
+ * through it the player) given for their author email. Already imported commits are skipped, and
+ * so are ones given with --skip or saying "[no changelog]" in their message.
  */
 class TomYumChangelogImport extends Command
 {
@@ -34,6 +35,7 @@ class TomYumChangelogImport extends Command
         {source : server (the game server) or web (the website)}
         {--repository= : e.g. sundeiii/TomYum}
         {--author=* : "email=github login:github id:user id", who a commit author is}
+        {--skip=* : commits (hash or its start) not to list}
         {--reset : first remove every change and version imported so far}';
 
     protected $description = 'Adds new git commits (piped in) to the changelog.';
@@ -117,7 +119,7 @@ class TomYumChangelogImport extends Command
                 continue;
             }
             $marker->count = $commit['at']->getTimestamp();
-            if ($commit['subject'] === '' || preg_match(static::SKIP, $commit['subject']) === 1) {
+            if ($commit['subject'] === '' || preg_match(static::SKIP, $commit['subject']) === 1 || $this->skipped($commit['hash']) || str_contains($commit['body'], '[no changelog]')) {
                 continue;
             }
 
@@ -170,6 +172,17 @@ class TomYumChangelogImport extends Command
             $githubUser->fill(['username' => $m[2], 'user_id' => (int) $m[4]])->save();
             $this->authors[strtolower($m[1])] = $githubUser->getKey();
         }
+    }
+
+    private function skipped(string $hash): bool
+    {
+        foreach ((array) $this->option('skip') as $start) {
+            if (strlen((string) $start) >= 7 && str_starts_with($hash, (string) $start)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static function parse(string $record): ?array
