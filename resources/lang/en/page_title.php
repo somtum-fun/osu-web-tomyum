@@ -31,6 +31,9 @@ return [
         ],
     ],
     'main' => [
+        'activity_controller' => [
+            '_' => 'activity',
+        ],
         'account_controller' => [
             'verify_link' => 'account verification',
         ],
