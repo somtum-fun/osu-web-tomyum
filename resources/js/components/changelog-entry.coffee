@@ -60,12 +60,14 @@ export ChangelogEntry = ({entry}) =>
               "#{entry.repository.replace /^.*\//, ''}##{entry.github_pull_request_id}"
             ')'
 
-        span
-          className: 'changelog-entry__user'
-          el StringWithComponent,
-            mappings:
-              user: userLink entry.github_user
-            pattern: trans 'changelog.entry.by'
+        # TomYum: entries from git history have no author; say nothing rather than "by [no name]".
+        if entry.github_user?.user_id? || entry.github_user?.github_username?
+          span
+            className: 'changelog-entry__user'
+            el StringWithComponent,
+              mappings:
+                user: userLink entry.github_user
+              pattern: trans 'changelog.entry.by'
 
     if entry.message_html?
       div
