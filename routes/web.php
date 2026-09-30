@@ -445,6 +445,8 @@ Route::group(['middleware' => ['web']], function () {
 
         Route::get('kudosu', 'UsersController@kudosu')->name('kudosu');
         Route::get('recent_activity', 'UsersController@recentActivity')->name('recent-activity');
+        // TomYum: what they're listening to on Last.fm (the profile asks again every 30 seconds).
+        Route::get('listening', 'UsersController@tomyumListeningJson')->name('tomyum-listening');
         Route::get('score-replay-stats', 'UsersController@scoreReplayStats')->name('score-replay-stats');
         Route::get('scores/{type}', 'UsersController@scores')->name('scores');
         Route::get('beatmapsets/{type}', 'UsersController@beatmapsets')->name('beatmapsets');

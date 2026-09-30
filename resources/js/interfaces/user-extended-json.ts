@@ -45,6 +45,7 @@ interface UserExtendedAdditionalAttributes {
   occupation: string | null;
   // TomYum: the song Last.fm says they are listening to (profile pages only).
   tomyum_listening?: { artist: string; title: string; url: string | null } | null;
+  tomyum_lastfm?: boolean;
   playmode: Ruleset;
   playstyle: string[];
   post_count: number;

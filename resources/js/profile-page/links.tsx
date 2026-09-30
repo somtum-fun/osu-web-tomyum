@@ -17,7 +17,7 @@ import { trans, transChoice } from 'utils/lang';
 const textKeys = ['join_date', 'last_visit', 'playstyle', 'post_count', 'comments_count'] as const;
 type TextKey = (typeof textKeys)[number];
 
-const bioKeys = ['location', 'interests', 'occupation', 'tomyum_listening'] as const;
+const bioKeys = ['location', 'interests', 'occupation'] as const;
 type BioKey = (typeof bioKeys)[number];
 
 const mediaKeys = ['twitter', 'discord', 'website'] as const;
@@ -52,13 +52,6 @@ const linkMapping: Record<LinkKey, (user: UserExtendedJson) => LinkProps> = {
   occupation: (user: UserExtendedJson) => ({
     icon: 'fas fa-suitcase',
     text: user.occupation,
-  }),
-  // TomYum: the song Last.fm says they're listening to (connected in account settings).
-  tomyum_listening: (user: UserExtendedJson) => ({
-    icon: 'fab fa-lastfm',
-    text: `${user.tomyum_listening?.artist ?? ''} – ${user.tomyum_listening?.title ?? ''}`,
-    title: 'Listening to (Last.fm)',
-    url: user.tomyum_listening?.url,
   }),
   twitter: (user: UserExtendedJson) => ({
     icon: 'fab fa-twitter',
@@ -163,11 +156,43 @@ function Link(props: LinkProps) {
   );
 }
 
+type Listening = NonNullable<UserExtendedJson['tomyum_listening']>;
+
+// TomYum: what they're listening to on Last.fm (connected in account settings), asked again every
+// 30 seconds while the page is in view.
+function ListeningLink({ user }: Props) {
+  const [song, setSong] = React.useState<Listening | null>(user.tomyum_listening ?? null);
+
+  React.useEffect(() => {
+    const url = `/users/${user.id}/listening`;
+    const refresh = () => {
+      if (document.hidden) return;
+      fetch(url, { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+        .then((response) => response.ok ? response.json() as Promise<{ listening: Listening | null }> : null)
+        .then((json) => {
+          if (json != null) setSong(json.listening);
+        })
+        .catch(() => undefined);
+    };
+    const timer = window.setInterval(refresh, 30000);
+    document.addEventListener('visibilitychange', refresh);
+
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', refresh);
+    };
+  }, [user.id]);
+
+  if (song == null) return null;
+
+  return <Link icon='fab fa-lastfm' text={`${song.artist} – ${song.title}`} title='Listening to (Last.fm)' url={song.url} />;
+}
+
 export default class Links extends React.PureComponent<Props> {
   render() {
     const rows = [
       textKeys.map(this.renderText),
-      bioKeys.map(this.renderLink),
+      [...bioKeys.map(this.renderLink), this.props.user.tomyum_lastfm ? <ListeningLink key='listening' user={this.props.user} /> : null],
       mediaKeys.map(this.renderLink),
     ].map((row) => compact(row)).filter((x) => x.length > 0);
 

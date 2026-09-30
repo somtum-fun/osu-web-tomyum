@@ -26,17 +26,32 @@
                             <p>
                                 Your plays are scrobbled to
                                 <a href="https://www.last.fm/user/{{ rawurlencode($lastFm['username']) }}" rel="nofollow noopener" target="_blank">{{ $lastFm['username'] }}</a>:
-                                every map you pass, on stable or lazer, as its song. Last.fm shows what you're playing while you play.
+                                every map you pass, on stable or lazer, as its song. Last.fm shows what you're playing while you play, and your profile shows what you're listening to.
                             </p>
                             @if (count($lastFm['recent'] ?? []) > 0)
                                 <div style="margin: 12px 0 16px">
                                     <div style="font-weight: 600; margin-bottom: 6px">Recently scrobbled</div>
-                                    @foreach ($lastFm['recent'] as $scrobble)
+                                    @foreach ($lastFm['recent'] as $track)
+                                        @php
+                                            // Plays from osu! here link to their map; the rest to Last.fm.
+                                            $trackUrl = $track['beatmapId'] !== null ? route('beatmaps.show', ['beatmap' => $track['beatmapId']]) : $track['url'];
+                                            $pill = static fn (string $colour, string $text) => '<span style="background: hsla(var('.$colour.'), 0.2); border-radius: 999px; color: hsl(var('.$colour.')); font-size: 11px; font-weight: 600; padding: 0 8px">'.e($text).'</span>';
+                                        @endphp
                                         <div style="align-items: baseline; display: flex; flex-wrap: wrap; gap: 4px 10px; padding: 3px 0">
-                                            <a href="{{ route('beatmaps.show', ['beatmap' => $scrobble['beatmapId']]) }}">{{ $scrobble['artist'] }} – {{ $scrobble['title'] }}</a>
-                                            {{-- The clients' colours on osu!'s changelog: stable blue, lazer red. --}}
-                                            <span style="background: hsla(var({{ $scrobble['client'] === 'lazer' ? '--hsl-red-1' : '--hsl-blue-1' }}), 0.2); border-radius: 999px; color: hsl(var({{ $scrobble['client'] === 'lazer' ? '--hsl-red-1' : '--hsl-blue-1' }})); font-size: 11px; font-weight: 600; padding: 0 8px">{{ $scrobble['client'] }}</span>
-                                            <span style="color: hsl(var(--hsl-c2)); font-size: 12px">{!! timeago(Carbon\Carbon::parse($scrobble['scrobbledAt'], 'UTC')) !!}</span>
+                                            @if ($trackUrl !== null)
+                                                <a href="{{ $trackUrl }}" @if ($track['beatmapId'] === null) rel="nofollow noopener" target="_blank" @endif>{{ $track['artist'] }} – {{ $track['title'] }}</a>
+                                            @else
+                                                <span>{{ $track['artist'] }} – {{ $track['title'] }}</span>
+                                            @endif
+                                            {{-- The clients in their changelog colours (stable blue, lazer red); other players have no tag. --}}
+                                            @if ($track['client'] !== null)
+                                                {!! $pill($track['client'] === 'lazer' ? '--hsl-red-1' : '--hsl-blue-1', 'osu! '.$track['client']) !!}
+                                            @endif
+                                            @if ($track['nowPlaying'])
+                                                {!! $pill('--hsl-lime-1', 'now playing') !!}
+                                            @elseif ($track['at'] !== null)
+                                                <span style="color: hsl(var(--hsl-c2)); font-size: 12px">{!! timeago(Carbon\Carbon::parse($track['at'])) !!}</span>
+                                            @endif
                                         </div>
                                     @endforeach
                                 </div>

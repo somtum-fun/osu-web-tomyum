@@ -706,7 +706,9 @@ class UsersController extends Controller
         } else {
             $achievements = app('medals')->json();
             // TomYum: what they're listening to on Last.fm (connected in account settings).
-            $userArray['tomyum_listening'] = static::tomyumListening($user);
+            $lastFm = static::tomyumListening($user);
+            $userArray['tomyum_lastfm'] = $lastFm !== null;
+            $userArray['tomyum_listening'] = $lastFm['listening'] ?? null;
             $currentUser = \Auth::user();
             if ($currentUser !== null && $currentUser->getKey() === $user->getKey()) {
                 $userCoverPresets = app('user-cover-presets')->json();
@@ -727,7 +729,19 @@ class UsersController extends Controller
         }
     }
 
-    /** TomYum: the song Last.fm says the player is listening to (artist, title, url), or null. */
+    /** TomYum: the profile asks again every so often ({listening: {artist, title, url} or null}). */
+    public function tomyumListeningJson($userId)
+    {
+        $user = User::find(get_int($userId));
+        abort_if($user === null || ($user->isRestricted() && \Auth::id() !== $user->getKey()), 404);
+
+        return ['listening' => static::tomyumListening($user)['listening'] ?? null];
+    }
+
+    /**
+     * TomYum: the player's Last.fm "now playing", as {listening: {artist, title, url} or null}; null
+     * when they haven't connected Last.fm (or the game server can't be reached).
+     */
     private static function tomyumListening(User $user): ?array
     {
         try {
