@@ -43,9 +43,10 @@
         'matchmaking.pool_edit' => ['Edit pool', 'info'],
         'matchmaking.pool_remove' => ['Remove pool', 'info'],
         'matchmaking.map_add' => ['Pool map', 'info'],
+        'mods.ranked' => ['Ranked mods', 'info'],
     ];
     // Actions whose target isn't a player.
-    $notPlayers = ['beatmapset.', 'title.', 'news.', 'seasonal.', 'daily_challenge.', 'matchmaking.', 'scores.'];
+    $notPlayers = ['beatmapset.', 'title.', 'news.', 'seasonal.', 'daily_challenge.', 'matchmaking.', 'scores.', 'mods.'];
 @endphp
 <div class="tomyum-panel__scroll">
 <table class="tomyum-panel__table">

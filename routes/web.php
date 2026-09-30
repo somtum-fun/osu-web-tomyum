@@ -93,6 +93,8 @@ Route::group(['middleware' => ['web']], function () {
             Route::get('news', 'NewsController@index')->name('news.index');
             Route::post('news', 'NewsController@store')->name('news.store');
             Route::post('news/{post}/remove', 'NewsController@destroy')->name('news.destroy');
+            Route::get('mods', 'ModsController@index')->name('mods.index');
+            Route::post('mods', 'ModsController@update')->name('mods.update');
             Route::get('matchmaking', 'MatchmakingController@index')->name('matchmaking.index');
             Route::post('matchmaking', 'MatchmakingController@store')->name('matchmaking.store');
             Route::post('matchmaking/{pool}', 'MatchmakingController@update')->name('matchmaking.update');

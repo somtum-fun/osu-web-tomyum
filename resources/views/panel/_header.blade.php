@@ -121,6 +121,23 @@
     }
     .tomyum-panel__live-dot--off { background: hsl(var(--hsl-red-2)); box-shadow: 0 0 0 3px hsla(var(--hsl-red-2), 0.25); }
 
+    /* Tabs (rulesets) and switches */
+    .tomyum-panel__tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tomyum-panel__tab {
+        background: hsl(var(--hsl-b5)); border-radius: 999px; color: hsl(var(--hsl-c2)); font-size: 12px; font-weight: 600;
+        padding: 4px 12px; transition: background 120ms, color 120ms;
+    }
+    .tomyum-panel__tab:hover { background: hsl(var(--hsl-b3)); color: hsl(var(--hsl-c1)); text-decoration: none; }
+    .tomyum-panel__tab--active, .tomyum-panel__tab--active:hover { background: hsl(var(--hsl-h1)); color: hsl(var(--hsl-b6)); }
+    .tomyum-panel__switch { align-items: center; cursor: pointer; display: inline-flex; font-size: 12px; gap: 8px; margin-left: 10px; }
+    .tomyum-panel__switch input { appearance: none; background: hsl(var(--hsl-b3)); border-radius: 999px; cursor: pointer;
+        height: 20px !important; margin: 0; position: relative; transition: background 150ms; width: 36px !important; }
+    .tomyum-panel__switch input::after { background: hsl(var(--hsl-c1)); border-radius: 50%; content: ""; height: 14px; left: 3px;
+        position: absolute; top: 3px; transition: transform 150ms; width: 14px; }
+    .tomyum-panel__switch input:checked { background: hsl(var(--hsl-lime-1)); }
+    .tomyum-panel__switch input:checked::after { transform: translateX(16px); }
+    .tomyum-panel__switch span { color: hsl(var(--hsl-c2)); }
+
     /* Progress */
     .tomyum-panel__progress { background: hsl(var(--hsl-b5)); border-radius: 4px; height: 8px; overflow: hidden; }
     .tomyum-panel__progress > div { background: hsl(var(--hsl-h1)); height: 100%; transition: width 300ms; }
