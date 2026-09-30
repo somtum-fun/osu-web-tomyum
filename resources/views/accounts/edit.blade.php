@@ -182,6 +182,8 @@
         @endif
 
         @include('accounts._edit_legacy_api')
+
+        @include('accounts._edit_lastfm')
     </div>
 @endsection
 

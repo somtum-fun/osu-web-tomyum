@@ -319,6 +319,11 @@ Route::group(['middleware' => ['web']], function () {
             Route::get('github-users/callback', 'Account\GithubUsersController@callback')->name('github-users.callback');
             Route::resource('github-users', 'Account\GithubUsersController', ['only' => ['create']]);
             Route::delete('github-users', 'Account\GithubUsersController@destroy')->name('github-users.destroy');
+
+            // TomYum: Last.fm scrobbling.
+            Route::get('lastfm', 'Account\LastFmController@create')->name('lastfm.create');
+            Route::get('lastfm/callback', 'Account\LastFmController@callback')->name('lastfm.callback');
+            Route::delete('lastfm', 'Account\LastFmController@destroy')->name('lastfm.destroy');
         });
 
         Route::get('quick-search', 'HomeController@quickSearch')->name('quick-search');
