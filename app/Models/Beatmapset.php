@@ -744,6 +744,36 @@ class Beatmapset extends Model implements AfterCommit, CommentableInterface, Ind
         if ($this->isScoreable() !== $oldScoreable) {
             $this->userRatings()->delete();
         }
+
+        $this->tomyumApplyStatus($state, $user, $beatmapIds);
+    }
+
+    /**
+     * TomYum: the game server owns ranked status (it applies it in-game, keeps it when the set is
+     * refreshed from osu!, and recalculates the scores), so a change made here (love, a qualify from
+     * nominations, a disqualify, removing from loved, ranking after the qualified period) goes to it
+     * too, like the BN panel's. Only once the change is saved (love() and qualify() run in a
+     * transaction, and TomYum writes the same rows back here). Best effort: the website changed.
+     */
+    private function tomyumApplyStatus(string $state, $user, ?array $beatmapIds): void
+    {
+        if (!$GLOBALS['cfg']['tomyum']['manages_ranking']) {
+            return;
+        }
+
+        $setId = $this->getKey();
+        $actor = $user instanceof User ? $user : null;
+        $this->getConnection()->afterCommit(function () use ($setId, $actor, $state, $beatmapIds) {
+            try {
+                $response = (new \App\Libraries\TomYumAdmin($actor))
+                    ->post("/beatmapsets/{$setId}/status", ['status' => $state, 'beatmapIds' => $beatmapIds ?? []]);
+                if (!$response->successful()) {
+                    log_error(new \Exception("TomYum didn't take beatmapset {$setId}'s status {$state} (HTTP {$response->status()})."));
+                }
+            } catch (\Throwable $e) {
+                log_error($e);
+            }
+        });
     }
 
     public function discussionLock($user, $reason)

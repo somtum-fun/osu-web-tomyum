@@ -59,14 +59,13 @@ class Kernel extends ConsoleKernel
             ->cron('35 0,3,6,9,12,15,18,21 * * *')
             ->onOneServer();
 
-        // TomYum decides ranked status (osu! API + BN panel); auto-ranking qualified sets here would
-        // only change the website and put it out of step with the game.
-        if (!$GLOBALS['cfg']['tomyum']['manages_ranking']) {
-            $schedule->command('modding:rank')
-                ->cron('*/20 * * * *')
-                ->withoutOverlapping(120)
-                ->onOneServer();
-        }
+        // Ranks sets qualified here once their qualified period is over. With TomYum deciding ranked
+        // status, Beatmapset::setApproved passes the change on to it (the game follows); sets imported
+        // qualified from osu! have no queue date here, so they're left to osu!'s own status.
+        $schedule->command('modding:rank')
+            ->cron('*/20 * * * *')
+            ->withoutOverlapping(120)
+            ->onOneServer();
 
         $schedule->command('oauth:delete-expired-tokens')
             ->cron('14 1 * * *')

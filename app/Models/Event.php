@@ -90,7 +90,7 @@ class Event extends Model
             case 'beatmapsetApprove':
                 $beatmapset = $options['beatmapset'];
                 $beatmapsetLink = static::beatmapsetLink($beatmapset);
-                $userLink = static::userLink($options['beatmapset']->user);
+                $userLink = static::mapperLink($options['beatmapset']);
                 $approval = e($beatmapset->status());
 
                 $template = '%s by %s has just been %s!';
@@ -99,7 +99,7 @@ class Event extends Model
                     'text_clean' => sprintf($template, $beatmapsetLink['clean'], $userLink['clean'], $approval),
                     'beatmap_id' => 0,
                     'beatmapset_id' => $beatmapset->getKey(),
-                    'user_id' => $beatmapset->user->getKey(),
+                    'user_id' => $beatmapset->user?->getKey(), // TomYum: an imported set's mapper may have no account here
                     'private' => false,
                     'epicfactor' => 8,
                 ];
@@ -123,14 +123,14 @@ class Event extends Model
             case 'beatmapsetRevive':
                 $beatmapset = $options['beatmapset'];
                 $beatmapsetLink = static::beatmapsetLink($beatmapset);
-                $userLink = static::userLink($beatmapset->user);
+                $userLink = static::mapperLink($beatmapset);
 
                 $template = '%s has been revived from eternal slumber by %s.';
                 $params = [
                     'text' => sprintf($template, $beatmapsetLink['html'], tag('b', [], $userLink['html'])),
                     'text_clean' => sprintf($template, $beatmapsetLink['clean'], $userLink['clean']),
                     'beatmapset_id' => $beatmapset->getKey(),
-                    'user_id' => $beatmapset->user->getKey(),
+                    'user_id' => $beatmapset->user?->getKey(), // TomYum: an imported set's mapper may have no account here
                     'private' => false,
                     'epicfactor' => 5,
                 ];
@@ -160,14 +160,14 @@ class Event extends Model
             case 'beatmapsetUpload':
                 $beatmapset = $options['beatmapset'];
                 $beatmapsetLink = static::beatmapsetLink($beatmapset);
-                $userLink = static::userLink($beatmapset->user);
+                $userLink = static::mapperLink($beatmapset);
 
                 $template = '%s has submitted a new beatmap "%s"';
                 $params = [
                     'text' => sprintf($template, tag('b', [], $userLink['html']), $beatmapsetLink['html']),
                     'text_clean' => sprintf($template, $userLink['clean'], $beatmapsetLink['clean']),
                     'beatmapset_id' => $beatmapset->getKey(),
-                    'user_id' => $beatmapset->user->getKey(),
+                    'user_id' => $beatmapset->user?->getKey(), // TomYum: an imported set's mapper may have no account here
                     'private' => false,
                     'epicfactor' => 4,
                 ];
@@ -538,6 +538,26 @@ class Event extends Model
         return [
             'html' => sprintf('<a href=\'%s\'>%s</a>', e($url), e($username)),
             'clean' => "[{$GLOBALS['cfg']['app']['url']}{$url} {$username}]",
+        ];
+    }
+
+    /**
+     * TomYum: the mapper's link. Sets imported from osu! keep their mapper's name (creator) but they
+     * usually have no account here (user_id 0 or someone who never signed up), so the name links to
+     * their osu! profile instead.
+     */
+    private static function mapperLink($beatmapset)
+    {
+        if ($beatmapset->user !== null) {
+            return static::userLink($beatmapset->user);
+        }
+
+        $username = $beatmapset->creator;
+        $url = 'https://osu.ppy.sh/users/'.($beatmapset->user_id > 0 ? $beatmapset->user_id : rawurlencode($username));
+
+        return [
+            'html' => sprintf('<a href=\'%s\'>%s</a>', e($url), e($username)),
+            'clean' => "[{$url} {$username}]",
         ];
     }
 
