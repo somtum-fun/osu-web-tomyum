@@ -49,6 +49,16 @@ const modes: [Ruleset | null, string][] = [
   ['mania', 'osu!mania'],
 ];
 
+const emptyText: Record<FilterType, string> = {
+  beatmaps: 'No beatmaps ranked, loved or uploaded yet.',
+  firsts: 'Nobody has set a #1 yet.',
+  highlights: 'Nothing has happened yet.',
+  medals: 'Nobody has unlocked a medal yet.',
+  names: 'Nobody has changed their name yet.',
+  ranks: 'Nobody has made the top 50 on a map yet.',
+  supporters: 'Nobody has become a supporter yet.',
+};
+
 // Types whose entries are plays, where a mode can be picked.
 const scoreTypes = new Set<FilterType>(['firsts', 'ranks']);
 
@@ -158,7 +168,9 @@ export default function Main(props: ActivityJson) {
       )}
 
       {events.length === 0 ? (
-        <p className='activity-feed__empty'>{trans('events.empty')}</p>
+        <p className='activity-feed__empty'>
+          {emptyText[type]} New entries show up here by themselves.
+        </p>
       ) : (
         <ul className='activity-feed__entries'>
           {events.map((event) => <Entry key={event.id} event={event} fresh={fresh.has(event.id)} />)}
