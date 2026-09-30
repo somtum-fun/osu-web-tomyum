@@ -14,7 +14,8 @@
             <h2><i class="fas fa-plus"></i>Make a banner</h2>
             <p class="tomyum-panel__hint">
                 A banner shows under the header of everyone who has it, like osu!'s tournament winner banners, and links to
-                its tournament's page (listed with the previous tournaments). Use a wide image: osu!'s are 2000 × 400 or so.
+                its tournament's page (listed with the previous tournaments). It shows 1000 × 60 wide: use an image 2000 × 120
+                (like osu!'s) so it's sharp everywhere. Given an address like osu!'s, the double-size one (…@2x.jpg) is taken when there is one.
             </p>
             <form method="POST" action="{{ route('panel.admin.tournament-banners.store') }}" enctype="multipart/form-data" style="display: grid; gap: 12px">
                 @csrf
@@ -44,7 +45,7 @@
                     </label>
                     <label class="tomyum-panel__field">
                         …or the address of one
-                        <input type="text" name="image_url" placeholder="https://assets.ppy.sh/tournament-banners/…/winner_FR.jpg">
+                        <input type="text" name="image_url" placeholder="https://assets.ppy.sh/tournament-banners/official/owc2025/profile/winner_PL.jpg">
                     </label>
                 </div>
                 <div class="tomyum-panel__row">
@@ -92,6 +93,22 @@
 
                 <img src="{{ $banner->banner_url_prefix }}.jpg" srcset="{{ $banner->banner_url_prefix }}@2x.jpg 2x" alt=""
                     style="border-radius: 8px; display: block; margin-bottom: 14px; max-height: 160px; object-fit: cover; width: 100%">
+
+                <details style="margin-bottom: 14px">
+                    <summary class="tomyum-panel__muted" style="cursor: pointer; font-size: 12px">New image</summary>
+                    <form method="POST" action="{{ route('panel.admin.tournament-banners.replace', ['banner' => $banner->getKey()]) }}" enctype="multipart/form-data" class="tomyum-panel__row" style="margin-top: 8px">
+                        @csrf
+                        <label class="tomyum-panel__field">
+                            Image
+                            <input type="file" name="image" accept="image/*">
+                        </label>
+                        <label class="tomyum-panel__field">
+                            …or the address of one
+                            <input type="text" name="image_url" placeholder="https://…">
+                        </label>
+                        <div><button class="tomyum-panel__button tomyum-panel__button--secondary" type="submit"><i class="fas fa-image"></i>Change</button></div>
+                    </form>
+                </details>
 
                 <form method="POST" action="{{ route('panel.admin.tournament-banners.give', ['banner' => $banner->getKey()]) }}" class="tomyum-panel__row">
                     @csrf

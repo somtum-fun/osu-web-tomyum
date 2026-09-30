@@ -46,6 +46,7 @@
         'mods.ranked' => ['Ranked mods', 'info'],
         'banner.add' => ['New banner', 'pink'],
         'banner.toggle' => ['Banner shown/hidden', 'pink'],
+        'banner.image' => ['Banner image', 'pink'],
         'banner.remove' => ['Remove banner', 'pink'],
         'user.banner_add' => ['Give banner', 'pink'],
         'user.banner_remove' => ['Take banner', 'pink'],

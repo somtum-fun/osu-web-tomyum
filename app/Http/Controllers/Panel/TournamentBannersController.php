@@ -19,12 +19,16 @@ use Request;
  * Admin panel: tournament banners on profiles (osu-web's own feature: the banner under a player's
  * header, linking to the tournament). A banner is a tournament (shown with the past ones on the
  * tournaments page) with one image for everyone who gets it, stored with the site's uploads at
- * normal and double size (tournament-banners/{id}/banner.jpg, banner@2x.jpg).
+ * normal and double size (tournament-banners/{id}/banner.jpg, banner@2x.jpg; a replaced image gets
+ * a new name, banner-{time}.jpg, so nobody's browser keeps the old one).
  */
 class TournamentBannersController extends Controller
 {
     /** Biggest image taken (uploaded or fetched). */
     private const MAX_BYTES = 10 * 1024 * 1024;
+
+    /** How wide the banner shows on profiles (osu!'s are 1000 × 60, and 2000 × 120 at double size). */
+    private const WIDTH = 1000;
 
     public function __construct()
     {
@@ -89,7 +93,7 @@ class TournamentBannersController extends Controller
             return $tournament;
         });
 
-        if (!$this->save($tournament->getKey(), $image)) {
+        if (!$this->save($tournament->getKey(), 'banner', $image)) {
             DB::transaction(function () use ($tournament) {
                 TournamentBanner::whereKey($tournament->getKey())->delete();
                 $tournament->delete();
@@ -121,13 +125,36 @@ class TournamentBannersController extends Controller
             $row->delete();
             $row->tournament?->delete();
         });
-        foreach (['banner.jpg', 'banner@2x.jpg'] as $file) {
-            @unlink(public_path("uploads/tournament-banners/{$row->getKey()}/{$file}"));
+        foreach (glob(public_path("uploads/tournament-banners/{$row->getKey()}/*.jpg")) ?: [] as $file) {
+            @unlink($file);
         }
         @rmdir(public_path("uploads/tournament-banners/{$row->getKey()}"));
         $this->staffLog('banner.remove', $row->getKey(), "Removed the tournament banner \"{$name}\" (and took it from everyone)");
 
         return $this->back('success', "Removed \"{$name}\" (and took it from everyone who had it).");
+    }
+
+    public function replace(string $banner)
+    {
+        $row = TournamentBanner::with('tournament')->findOrFail((int) $banner);
+        $name = $row->tournament?->name ?? "#{$row->getKey()}";
+
+        [$image, $problem] = $this->image();
+        if ($image === null) {
+            return $this->back('error', $problem);
+        }
+        $old = glob(public_path("uploads/tournament-banners/{$row->getKey()}/*.jpg")) ?: [];
+        $file = 'banner-'.time();
+        if (!$this->save($row->getKey(), $file, $image)) {
+            return $this->back('error', 'That isn\'t an image the site can read (JPEG, PNG, WebP or GIF).');
+        }
+        $row->update(['banner_url_prefix' => url("/uploads/tournament-banners/{$row->getKey()}/{$file}")]);
+        foreach ($old as $path) {
+            @unlink($path);
+        }
+        $this->staffLog('banner.image', $row->getKey(), "Changed the image of the tournament banner \"{$name}\"");
+
+        return $this->back('success', "\"{$name}\" has its new image.");
     }
 
     public function give(string $banner)
@@ -178,20 +205,42 @@ class TournamentBannersController extends Controller
         if (!preg_match('#^https?://#', $url)) {
             return [null, 'The image address should be a web address (https://…).'];
         }
+
+        // Addresses like osu!'s (winner_PL.jpg) usually have a double size next to them (winner_PL@2x.jpg):
+        // that one first, so the banner isn't made from the small one.
+        $url2x = preg_match('#@2x\.[^./?]+(\?|$)#', $url) ? null : preg_replace('#(\.[^./?]+)(\?.*)?$#', '@2x$1$2', $url, 1);
+        foreach (array_filter([$url2x, $url]) as $candidate) {
+            $bytes = $this->fetch($candidate);
+            if ($bytes !== null) {
+                return [$bytes, null];
+            }
+        }
+
+        return [null, 'Couldn\'t fetch an image from that address (or it\'s over 10 MB).'];
+    }
+
+    /** The image at an address, or null when there's none (or it's too big). */
+    private function fetch(string $url): ?string
+    {
         try {
             $response = Http::timeout(20)->get($url);
         } catch (\Throwable $e) {
-            return [null, 'Couldn\'t fetch the image from that address.'];
+            return null;
         }
-        if (!$response->successful() || strlen($response->body()) > static::MAX_BYTES) {
-            return [null, 'Couldn\'t fetch the image from that address (or it\'s over 10 MB).'];
+        $body = $response->body();
+        if (!$response->successful() || strlen($body) > static::MAX_BYTES || @getimagesizefromstring($body) === false) {
+            return null;
         }
 
-        return [$response->body(), null];
+        return $body;
     }
 
-    /** Stores the banner as JPEG at double size (as given) and normal size (half); false when it isn't an image. */
-    private function save(int $id, string $bytes): bool
+    /**
+     * Stores the banner as JPEG at normal size ({$name}.jpg, up to WIDTH wide) and double size
+     * ({$name}@2x.jpg, up to twice that). Images are only ever shrunk: a small one is stored as it
+     * is at both sizes, not blown up. False when it isn't an image.
+     */
+    private function save(int $id, string $name, string $bytes): bool
     {
         $image = @imagecreatefromstring($bytes);
         if ($image === false) {
@@ -202,13 +251,29 @@ class TournamentBannersController extends Controller
             mkdir($dir, 0755, true);
         }
 
-        $width = imagesx($image);
-        $height = imagesy($image);
-        imagejpeg($image, "{$dir}/banner@2x.jpg", 90);
-        $half = imagescale($image, max(1, intdiv($width, 2)), max(1, intdiv($height, 2)));
-        imagejpeg($half !== false ? $half : $image, "{$dir}/banner.jpg", 90);
+        foreach (["{$name}.jpg" => static::WIDTH, "{$name}@2x.jpg" => static::WIDTH * 2] as $file => $maxWidth) {
+            imagejpeg($this->shrink($image, $maxWidth), "{$dir}/{$file}", 92);
+        }
 
         return true;
+    }
+
+    /** The image at most $maxWidth wide (keeping its shape), resampled so it stays sharp. */
+    private function shrink(\GdImage $image, int $maxWidth): \GdImage
+    {
+        $width = imagesx($image);
+        $height = imagesy($image);
+        $newWidth = min($width, $maxWidth);
+        $newHeight = max(1, (int) round($height * $newWidth / $width));
+
+        // Drawn onto a fresh canvas even at the same size, so a transparent PNG/GIF gets the page's
+        // dark background instead of JPEG's black.
+        $out = imagecreatetruecolor($newWidth, $newHeight);
+        imagefill($out, 0, 0, imagecolorallocate($out, 0x2a, 0x22, 0x26));
+        imagealphablending($out, true);
+        imagecopyresampled($out, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+
+        return $out;
     }
 
     private function back(string $type, string $message)
