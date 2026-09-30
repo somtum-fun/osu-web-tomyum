@@ -9,4 +9,21 @@ return [
 
     // Ranked status is TomYum's (the osu! API plus the BN panel): don't run modding:rank here.
     'manages_ranking' => get_bool(env('TOMYUM_MANAGES_RANKING')) ?? true,
+
+    // Store payments (TrueMoney, Stripe) through payments-service (Store\TomYumCheckoutController):
+    // where it's reached from here; empty, paying fails with "not available".
+    'payments' => [
+        'url' => presence(env('TOMYUM_PAYMENTS_URL')),
+    ],
+
+    // Mail through NoCodeAPI's Zoho Mail endpoint when MAIL_DRIVER=nocodeapi (TomYumNocodeapiTransport).
+    'nocodeapi_mail_url' => presence(env('NOCODEAPI_MAIL_URL')),
+
+    // Who store mail (receipts, supporter thanks and gifts) comes from; account mail (sign-in codes,
+    // password and email changes, alerts) comes from MAIL_ADDRESS. Both must be addresses the Zoho
+    // account can send as; if it refuses this one, the mail goes from MAIL_ADDRESS instead.
+    'store_mail' => [
+        'address' => presence(env('MAIL_STORE_ADDRESS')) ?? presence(env('MAIL_ADDRESS')),
+        'name' => presence(env('MAIL_STORE_SENDER')) ?? 'osu!store',
+    ],
 ];

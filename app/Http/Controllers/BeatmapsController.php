@@ -396,6 +396,31 @@ class BeatmapsController extends Controller
      */
     public function scores($id)
     {
+        // TomYum: the Relax/Autopilot leaderboards are the game server's: variant=rx or ap on the
+        // website, or lazer's Relax/Autopilot "rulesets" as the mode (osurx, osuap, taikorx, fruitsrx).
+        $variant = presence(get_string(request('variant')));
+        $mode = presence(get_string(request('mode')));
+        if (($lazerVariant = \App\Libraries\TomYumModeScores::variant($mode)) !== null) {
+            $variant = substr($mode, strlen($lazerVariant[0]));
+            $mode = $lazerVariant[0];
+        }
+        if ($variant === 'rx' || $variant === 'ap') {
+            $type = presence(get_string(request('type'))) ?? 'global';
+            if (!in_array($type, ScoreSearchParams::VALID_TYPES, true)) {
+                throw new InvariantException('invalid type');
+            }
+            // Country and friend boards are for supporters, as on the vanilla board (mods stay open).
+            static::assertSupporterOnlyOptions(\Auth::user(), $type, []);
+
+            return \App\Libraries\TomYumModeScores::beatmapLeaderboard(
+                Beatmap::with('beatmapset')->findOrFail($id),
+                $mode,
+                $variant,
+                array_values(array_filter(get_arr(request('mods'), 'get_string') ?? [])),
+                $type,
+            );
+        }
+
         return static::beatmapScores(
             $id,
             null,

@@ -51,14 +51,7 @@
     'links' => $links,
     'theme' => 'store',
 ]])
-    @slot('titleAppend')
-        <div class="store-xsolla">
-            <div class="store-xsolla__text">
-                {!! osu_trans('store.xsolla.distributor') !!}
-            </div>
-            <div class="store-xsolla__icon"></div>
-        </div>
-    @endslot
+    {{-- TomYum: no Xsolla here (payments are TrueMoney and Stripe). --}}
 
     @slot('linksAppend')
         @if(isset($cart) && $cart && $cart->items()->exists())

@@ -75,6 +75,8 @@ class UsersController extends Controller
     private ?int $offset = null;
     private ?int $perPage = null;
     private ?User $user = null;
+    // TomYum: [ruleset, TomYum mode] when lazer asks for a Relax/Autopilot list (mode=osurx, ...).
+    private ?array $tomyumVariant = null;
 
     public function __construct()
     {
@@ -141,8 +143,19 @@ class UsersController extends Controller
             'available' => $available,
             'message' => $message,
             'cost' => $cost,
-            'costString' => currency($cost),
+            'costString' => $available ? static::usernameChangeCostString(Auth::user()) : currency($cost),
         ];
+    }
+
+    /** TomYum: renames are free; a non-supporter sees how many they have left this month. */
+    private static function usernameChangeCostString(\App\Models\User $user): string
+    {
+        $remaining = \App\Libraries\ChangeUsername::remainingThisMonth($user);
+
+        return $remaining === null
+            ? 'Free (no limit for osu!supporters)'
+            : "Free ({$remaining} of ".\App\Libraries\ChangeUsername::MONTHLY_LIMIT.' changes left in the next '
+                .\App\Libraries\ChangeUsername::MONTHLY_WINDOW_DAYS.' days)';
     }
 
     public function extraPages($_id, $page)
@@ -546,7 +559,7 @@ class UsersController extends Controller
         ];
 
         // TomYum: more of a Relax/Autopilot profile's list.
-        if (($variant = \App\Libraries\TomYumModeScores::variant(request('variant'))) !== null) {
+        if (($variant = \App\Libraries\TomYumModeScores::variant(request('variant')) ?? $this->tomyumVariant) !== null) {
             if ($type === 'pinned') {
                 return response([]);
             }
@@ -802,6 +815,10 @@ class UsersController extends Controller
         $this->user = FindForProfilePage::find(request()->route('user'), 'id');
 
         $this->mode = request()->route('mode') ?? request()->input('mode') ?? $this->user->playmode;
+        // TomYum: lazer asks for Relax/Autopilot lists with its mode (osurx, ...), the website with variant.
+        if (($this->tomyumVariant = \App\Libraries\TomYumModeScores::variant($this->mode)) !== null) {
+            $this->mode = $this->tomyumVariant[0];
+        }
         if (!Beatmap::isModeValid($this->mode)) {
             abort(404);
         }

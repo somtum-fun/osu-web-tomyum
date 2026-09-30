@@ -46,6 +46,8 @@ class SupporterGift extends Mailable implements ShouldQueue
     {
         return $this->text('emails.store.supporter_gift')
             ->with($this->params)
+            // TomYum: from the store's address, like the other store mail.
+            ->from($GLOBALS['cfg']['tomyum']['store_mail']['address'], $GLOBALS['cfg']['tomyum']['store_mail']['name'])
             ->subject(osu_trans('mail.supporter_gift.subject'));
     }
 }

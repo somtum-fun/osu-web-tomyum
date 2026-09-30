@@ -35,6 +35,8 @@
             @endif
         </div>
 
+        @include('panel.admin._moderation')
+
         <div class="tomyum-panel__card">
             <h2><i class="fas fa-user"></i>Profile</h2>
             <p class="tomyum-panel__hint">A rename keeps the old name in their username history. Changes reach the game immediately (they reconnect).</p>

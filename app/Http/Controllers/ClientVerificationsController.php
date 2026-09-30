@@ -25,20 +25,37 @@ class ClientVerificationsController extends Controller
         }
 
         $hash = request('ch');
+        // TomYum: osu!stable names the account it's logging in (u); confirming the device while
+        // signed in as another would verify it for the wrong one.
+        $expected = presence(get_string(request('u')));
+        $wrongAccount = $expected !== null && !static::isAccount(auth()->user(), $expected) ? $expected : null;
+
         $client = UserClient::lookupOrNew(auth()->user()->getKey(), $hash);
 
-        if ($client->verified) {
+        if ($client->verified && $wrongAccount === null) {
             return ext_view('client_verifications.completed');
         }
 
-        return ext_view('client_verifications.create', compact('hash'));
+        return ext_view('client_verifications.create', compact('expected', 'hash', 'wrongAccount'));
     }
 
     public function store()
     {
         $hash = request('ch');
+        $expected = presence(get_string(request('u')));
+        if ($expected !== null && !static::isAccount(auth()->user(), $expected)) {
+            return error_popup("This device is waiting for {$expected}: sign in as {$expected} to confirm it.");
+        }
         UserClient::markVerified(auth()->user()->getKey(), $hash);
 
-        return ujs_redirect(route('client-verifications.create', ['ch' => $hash]));
+        return ujs_redirect(route('client-verifications.create', ['ch' => $hash, 'u' => $expected]));
+    }
+
+    /** TomYum: whether $name is $user (osu! names ignore case, and a space and an underscore match). */
+    private static function isAccount($user, string $name): bool
+    {
+        $normalize = fn (string $value) => strtr(mb_strtolower(trim($value)), '_', ' ');
+
+        return $normalize($user->username) === $normalize($name);
     }
 }

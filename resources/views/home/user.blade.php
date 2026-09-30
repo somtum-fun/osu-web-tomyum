@@ -99,6 +99,12 @@
                         'colour' => 'c-pink-darker'
                     ])
 
+                    @include('home._user_giant_button', [
+                        'href' => route('store.products.index'),
+                        'label' => osu_trans('home.user.buttons.store'),
+                        'icon' => 'shopping-cart',
+                        'colour' => 'c-darkorange'
+                    ])
                 </div>
 
                 @if ($dailyChallenge)

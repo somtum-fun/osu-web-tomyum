@@ -323,7 +323,10 @@ class GmtController extends Controller
 
     private function back(User $target, string $type, string $message)
     {
-        return redirect(route('panel.gmt.users.show', ['user' => $target->getKey()]))
+        // TomYum: restrict and silence are on the admin panel's account page too; go back there.
+        $page = Request::input('from') === 'admin' && static::canUseAdmin(Auth::user()) ? 'panel.admin.users.show' : 'panel.gmt.users.show';
+
+        return redirect(route($page, ['user' => $target->getKey()]))
             ->with('panel_status', ['type' => $type, 'message' => $message, 'link' => null]);
     }
 }

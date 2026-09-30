@@ -326,6 +326,9 @@ class User extends Model implements AfterCommit, AuthenticatableContract, HasLoc
 
     public function usernameChangeCost()
     {
+        // TomYum: name changes are free (non-supporters are limited to a few a month instead: ChangeUsername).
+        return 0;
+
         $minTier = $this->usernameChangeHistory()->paid()->exists() ? 1 : 0;
 
         $tier = max(
@@ -767,7 +770,9 @@ class User extends Model implements AfterCommit, AuthenticatableContract, HasLoc
 
     public function isLoginBlocked()
     {
-        return $this->user_email === null;
+        // TomYum: or locked by staff (the admin panel): no logins anywhere until unlocked.
+        return $this->user_email === null
+            || $this->memoize(__FUNCTION__, fn () => \App\Libraries\TomYumAccount::isLocked($this->getKey()));
     }
 
     public function isSpecial()
@@ -2087,15 +2092,21 @@ class User extends Model implements AfterCommit, AuthenticatableContract, HasLoc
             }
         }
 
+        // TomYum: the account's login history (admin panel): the website, or lazer's /oauth/token.
+        $client = Request::is('oauth/*') ? 'lazer' : 'web';
 
         if ($authError !== null) {
             DatadogLoginAttempt::log($authError);
             LoginAttempt::logAttempt($ip, $user, 'fail', $password);
+            if ($user !== null) {
+                \App\Libraries\TomYumAccount::recordLogin($user, $client, $authError === 'invalid_password' ? 'bad_password' : 'locked');
+            }
 
             return osu_trans('users.login.failed');
         }
 
         LoginAttempt::logLoggedIn($ip, $user);
+        \App\Libraries\TomYumAccount::recordLogin($user, $client);
     }
 
     public static function findForLogin($username, $allowEmail = false)

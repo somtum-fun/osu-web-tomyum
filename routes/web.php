@@ -73,6 +73,15 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('users/{user}/groups', 'AdminController@groups')->name('users.groups');
             Route::post('users/{user}/supporter', 'AdminController@supporter')->name('users.supporter');
             Route::post('users/{user}/delete', 'AdminController@delete')->name('users.delete');
+            // TomYum: moderation on the account page.
+            Route::post('users/{user}/lock', 'AdminController@lock')->name('users.lock');
+            Route::post('users/{user}/whitelist', 'AdminController@whitelist')->name('users.whitelist');
+            Route::post('users/{user}/devices/wipe', 'AdminController@wipeDevices')->name('users.devices.wipe');
+            Route::post('users/{user}/note', 'AdminController@note')->name('users.note');
+            Route::post('users/{user}/reset', 'AdminController@reset')->name('users.reset');
+            Route::post('users/{user}/unlink', 'AdminController@unlink')->name('users.unlink');
+            Route::post('users/{user}/rollback', 'AdminController@rollback')->name('users.rollback');
+            Route::post('users/{user}/username-rollback', 'AdminController@usernameRollback')->name('users.username-rollback');
 
             Route::get('daily-challenge', 'DailyChallengeController@index')->name('daily-challenge.index');
             Route::post('daily-challenge', 'DailyChallengeController@store')->name('daily-challenge.store');
@@ -215,6 +224,9 @@ Route::group(['middleware' => ['web']], function () {
     });
 
     Route::resource('client-verifications', 'ClientVerificationsController', ['only' => ['create', 'store']]);
+    // TomYum: what osu!stable opens when bancho says a new device needs verifying
+    // (p/verify?u=<name>&reason=bancho&ch=<client hash>): the same page, which reads ch.
+    Route::get('p/verify', 'ClientVerificationsController@create')->name('client-verifications.legacy');
 
     Route::resource('comments', 'CommentsController', ['except' => ['create', 'edit']]);
     Route::post('comments/{comment}/pin', 'CommentsController@pinStore')->name('comments.pin');
@@ -342,6 +354,8 @@ Route::group(['middleware' => ['web']], function () {
         Route::get('download', 'HomeController@getDownload')->name('download');
         Route::post('set-locale', 'HomeController@setLocale')->name('set-locale');
         Route::get('support', 'HomeController@supportTheGame')->name('support-the-game');
+        // TomYum: osu!supporter is bought in the store now.
+        Route::redirect('supporter', '/store/products/'.\App\Models\Store\Product::SUPPORTER_TAG_NAME);
         Route::get('testflight', 'HomeController@testflight')->name('testflight');
 
         Route::get('password-reset', 'PasswordResetController@index')->name('password-reset');
@@ -469,7 +483,8 @@ Route::group(['middleware' => ['web']], function () {
 
     // FIXME: someone split this crap up into proper controllers
     // TomYum: nothing is sold here; every store page says so (the routes stay for links to them).
-    Route::group(['as' => 'store.', 'prefix' => 'store', 'middleware' => [\App\Http\Middleware\TomYumStoreUnavailable::class]], function () {
+    // TomYum: the store sells osu!supporter, paid with TrueMoney or a card (TomYumCheckoutController).
+    Route::group(['as' => 'store.', 'prefix' => 'store'], function () {
         route_redirect('/', 'store.products.index');
 
         Route::get('listing', 'StoreController@getListing')->name('products.index');
@@ -485,6 +500,9 @@ Route::group(['middleware' => ['web']], function () {
             Route::resource('cart', 'CartController', ['only' => ['store']]);
 
             Route::resource('checkout', 'CheckoutController', ['only' => ['show', 'store']]);
+            Route::post('checkout/{checkout}/truemoney', 'TomYumCheckoutController@truemoney')->name('checkout.tomyum.truemoney');
+            Route::post('checkout/{checkout}/stripe', 'TomYumCheckoutController@stripe')->name('checkout.tomyum.stripe');
+            Route::get('checkout/{checkout}/stripe-return', 'TomYumCheckoutController@stripeReturn')->name('checkout.tomyum.stripe-return');
 
             Route::resource('orders', 'OrdersController', ['only' => ['destroy', 'index']]);
 
@@ -755,6 +773,9 @@ Route::group(['prefix' => '_lio', 'middleware' => 'lio', 'as' => 'interop.'], fu
     Route::post('tomyum/index-beatmapset-document/{beatmapset}', 'TomYumInterOpController@indexBeatmapsetDocument');
     // TomYum: rebuild a country's ranking data after a player's stats changed.
     Route::post('tomyum/recalculate-country/{acronym}', 'TomYumInterOpController@recalculateCountry');
+    // TomYum: osu!supporter bought through payments-service (a store order paid; or time granted).
+    Route::post('tomyum/store-order-paid', 'TomYumInterOpController@storeOrderPaid');
+    Route::post('tomyum/grant-supporter', 'TomYumInterOpController@grantSupporter');
     // TomYum: in-game chat into website chat, and the game's channels on the website.
     Route::post('tomyum/chat-message', 'TomYumInterOpController@chatMessage');
     Route::post('tomyum/chat-channels', 'TomYumInterOpController@chatChannels');

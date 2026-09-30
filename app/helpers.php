@@ -829,7 +829,31 @@ function currency($price, $precision = 2, $zeroShowFree = true)
         return osu_trans('store.free');
     }
 
-    return 'US$'.i18n_number_format($price, null, null, $precision);
+    // TomYum: the store sells in Thai baht; players outside Thailand see (and pay) US$ instead,
+    // osu!'s own prices (SupporterTag::BAHT_PER_DOLLAR).
+    if (store_currency() === 'usd') {
+        return 'US$'.i18n_number_format(round($price / App\Models\SupporterTag::BAHT_PER_DOLLAR, $precision), null, null, $precision);
+    }
+
+    return currency_thb($price, $precision);
+}
+
+/** TomYum: a store amount in baht, whoever looks (TrueMoney only takes baht). */
+function currency_thb($price, $precision = 2)
+{
+    return '฿'.i18n_number_format(round($price, $precision), null, null, $precision);
+}
+
+/**
+ * TomYum: the store's currency for whoever is looking: "thb" for players in Thailand (their account's
+ * country; before signing in, Cloudflare's for their connection), "usd" for everyone else. Without
+ * either (queued mail), baht.
+ */
+function store_currency(): string
+{
+    $country = auth()->user()?->country_acronym ?? presence(request()?->header('CF-IPCountry'));
+
+    return $country === null || strtoupper($country) === 'TH' ? 'thb' : 'usd';
 }
 
 /**
@@ -1272,7 +1296,12 @@ function nav_links()
         'page_title.main.livestreams_controller._' => route('livestreams.index'),
         'layout.menu.community.dev' => osu_url('dev'),
     ];
-    // TomYum: no store here (see TomYumStoreUnavailable).
+    // TomYum: the store sells osu!supporter (TrueMoney and cards, through payments-service).
+    $links['store'] = [
+        'layout.header.store.products' => route('store.products.index'),
+        'layout.header.store.cart' => route('store.cart.show'),
+        'layout.header.store.orders' => route('store.orders.index'),
+    ];
     $links['help'] = [
         'page_title.main.wiki_controller._' => wiki_url('Main_page'),
         'layout.menu.help.getFaq' => wiki_url('FAQ'),

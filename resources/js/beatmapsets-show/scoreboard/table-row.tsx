@@ -55,7 +55,7 @@ interface Props {
 export default class ScoreboardTableRow extends React.Component<Props> {
   @computed
   get scoreUrl() {
-    return route('scores.show', { score: this.props.score.id });
+    return (this.props.score as { tomyum_url?: string }).tomyum_url ?? route('scores.show', { score: this.props.score.id });
   }
 
   constructor(props: Props) {

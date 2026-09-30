@@ -39,9 +39,18 @@
             </div>
 
             <div class="dialog-form__row dialog-form__row--label">
-                <p class="dialog-form__client-request">
-                    {{ osu_trans('client_verifications.create.confirm') }}
-                </p>
+                @if ($wrongAccount !== null)
+                    {{-- TomYum: the game is logging in another account than the one signed in here. --}}
+                    <p class="dialog-form__client-request">
+                        osu! is waiting to verify this device for <strong>{{ $wrongAccount }}</strong>, but you're
+                        signed in here as <strong>{{ $user->username }}</strong>. Sign out, then sign in as
+                        <strong>{{ $wrongAccount }}</strong> to confirm it.
+                    </p>
+                @else
+                    <p class="dialog-form__client-request">
+                        {{ osu_trans('client_verifications.create.confirm') }}
+                    </p>
+                @endif
             </div>
 
             <div class="dialog-form__row dialog-form__row--wrong-user">
@@ -62,18 +71,21 @@
             </div>
 
             <div class="dialog-form__row dialog-form__row--buttons">
-                <form
-                    action="{{ route('client-verifications.store') }}"
-                    data-remote
-                    method="POST"
-                >
-                    @csrf
-                    <input type="hidden" name="ch" value="{{ $hash }}" />
+                @if ($wrongAccount === null)
+                    <form
+                        action="{{ route('client-verifications.store') }}"
+                        data-remote
+                        method="POST"
+                    >
+                        @csrf
+                        <input type="hidden" name="ch" value="{{ $hash }}" />
+                        <input type="hidden" name="u" value="{{ $expected }}" />
 
-                    <button class="dialog-form__button" data-disable-with="{{ osu_trans('common.buttons.authorising') }}">
-                        {{ osu_trans('common.buttons.authorise') }}
-                    </button>
-                </form>
+                        <button class="dialog-form__button" data-disable-with="{{ osu_trans('common.buttons.authorising') }}">
+                            {{ osu_trans('common.buttons.authorise') }}
+                        </button>
+                    </form>
+                @endif
 
                 <a
                     href="{{ route('home') }}"

@@ -22,6 +22,21 @@ use Carbon\Carbon;
  */
 class TomYumModeScores
 {
+    /**
+     * Relax/Autopilot plays are TomYum's, numbered apart from the website's scores. lazer only knows
+     * a score by its id (it fetches /scores/{id} and /scores/{id}/download), so they're given ids from
+     * here up, which ScoresController hands back to TomYum.
+     */
+    public const ID_OFFSET = 1_000_000_000_000;
+
+    /** TomYum's id of a Relax/Autopilot play the website numbered from ID_OFFSET, or null for a website score. */
+    public static function tomyumId(mixed $id): ?int
+    {
+        $id = get_int($id);
+
+        return $id !== null && $id >= static::ID_OFFSET ? $id - static::ID_OFFSET : null;
+    }
+
     /** lazer's Relax/Autopilot "rulesets" → [the ruleset, TomYum's mode]. */
     public const MODES = [
         'osurx' => ['osu', 4],
@@ -92,6 +107,71 @@ class TomYumModeScores
         return [$json, $user, $beatmap];
     }
 
+    /**
+     * A map's Relax/Autopilot leaderboard (TomYum's, by pp) for the beatmap page's scoreboard, shaped
+     * like BeatmapsController::scores: the top 50 and the viewer's own best. $variant is "rx" or "ap";
+     * a ruleset without that variant (mania, or AP outside osu!) has no scores. $mods (acronyms, "NM"
+     * for none) keeps plays with exactly those mods, as the in-game "Selected Mods" board does. $type
+     * is the website's: global, or only the viewer's country, friends (and themselves) or team.
+     */
+    public static function beatmapLeaderboard(Beatmap $beatmap, ?string $ruleset, string $variant, array $mods = [], string $type = 'global'): array
+    {
+        $ruleset ??= Beatmap::modeStr($beatmap->playmode);
+        $mode = static::variant($ruleset.$variant);
+        if ($mode === null || $beatmap->approved <= 0) {
+            return ['scores' => []];
+        }
+
+        $viewer = auth()->user();
+        $userIds = match ($type) {
+            'global' => null,
+            'country' => $viewer === null ? [] : User::default()->where('country_acronym', $viewer->country_acronym)->pluck('user_id')->all(),
+            'friend' => $viewer === null ? [] : [...$viewer->friends()->allRelatedIds(), $viewer->getKey()],
+            'team' => $viewer?->team?->members()->pluck('user_id')->all() ?? [],
+        };
+        if ($userIds === []) {
+            return ['scores' => []];
+        }
+
+        $query = [
+            'limit' => 50,
+            'viewerId' => $viewer?->getKey(),
+            'mods' => $mods === [] ? null : app('mods')->idsToBitset(array_diff($mods, ['NM'])),
+        ];
+        $path = "/beatmaps/{$beatmap->getKey()}/mode-scores/{$mode[1]}";
+        $admin = new TomYumAdmin($viewer);
+        $response = $userIds === null ? $admin->get($path, $query) : $admin->post($path, ['userIds' => $userIds], $query);
+        if (!$response->successful()) {
+            abort(503, 'The game server is unavailable.');
+        }
+
+        $entries = $response->json('scores') ?? [];
+        $mine = $response->json('userScore');
+        $users = User::with(['country', 'team'])
+            ->whereIn('user_id', [...array_column($entries, 'userId'), ...($mine === null ? [] : [$mine['userId']])])
+            ->get()
+            ->keyBy('user_id');
+        $rulesetId = Beatmap::MODES[$mode[0]];
+
+        $row = function (array $entry) use ($users, $beatmap, $rulesetId): ?array {
+            $user = $users[$entry['userId']] ?? null;
+            if ($user === null) {
+                return null;
+            }
+            $json = static::item($entry['score'], $user, $beatmap, $rulesetId, null);
+            $json['user'] = json_item($user, new UserCompactTransformer(), ['country', 'cover', 'team']);
+
+            return $json;
+        };
+
+        $result = ['scores' => array_values(array_filter(array_map($row, $entries)))];
+        if ($mine !== null && ($score = $row($mine)) !== null) {
+            $result['user_score'] = ['position' => $mine['position'], 'score' => $score];
+        }
+
+        return $result;
+    }
+
     /** A TomYum play shaped like the website's scores. */
     private static function item(array $score, User $user, Beatmap $beatmap, int $rulesetId, ?float $weight): array
     {
@@ -101,7 +181,7 @@ class TomYumModeScores
         }
 
         return [
-            'id' => $score['id'],
+            'id' => static::ID_OFFSET + $score['id'],
             // Not a website score: nothing may report, pin or link to it as one.
             'type' => 'tomyum_score',
             'user_id' => $user->getKey(),
@@ -110,19 +190,20 @@ class TomYumModeScores
             'beatmap_id' => $beatmap->getKey(),
             'beatmapset' => json_item($beatmap->beatmapset, new BeatmapsetCompactTransformer()),
             // Its own best (TomYum keeps one per map): the site shows pp only for bests.
-            'best_id' => $score['id'],
+            'best_id' => static::ID_OFFSET + $score['id'],
             'build_id' => null,
             'classic_total_score' => $score['score'],
             'current_user_attributes' => ['pin' => null],
             'ended_at' => json_time(Carbon::parse($score['playedAt'])),
-            'has_replay' => false,
+            'has_replay' => $score['hasReplay'] ?? false,
             'is_perfect_combo' => $score['perfect'],
             'legacy_perfect' => $score['perfect'],
             // Stable or lazer (the score page's "Played on").
             'legacy_score_id' => ($score['stable'] ?? true) ? $score['id'] : null,
             'legacy_total_score' => $score['score'],
             'max_combo' => $score['maxCombo'],
-            'maximum_statistics' => [],
+            // Objects, not arrays, even when empty: lazer reads them as dictionaries.
+            'maximum_statistics' => new \stdClass(),
             // osu!stable plays carry the Classic mod, as osu! shows them; lazer's don't.
             'mods' => array_map(
                 fn ($acronym) => ['acronym' => $acronym],
@@ -134,10 +215,10 @@ class TomYumModeScores
             'processed' => true,
             'rank' => $score['passed'] ? $score['grade'] : 'F',
             'ranked' => true,
-            'replay' => false,
+            'replay' => $score['hasReplay'] ?? false,
             'ruleset_id' => $rulesetId,
             'started_at' => null,
-            'statistics' => array_filter([
+            'statistics' => (object) array_filter([
                 'great' => $score['count300'],
                 'ok' => $score['count100'],
                 'meh' => $score['count50'],
@@ -148,7 +229,7 @@ class TomYumModeScores
             'total_score' => $score['score'],
             'weight' => $weight === null ? null : ['percentage' => $weight * 100, 'pp' => $score['pp'] * $weight],
             'tomyum_url' => route('scores.tomyum', ['score' => $score['id']]),
-            'tomyum_replay_url' => null,
+            'tomyum_replay_url' => ($score['hasReplay'] ?? false) ? route('scores.tomyum.download', ['score' => $score['id']]) : null,
         ];
     }
 

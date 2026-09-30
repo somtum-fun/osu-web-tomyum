@@ -33,6 +33,13 @@ class UsernameChangeFulfillment extends OrderFulfiller
             'history' => $history,
         ]);
 
+        // TomYum: the new name in-game right away (the client reconnects).
+        try {
+            (new \App\Libraries\TomYumAdmin($user))->post("/users/{$user->getKey()}/refresh");
+        } catch (\Throwable $e) {
+            log_error($e);
+        }
+
         $this->incrementRun();
     }
 
@@ -94,7 +101,8 @@ class UsernameChangeFulfillment extends OrderFulfiller
     {
         $item = $this->getOrderItems()->first();
 
-        return $item['cost'] > 0 ? 'paid' : 'support';
+        // TomYum: free, but still the player's own change (the monthly limit and the checks apply).
+        return 'paid';
     }
 
     private function getOrderItems()
