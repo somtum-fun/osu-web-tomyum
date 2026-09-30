@@ -190,9 +190,7 @@ function ListeningLink({ user }: Props) {
   return (
     <div className='profile-links__item'>
       <span className='profile-links__icon' title='Listening to (Last.fm)'>
-        {song.image != null
-          ? <img alt='' src={song.image} style={{ borderRadius: 3, height: '1.25em', objectFit: 'cover', verticalAlign: 'middle', width: '1.25em' }} />
-          : <span className='fa-fw fab fa-lastfm' />}
+        <span className='fa-fw fab fa-lastfm' />
       </span>
       {song.url != null
         ? <a className='profile-links__value profile-links__value--link' href={song.url} rel='nofollow noopener noreferrer' target='_blank'>{text}</a>

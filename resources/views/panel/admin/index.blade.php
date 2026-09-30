@@ -41,6 +41,7 @@
                 ['panel.admin.mods.index', 'fa-sliders-h', 'lazer', 'Ranked mods', 'Which mods give pp and medals'],
                 ['panel.admin.badges.index', 'fa-certificate', 'profiles', 'Badges', 'Give and take profile badges'],
                 ['panel.admin.titles.index', 'fa-id-badge', 'profiles', 'Titles', "The line under a player's name"],
+                ['panel.admin.tournament-banners.index', 'fa-trophy', 'profiles', 'Tournament banners', 'Banners under players\' headers'],
                 ['panel.admin.news.index', 'fa-newspaper', 'website & lazer', 'News', 'Write and edit posts'],
                 ['panel.admin.seasonal-backgrounds.index', 'fa-image', 'lazer & stable', 'Seasonal backgrounds', "Menu backgrounds and the season's end"],
             ] as [$route, $icon, $kicker, $title, $hint])

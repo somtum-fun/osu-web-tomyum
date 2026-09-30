@@ -86,6 +86,12 @@ Route::group(['middleware' => ['web']], function () {
             Route::get('badges', 'BadgesController@index')->name('badges.index');
             Route::post('badges/{user}', 'BadgesController@store')->name('badges.store');
             Route::post('badges/{user}/remove', 'BadgesController@destroy')->name('badges.destroy');
+            Route::get('tournament-banners', 'TournamentBannersController@index')->name('tournament-banners.index');
+            Route::post('tournament-banners', 'TournamentBannersController@store')->name('tournament-banners.store');
+            Route::post('tournament-banners/{banner}/toggle', 'TournamentBannersController@toggle')->name('tournament-banners.toggle');
+            Route::post('tournament-banners/{banner}/remove', 'TournamentBannersController@destroy')->name('tournament-banners.destroy');
+            Route::post('tournament-banners/{banner}/give', 'TournamentBannersController@give')->name('tournament-banners.give');
+            Route::post('tournament-banners/{banner}/take/{user}', 'TournamentBannersController@take')->name('tournament-banners.take');
             Route::get('titles', 'TitlesController@index')->name('titles.index');
             Route::post('titles', 'TitlesController@store')->name('titles.store');
             Route::post('titles/assign', 'TitlesController@assign')->name('titles.assign');

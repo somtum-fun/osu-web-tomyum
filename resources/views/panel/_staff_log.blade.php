@@ -44,9 +44,14 @@
         'matchmaking.pool_remove' => ['Remove pool', 'info'],
         'matchmaking.map_add' => ['Pool map', 'info'],
         'mods.ranked' => ['Ranked mods', 'info'],
+        'banner.add' => ['New banner', 'pink'],
+        'banner.toggle' => ['Banner shown/hidden', 'pink'],
+        'banner.remove' => ['Remove banner', 'pink'],
+        'user.banner_add' => ['Give banner', 'pink'],
+        'user.banner_remove' => ['Take banner', 'pink'],
     ];
     // Actions whose target isn't a player.
-    $notPlayers = ['beatmapset.', 'title.', 'news.', 'seasonal.', 'daily_challenge.', 'matchmaking.', 'scores.', 'mods.'];
+    $notPlayers = ['beatmapset.', 'title.', 'news.', 'seasonal.', 'daily_challenge.', 'matchmaking.', 'scores.', 'mods.', 'banner.'];
 @endphp
 <div class="tomyum-panel__scroll">
 <table class="tomyum-panel__table">
