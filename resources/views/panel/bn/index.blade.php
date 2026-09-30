@@ -13,7 +13,7 @@
         </a>
 
         <div class="tomyum-panel__card">
-            <h2>Import a beatmap set</h2>
+            <h2><i class="fas fa-download"></i>Import a beatmap set</h2>
             <p class="tomyum-panel__hint">
                 Paste an osu.ppy.sh set link or a set id. Every difficulty is added with its stats and cover,
                 keeps its ranked status from bancho, and shows up in the beatmap listing.
@@ -29,7 +29,7 @@
         </div>
 
         <div class="tomyum-panel__card">
-            <h2>Upload a custom beatmap set</h2>
+            <h2><i class="fas fa-upload"></i>Upload a custom beatmap set</h2>
             <p class="tomyum-panel__hint">
                 An .osz from the osu! editor (up to 100 MB). It becomes a pending set with its own ids (from
                 {{ number_format(App\Http\Controllers\Panel\BnController::CUSTOM_ID_FLOOR) }}), which players can
@@ -58,7 +58,7 @@
         </div>
 
         <div class="tomyum-panel__card">
-            <h2>Bulk import</h2>
+            <h2><i class="fas fa-layer-group"></i>Bulk import</h2>
             <p class="tomyum-panel__hint">Runs in the background; you can leave the page and check back under "Recent imports".</p>
 
             <form method="POST" action="{{ route('panel.bn.import-bulk') }}">
@@ -91,24 +91,24 @@
         </div>
 
         <div class="tomyum-panel__card">
-            <h2>Import log</h2>
+            <h2><i class="fas fa-history"></i>Import log</h2>
             <p class="tomyum-panel__hint">Every import, newest first: single sets and each set of a bulk import.</p>
             @if ($logError !== null)
                 <p>{{ $logError }}</p>
             @elseif (count($entries) === 0)
-                <p class="tomyum-panel__hint">Nothing imported yet.</p>
+                <p class="tomyum-panel__empty">Nothing imported yet.</p>
             @else
                 @include('panel.bn._log_table', ['showJob' => true])
             @endif
         </div>
 
         <div class="tomyum-panel__card">
-            <h2>Bulk imports</h2>
+            <h2><i class="fas fa-tasks"></i>Bulk imports</h2>
             <p class="tomyum-panel__hint">Progress is kept until the game server restarts; the sets stay in the import log.</p>
             @if ($jobsError !== null)
                 <p>{{ $jobsError }}</p>
             @elseif (count($jobs) === 0)
-                <p class="tomyum-panel__hint">No bulk imports since the game server started.</p>
+                <p class="tomyum-panel__empty">No bulk imports since the game server started.</p>
             @else
                 <table class="tomyum-panel__table">
                     <tr><th>Started</th><th>By</th><th>What</th><th>Status</th><th>Imported</th><th>Not found</th><th>Failed</th><th></th></tr>

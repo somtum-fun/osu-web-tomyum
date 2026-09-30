@@ -5,14 +5,15 @@
 {{-- Beatmap import log rows. Params: $entries (TomYum staff log), $actors (id => username), $showJob. --}}
 @php
     $resultLabels = [
-        'imported' => ['Imported', 'success'],
-        'not_found' => ['Not on osu!', 'error'],
-        'failed' => ['Failed', 'error'],
-        'uploaded' => ['Uploaded', 'success'],
-        'updated' => ['Updated', 'success'],
-        'rejected' => ['Refused', 'error'],
+        'imported' => ['Imported', 'good'],
+        'not_found' => ['Not on osu!', 'bad'],
+        'failed' => ['Failed', 'bad'],
+        'uploaded' => ['Uploaded', 'good'],
+        'updated' => ['Updated', 'good'],
+        'rejected' => ['Refused', 'bad'],
     ];
 @endphp
+<div class="tomyum-panel__scroll">
 <table class="tomyum-panel__table">
     <tr>
         <th>When</th>
@@ -26,18 +27,11 @@
     @foreach ($entries as $entry)
         @php
             // Status changes carry the new status as their result.
-            [$label, $tone] = $resultLabels[$entry['result']] ?? ['Set to '.ucfirst($entry['result'] ?? '?'), 'success'];
-            $actorName = $actors[$entry['actorId']] ?? null;
+            [$label, $tone] = $resultLabels[$entry['result']] ?? ['Set to '.ucfirst($entry['result'] ?? '?'), 'info'];
         @endphp
         <tr>
-            <td>{!! timeago(Carbon\Carbon::parse($entry['createdAt'], 'UTC')) !!}</td>
-            <td>
-                @if ($actorName !== null)
-                    <a href="{{ route('users.show', ['user' => $entry['actorId']]) }}">{{ $actorName }}</a>
-                @else
-                    &mdash;
-                @endif
-            </td>
+            <td class="tomyum-panel__nowrap tomyum-panel__muted">{!! timeago(Carbon\Carbon::parse($entry['createdAt'], 'UTC')) !!}</td>
+            <td class="tomyum-panel__nowrap">@include('panel._who')</td>
             <td>
                 @if (($entry['targetId'] ?? null) !== null && !in_array($entry['result'], ['not_found', 'failed', 'rejected'], true))
                     <a href="{{ route('panel.bn.sets.show', ['set' => $entry['targetId']]) }}">{{ $entry['summary'] }}</a>
@@ -45,14 +39,15 @@
                     {{ $entry['summary'] }}
                 @endif
             </td>
-            <td><span class="tomyum-panel__badge tomyum-panel__badge--{{ $tone }}">{{ $label }}</span></td>
+            <td><span class="tomyum-panel__pill tomyum-panel__pill--{{ $tone }}">{{ $label }}</span></td>
             @if ($showJob ?? false)
                 <td>
                     @if ($entry['jobId'] ?? null)
-                        <a href="{{ route('panel.bn.job', ['job' => $entry['jobId']]) }}">Bulk import</a>
+                        <a href="{{ route('panel.bn.job', ['job' => $entry['jobId']]) }}" class="tomyum-panel__nowrap"><i class="fas fa-layer-group"></i> Bulk import</a>
                     @endif
                 </td>
             @endif
         </tr>
     @endforeach
 </table>
+</div>

@@ -14,7 +14,7 @@
     ]])
     <div class="osu-page osu-page--admin tomyum-panel">
         <div class="tomyum-panel__card">
-            <h2>In-game chat</h2>
+            <h2><i class="fas fa-comments"></i>In-game chat</h2>
             <form method="GET" action="{{ route('panel.gmt.chat') }}" class="tomyum-panel__row">
                 <label class="tomyum-panel__field">
                     Player (sent or received privately)
@@ -38,7 +38,7 @@
             @if ($error !== null)
                 <p>{{ $error }}</p>
             @elseif (count($messages) === 0)
-                <p class="tomyum-panel__hint">No messages.</p>
+                <p class="tomyum-panel__empty">No messages.</p>
             @else
                 <table class="tomyum-panel__table">
                     <tr><th>When (UTC)</th><th>From</th><th>To</th><th>Message</th></tr>

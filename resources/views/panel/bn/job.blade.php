@@ -47,7 +47,7 @@
                     {{ $job['imported'] }} imported, {{ $job['notFound'] }} not found on osu!, {{ $job['failed'] }} failed.
                 </p>
             @else
-                <h2>Finished</h2>
+                <h2><i class="fas fa-check-circle"></i>Finished</h2>
                 <p class="tomyum-panel__hint">
                     The game server has restarted since, so the progress summary is gone; every set it handled is listed below.
                 </p>
@@ -56,7 +56,7 @@
 
         @if ($job !== null && count($job['errors']) > 0)
             <div class="tomyum-panel__card">
-                <h2>Problems</h2>
+                <h2><i class="fas fa-exclamation-triangle"></i>Problems</h2>
                 <ul>
                     @foreach ($job['errors'] as $error)
                         <li>{{ $error }}</li>
@@ -66,9 +66,9 @@
         @endif
 
         <div class="tomyum-panel__card">
-            <h2>Sets ({{ count($entries) }})</h2>
+            <h2><i class="fas fa-music"></i>Sets ({{ count($entries) }})</h2>
             @if (count($entries) === 0)
-                <p class="tomyum-panel__hint">Nothing processed yet.</p>
+                <p class="tomyum-panel__empty">Nothing processed yet.</p>
             @else
                 @include('panel.bn._log_table')
             @endif

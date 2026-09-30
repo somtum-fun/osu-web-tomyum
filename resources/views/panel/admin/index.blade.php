@@ -13,58 +13,47 @@
 @section('content')
     @include('panel._header', ['crumbs' => [['url' => route('panel.admin.index'), 'title' => 'Admin panel']]])
     <div class="osu-page osu-page--admin tomyum-panel">
-        <div class="tomyum-panel__links">
+        <p class="tomyum-panel__section-title">Server</p>
+        <div class="tomyum-panel__links tomyum-panel__links--stats">
             <div class="tomyum-panel__link js-tomyum-live">
-                <p class="tomyum-panel__hint" style="margin: 0">Game server</p>
+                <span class="tomyum-panel__kicker">Game server</span>
                 @if ($server !== null)
-                    <h2 style="margin: 4px 0">{{ $server['online'] }} online</h2>
-                    <p class="tomyum-panel__hint" style="margin: 0">
-                        TomYum {{ $server['version'] }} &middot; up {{ Carbon\Carbon::parse($server['startedAt'])->diffForHumans(null, true) }}
-                    </p>
+                    <span class="tomyum-panel__stat"><span class="tomyum-panel__live-dot"></span>{{ number_format($server['online']) }} online</span>
+                    <p class="tomyum-panel__hint">TomYum {{ $server['version'] }} &middot; up {{ Carbon\Carbon::parse($server['startedAt'])->diffForHumans(null, true) }}</p>
                 @else
-                    <h2 style="margin: 4px 0">Unreachable</h2>
+                    <span class="tomyum-panel__stat"><span class="tomyum-panel__live-dot tomyum-panel__live-dot--off"></span>Unreachable</span>
+                    <p class="tomyum-panel__hint">The website can't reach the game server.</p>
                 @endif
             </div>
             @foreach ($counts as $label => $count)
                 <div class="tomyum-panel__link">
-                    <p class="tomyum-panel__hint" style="margin: 0">{{ $label }}</p>
-                    <h2 style="margin: 4px 0">{{ number_format($count) }}</h2>
+                    <span class="tomyum-panel__kicker">{{ $label }}</span>
+                    <span class="tomyum-panel__stat">{{ number_format($count) }}</span>
                 </div>
             @endforeach
-            <a class="tomyum-panel__link" href="{{ route('panel.admin.daily-challenge.index') }}">
-                <p class="tomyum-panel__hint" style="margin: 0">lazer</p>
-                <h2 style="margin: 4px 0">Daily challenge</h2>
-                <p class="tomyum-panel__hint" style="margin: 0">Pick and order the maps</p>
-            </a>
-            <a class="tomyum-panel__link" href="{{ route('panel.admin.matchmaking.index') }}">
-                <p class="tomyum-panel__hint" style="margin: 0">lazer</p>
-                <h2 style="margin: 4px 0">Ranked Play</h2>
-                <p class="tomyum-panel__hint" style="margin: 0">Pools and their maps</p>
-            </a>
-            <a class="tomyum-panel__link" href="{{ route('panel.admin.badges.index') }}">
-                <p class="tomyum-panel__hint" style="margin: 0">profiles</p>
-                <h2 style="margin: 4px 0">Badges</h2>
-                <p class="tomyum-panel__hint" style="margin: 0">Give and take profile badges</p>
-            </a>
-            <a class="tomyum-panel__link" href="{{ route('panel.admin.titles.index') }}">
-                <p class="tomyum-panel__hint" style="margin: 0">profiles</p>
-                <h2 style="margin: 4px 0">Titles</h2>
-                <p class="tomyum-panel__hint" style="margin: 0">The line under a player's name</p>
-            </a>
-            <a class="tomyum-panel__link" href="{{ route('panel.admin.news.index') }}">
-                <p class="tomyum-panel__hint" style="margin: 0">website &amp; lazer</p>
-                <h2 style="margin: 4px 0">News</h2>
-                <p class="tomyum-panel__hint" style="margin: 0">Write and edit posts</p>
-            </a>
-            <a class="tomyum-panel__link" href="{{ route('panel.admin.seasonal-backgrounds.index') }}">
-                <p class="tomyum-panel__hint" style="margin: 0">lazer &amp; stable</p>
-                <h2 style="margin: 4px 0">Seasonal backgrounds</h2>
-                <p class="tomyum-panel__hint" style="margin: 0">Menu backgrounds and the season's end</p>
-            </a>
+        </div>
+
+        <p class="tomyum-panel__section-title">Tools</p>
+        <div class="tomyum-panel__links">
+            @foreach ([
+                ['panel.admin.daily-challenge.index', 'fa-calendar-day', 'lazer', 'Daily challenge', 'Pick and order the maps'],
+                ['panel.admin.matchmaking.index', 'fa-trophy', 'lazer', 'Ranked Play', 'Pools and their maps'],
+                ['panel.admin.badges.index', 'fa-certificate', 'profiles', 'Badges', 'Give and take profile badges'],
+                ['panel.admin.titles.index', 'fa-id-badge', 'profiles', 'Titles', "The line under a player's name"],
+                ['panel.admin.news.index', 'fa-newspaper', 'website & lazer', 'News', 'Write and edit posts'],
+                ['panel.admin.seasonal-backgrounds.index', 'fa-image', 'lazer & stable', 'Seasonal backgrounds', "Menu backgrounds and the season's end"],
+            ] as [$route, $icon, $kicker, $title, $hint])
+                <a class="tomyum-panel__link" href="{{ route($route) }}">
+                    <span class="tomyum-panel__link-icon"><i class="fas {{ $icon }}"></i></span>
+                    <span class="tomyum-panel__kicker">{{ $kicker }}</span>
+                    <h2>{{ $title }}</h2>
+                    <p class="tomyum-panel__hint">{{ $hint }}</p>
+                </a>
+            @endforeach
         </div>
 
         <div class="tomyum-panel__card">
-            <h2>Accounts</h2>
+            <h2><i class="fas fa-user-cog"></i>Accounts</h2>
             <form method="GET" action="{{ route('panel.admin.users.index') }}" class="tomyum-panel__row">
                 <label class="tomyum-panel__field">
                     Username, user id or email
@@ -75,7 +64,7 @@
         </div>
 
         <div class="tomyum-panel__card">
-            <h2>Performance points</h2>
+            <h2><i class="fas fa-calculator"></i>Performance points</h2>
             <p class="tomyum-panel__hint">
                 After a pp update: recalculates every score's pp, the players' stats and rankings, in-game and here.
                 Takes a while on a big server.
@@ -87,16 +76,16 @@
         </div>
 
         <div class="tomyum-panel__card js-tomyum-live">
-            <h2>Online now</h2>
+            <h2><i class="fas fa-signal"></i>Online now</h2>
             @if (count($online) === 0)
-                <p class="tomyum-panel__hint">Nobody is online.</p>
+                <p class="tomyum-panel__empty">Nobody is online.</p>
             @else
                 <table class="tomyum-panel__table">
                     <tr><th>Player</th><th>Mode</th><th>Doing</th><th>Last seen</th></tr>
                     @foreach ($online as $player)
                         <tr>
                             <td><a href="{{ route('panel.admin.users.show', ['user' => $player['userId']]) }}">{{ $player['username'] }}</a></td>
-                            <td>{{ $modes[$player['mode'] % 4] ?? $player['mode'] }}</td>
+                            <td class="tomyum-panel__nowrap">{{ $modes[$player['mode'] % 4] ?? $player['mode'] }}</td>
                             <td>
                                 {{ $actions[$player['action']] ?? 'Unknown' }}
                                 @if ($player['actionInfo'] !== '')
@@ -108,7 +97,7 @@
                                     @endif
                                 @endif
                             </td>
-                            <td>{!! timeago(Carbon\Carbon::parse($player['lastActivity'])) !!}</td>
+                            <td class="tomyum-panel__nowrap tomyum-panel__muted">{!! timeago(Carbon\Carbon::parse($player['lastActivity'])) !!}</td>
                         </tr>
                     @endforeach
                 </table>
@@ -116,9 +105,9 @@
         </div>
 
         <div class="tomyum-panel__card">
-            <h2>Recent staff actions</h2>
+            <h2><i class="fas fa-history"></i>Recent staff actions</h2>
             @if (count($entries) === 0)
-                <p class="tomyum-panel__hint">Nothing yet.</p>
+                <p class="tomyum-panel__empty">Nothing yet.</p>
             @else
                 @include('panel._staff_log')
             @endif

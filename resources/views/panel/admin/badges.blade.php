@@ -11,7 +11,7 @@
     ]])
     <div class="osu-page osu-page--admin tomyum-panel">
         <div class="tomyum-panel__card">
-            <h2>Player</h2>
+            <h2><i class="fas fa-search"></i>Player</h2>
             <form method="GET" action="{{ route('panel.admin.badges.index') }}" class="tomyum-panel__row">
                 <label class="tomyum-panel__field">
                     Name or id
@@ -35,7 +35,7 @@
             <div class="tomyum-panel__card">
                 <h2><a href="{{ route('users.show', ['user' => $user->getKey()]) }}">{{ $user->username }}</a>'s badges</h2>
                 @if (count($badges) === 0)
-                    <p class="tomyum-panel__hint">None yet.</p>
+                    <p class="tomyum-panel__empty">None yet.</p>
                 @else
                     <table class="tomyum-panel__table">
                         <tr><th>Badge</th><th>Tooltip</th><th>Link</th><th>Given</th><th></th></tr>
@@ -60,7 +60,7 @@
             </div>
 
             <div class="tomyum-panel__card">
-                <h2>Give a badge</h2>
+                <h2><i class="fas fa-plus"></i>Give a badge</h2>
                 <form method="POST" action="{{ route('panel.admin.badges.store', ['user' => $user->getKey()]) }}" class="tomyum-panel">
                     @csrf
                     <div class="tomyum-panel__row">

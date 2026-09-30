@@ -17,7 +17,7 @@
     ]])
     <div class="osu-page osu-page--admin tomyum-panel">
         <div class="tomyum-panel__card">
-            <h2>How it works</h2>
+            <h2><i class="fas fa-info-circle"></i>How it works</h2>
             <p class="tomyum-panel__hint">
                 lazer's Ranked Play (1v1, with ratings) puts players who queue in a pool together. (Quick Play, a
                 free-for-all of up to the lobby size, uses the same pools but isn't in lazer right now.) The server fills each pool with the ranked featured-artist
@@ -93,7 +93,7 @@
                 <details style="margin: 10px 0">
                     <summary style="cursor: pointer">The {{ count($auto) }} maps the server picks by itself (ranked featured-artist maps, 1-5 minutes), easiest first</summary>
                     @if (count($auto) === 0)
-                        <p class="tomyum-panel__hint">None: add maps below.</p>
+                        <p class="tomyum-panel__empty">None: add maps below.</p>
                     @else
                         <table class="tomyum-panel__table">
                             <tr><th>Map</th><th>Stars</th><th>Length</th></tr>
@@ -132,7 +132,7 @@
         @endforelse
 
         <div class="tomyum-panel__card">
-            <h2>Make a pool</h2>
+            <h2><i class="fas fa-plus"></i>Make a pool</h2>
             <p class="tomyum-panel__hint">One Ranked Play pool per ruleset (per key count for mania) is enough; players pick it in lazer.</p>
             <form method="POST" action="{{ route('panel.admin.matchmaking.store') }}" class="tomyum-panel">
                 @csrf

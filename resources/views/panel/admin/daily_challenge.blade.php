@@ -17,7 +17,7 @@
     ]])
     <div class="osu-page osu-page--admin tomyum-panel">
         <div class="tomyum-panel__card">
-            <h2>Today</h2>
+            <h2><i class="fas fa-calendar-day"></i>Today</h2>
             @if ($current === null)
                 <p class="tomyum-panel__hint">No daily challenge is open right now. The next one opens at 00:05 UTC.</p>
             @else
@@ -32,13 +32,13 @@
         </div>
 
         <div class="tomyum-panel__card">
-            <h2>Coming up</h2>
+            <h2><i class="fas fa-list-ol"></i>Coming up</h2>
             <p class="tomyum-panel__hint">
                 osu-web opens a room from the first map every day at 00:05 UTC. TomYum keeps a week queued with random
                 ranked maps; a map you pick takes the place of a random one.
             </p>
             @if (count($queue) === 0)
-                <p class="tomyum-panel__hint">Nothing is queued (TomYum fills the queue within the hour).</p>
+                <p class="tomyum-panel__empty">Nothing is queued (TomYum fills the queue within the hour).</p>
             @else
                 <table class="tomyum-panel__table">
                     <tr><th>Day</th><th>Map</th><th>Ruleset</th><th>Required</th><th>Allowed</th><th></th></tr>
@@ -75,7 +75,7 @@
         </div>
 
         <div class="tomyum-panel__card">
-            <h2>Pick a map</h2>
+            <h2><i class="fas fa-plus"></i>Pick a map</h2>
             <form method="POST" action="{{ route('panel.admin.daily-challenge.store') }}" class="tomyum-panel">
                 @csrf
                 <div class="tomyum-panel__row">

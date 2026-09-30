@@ -14,7 +14,7 @@
     ]])
     <div class="osu-page osu-page--admin tomyum-panel">
         <div class="tomyum-panel__card">
-            <h2>Find a beatmap set</h2>
+            <h2><i class="fas fa-search"></i>Find a beatmap set</h2>
             <form method="GET" action="{{ route('panel.bn.sets.index') }}" class="tomyum-panel__row">
                 <label class="tomyum-panel__field">
                     Title, artist, mapper, set id or link
@@ -37,7 +37,7 @@
         </div>
 
         <div class="tomyum-panel__card">
-            <h2>{{ number_format($sets->total()) }} set(s)</h2>
+            <h2><i class="fas fa-music"></i>{{ number_format($sets->total()) }} set(s)</h2>
             @if ($sets->count() > 0)
                 <table class="tomyum-panel__table">
                     <tr><th></th><th>Set</th><th>Mapper</th><th>Difficulties</th><th>Status</th><th>Updated</th></tr>
@@ -71,7 +71,7 @@
                     </span>
                 </p>
             @else
-                <p class="tomyum-panel__hint">Nothing matches.</p>
+                <p class="tomyum-panel__empty">Nothing matches.</p>
             @endif
         </div>
     </div>

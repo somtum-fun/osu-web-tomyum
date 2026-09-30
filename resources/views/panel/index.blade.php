@@ -6,24 +6,30 @@
 
 @section('content')
     @include('panel._header')
-    <div class="osu-page osu-page--admin">
+    <div class="osu-page osu-page--admin tomyum-panel">
         <div class="tomyum-panel__links">
             @if ($panels['bn'])
-                <a class="tomyum-panel__link" href="{{ route('panel.bn.index') }}">
+                <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('panel.bn.index') }}">
+                    <span class="tomyum-panel__link-icon"><i class="fas fa-music"></i></span>
+                    <span class="tomyum-panel__kicker">Beatmap nominators</span>
                     <h2>BN panel</h2>
-                    <p class="tomyum-panel__hint">Import beatmap sets from bancho and manage their ranked status.</p>
+                    <p class="tomyum-panel__hint">Import beatmap sets from bancho, upload custom sets and manage their ranked status.</p>
                 </a>
             @endif
             @if ($panels['gmt'])
-                <a class="tomyum-panel__link" href="{{ route('panel.gmt.index') }}">
+                <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('panel.gmt.index') }}">
+                    <span class="tomyum-panel__link-icon"><i class="fas fa-gavel"></i></span>
+                    <span class="tomyum-panel__kicker">Moderation</span>
                     <h2>GMT panel</h2>
                     <p class="tomyum-panel__hint">Restrictions, silences, reports, chat logs and score removal.</p>
                 </a>
             @endif
             @if ($panels['admin'])
-                <a class="tomyum-panel__link" href="{{ route('panel.admin.index') }}">
+                <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('panel.admin.index') }}">
+                    <span class="tomyum-panel__link-icon"><i class="fas fa-cog"></i></span>
+                    <span class="tomyum-panel__kicker">Administration</span>
                     <h2>Admin panel</h2>
-                    <p class="tomyum-panel__hint">Server dashboard, and editing accounts: name, email, country, password, groups, supporter.</p>
+                    <p class="tomyum-panel__hint">The server at a glance, accounts, groups and supporter, and the site's content: news, badges, titles, backgrounds, pools.</p>
                 </a>
             @endif
         </div>

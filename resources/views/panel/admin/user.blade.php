@@ -36,7 +36,7 @@
         </div>
 
         <div class="tomyum-panel__card">
-            <h2>Profile</h2>
+            <h2><i class="fas fa-user"></i>Profile</h2>
             <p class="tomyum-panel__hint">A rename keeps the old name in their username history. Changes reach the game immediately (they reconnect).</p>
             <form method="POST" action="{{ route('panel.admin.users.profile', ['user' => $userId]) }}" class="tomyum-panel__row">
                 @csrf
@@ -61,7 +61,7 @@
         </div>
 
         <div class="tomyum-panel__card">
-            <h2>Password</h2>
+            <h2><i class="fas fa-key"></i>Password</h2>
             <p class="tomyum-panel__hint">Sets a new password for the website and the game. Give it to them privately; they can change it in their settings.</p>
             <form method="POST" action="{{ route('panel.admin.users.password', ['user' => $userId]) }}" class="tomyum-panel__row" autocomplete="off">
                 @csrf
@@ -74,7 +74,7 @@
         </div>
 
         <div class="tomyum-panel__card">
-            <h2>Groups</h2>
+            <h2><i class="fas fa-users"></i>Groups</h2>
             <p class="tomyum-panel__hint">
                 Admin, GMT and developer groups also give in-game staff powers. Beatmap nominator groups are per game mode.
                 @if ($isSelf)
@@ -122,7 +122,7 @@
         </div>
 
         <div class="tomyum-panel__card">
-            <h2>Supporter</h2>
+            <h2><i class="fas fa-heart"></i>Supporter</h2>
             <p>
                 @if ($target->isSupporter())
                     Supporter until {{ $target->osu_subscriptionexpiry?->toFormattedDateString() ?? '—' }} (level {{ $target->supportLevel() }}, {{ $target->support_length ?? 0 }} months total).
@@ -152,8 +152,8 @@
         </div>
 
         @if (!$isSelf && !$target->isAdmin() && !$target->trashed())
-            <div class="tomyum-panel__card">
-                <h2>Delete account</h2>
+            <div class="tomyum-panel__card tomyum-panel__card--danger">
+                <h2><i class="fas fa-trash"></i>Delete account</h2>
                 <p class="tomyum-panel__hint">
                     Renames it to DeletedUser_{{ $userId }}, removes the email and all groups, and bans it from the game.
                     Scores stay on record but are hidden. This can't be undone from the panel.
@@ -171,9 +171,9 @@
         @endif
 
         <div class="tomyum-panel__card">
-            <h2>Staff actions</h2>
+            <h2><i class="fas fa-history"></i>Staff actions</h2>
             @if (count($entries) === 0)
-                <p class="tomyum-panel__hint">None yet.</p>
+                <p class="tomyum-panel__empty">None yet.</p>
             @else
                 @include('panel._staff_log')
             @endif

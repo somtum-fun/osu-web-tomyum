@@ -11,7 +11,7 @@
     ]])
     <div class="osu-page osu-page--admin tomyum-panel">
         <div class="tomyum-panel__card">
-            <h2>Season</h2>
+            <h2><i class="fas fa-snowflake"></i>Season</h2>
             <p class="tomyum-panel__hint">
                 lazer and osu!stable show these as main menu backgrounds until the season ends, then go back
                 to their usual ones. Players see changes the next time they start the game.
@@ -34,9 +34,9 @@
         </div>
 
         <div class="tomyum-panel__card">
-            <h2>Backgrounds</h2>
+            <h2><i class="fas fa-images"></i>Backgrounds</h2>
             @if (count($entries) === 0)
-                <p class="tomyum-panel__hint">None yet.</p>
+                <p class="tomyum-panel__empty">None yet.</p>
             @else
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px">
                     @foreach ($entries as $entry)
@@ -66,7 +66,7 @@
         </div>
 
         <div class="tomyum-panel__card">
-            <h2>Add a background</h2>
+            <h2><i class="fas fa-plus"></i>Add a background</h2>
             <form method="POST" action="{{ route('panel.admin.seasonal-backgrounds.store') }}" enctype="multipart/form-data" class="tomyum-panel">
                 @csrf
                 <div class="tomyum-panel__row">

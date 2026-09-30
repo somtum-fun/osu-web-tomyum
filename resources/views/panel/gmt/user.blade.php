@@ -50,7 +50,7 @@
             </div>
         @else
             <div class="tomyum-panel__card">
-                <h2>Restriction</h2>
+                <h2><i class="fas fa-ban"></i>Restriction</h2>
                 <p class="tomyum-panel__hint">
                     Restricted players can still log in and play, but they're hidden from other players, leaderboards
                     and rankings, and can only message BanchoBot. Takes effect in-game immediately. Their scores are kept.
@@ -69,7 +69,7 @@
             </div>
 
             <div class="tomyum-panel__card">
-                <h2>Silence</h2>
+                <h2><i class="fas fa-comment-slash"></i>Silence</h2>
                 <p class="tomyum-panel__hint">A silenced player can't chat (they can still use BanchoBot commands). A new silence replaces the current one.</p>
                 <form method="POST" action="{{ route('panel.gmt.users.silence', ['user' => $userId]) }}" class="tomyum-panel__row">
                     @csrf
@@ -101,7 +101,7 @@
         @endif
 
         <div class="tomyum-panel__card">
-            <h2>Scores</h2>
+            <h2><i class="fas fa-list"></i>Scores</h2>
             <p class="tomyum-panel__row" style="gap: 16px; margin: 0 0 10px">
                 <a href="{{ route('panel.gmt.users.show', ['user' => $userId]) }}" @if (!$best) style="font-weight: 700" @endif>Recent</a>
                 <a href="{{ route('panel.gmt.users.show', ['user' => $userId, 'scores' => 'best']) }}" @if ($best) style="font-weight: 700" @endif>Best (by pp)</a>
@@ -109,7 +109,7 @@
             @if ($scoresError !== null)
                 <p>{{ $scoresError }}</p>
             @elseif (count($scores) === 0)
-                <p class="tomyum-panel__hint">No scores.</p>
+                <p class="tomyum-panel__empty">No scores.</p>
             @else
                 <table class="tomyum-panel__table">
                     <tr><th>When</th><th>Beatmap</th><th>Mode</th><th>Score</th><th>Acc</th><th>pp</th><th>Grade</th><th>Status</th>@if ($canModerate)<th></th>@endif</tr>
@@ -162,18 +162,18 @@
         </div>
 
         <div class="tomyum-panel__card">
-            <h2>Reports about {{ $target->username }}</h2>
+            <h2><i class="fas fa-flag"></i>Reports about {{ $target->username }}</h2>
             @if (count($reports) === 0)
-                <p class="tomyum-panel__hint">None.</p>
+                <p class="tomyum-panel__empty">None.</p>
             @else
                 @include('panel.gmt._reports', ['reports' => $reports, 'showPlayer' => false])
             @endif
         </div>
 
         <div class="tomyum-panel__card">
-            <h2>Account history</h2>
+            <h2><i class="fas fa-book"></i>Account history</h2>
             @if (count($history) === 0)
-                <p class="tomyum-panel__hint">Nothing recorded.</p>
+                <p class="tomyum-panel__empty">Nothing recorded.</p>
             @else
                 <table class="tomyum-panel__table">
                     <tr><th>When</th><th>Type</th><th>Length</th><th>By</th><th>Reason</th></tr>
@@ -191,9 +191,9 @@
         </div>
 
         <div class="tomyum-panel__card">
-            <h2>Staff actions</h2>
+            <h2><i class="fas fa-history"></i>Staff actions</h2>
             @if (count($entries) === 0)
-                <p class="tomyum-panel__hint">None yet.</p>
+                <p class="tomyum-panel__empty">None yet.</p>
             @else
                 @include('panel._staff_log')
             @endif

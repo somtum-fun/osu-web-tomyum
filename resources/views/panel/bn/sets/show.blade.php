@@ -35,7 +35,7 @@
         </div>
 
         <div class="tomyum-panel__card">
-            <h2>Ranked status</h2>
+            <h2><i class="fas fa-star"></i>Ranked status</h2>
             <p class="tomyum-panel__hint">
                 Tick difficulties to change only those, or none for the whole set. A status set here is kept when the set
                 is refreshed from bancho, and takes effect in-game immediately. Existing scores are recalculated (pp, bests,
@@ -84,7 +84,7 @@
         </div>
 
         <div class="tomyum-panel__card">
-            <h2>Refresh from bancho</h2>
+            <h2><i class="fas fa-sync-alt"></i>Refresh from bancho</h2>
             <p class="tomyum-panel__hint">
                 Re-fetches the title, difficulties and stats from osu!. Statuses set by staff are kept.
             </p>
@@ -95,9 +95,9 @@
         </div>
 
         <div class="tomyum-panel__card">
-            <h2>History</h2>
+            <h2><i class="fas fa-history"></i>History</h2>
             @if (count($entries) === 0)
-                <p class="tomyum-panel__hint">No staff actions on this set yet.</p>
+                <p class="tomyum-panel__empty">No staff actions on this set yet.</p>
             @else
                 @include('panel.bn._log_table', ['showJob' => false])
             @endif

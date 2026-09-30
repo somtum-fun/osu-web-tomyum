@@ -17,8 +17,6 @@ class Kernel extends HttpKernel
     protected $middleware = [
         Middleware\DatadogMetrics::class,
         Middleware\SentryMetrics::class,
-        // TomYum: import maps lazer asks about from bancho first (TomYum docs/lazer.md).
-        Middleware\TomYumImportMissingBeatmaps::class,
     ];
 
     protected $middlewareGroups = [
@@ -28,6 +26,9 @@ class Kernel extends HttpKernel
             Middleware\CheckUserBanStatus::class,
             Middleware\UpdateUserInfo::class,
             Middleware\VerifyUserAlways::class,
+            // TomYum: import maps lazer asks about from bancho first (TomYum docs/lazer.md); after
+            // sign-in, so the import log says who asked.
+            Middleware\TomYumImportMissingBeatmaps::class,
         ],
         'web' => [
             Middleware\EncryptCookies::class,
@@ -40,6 +41,7 @@ class Kernel extends HttpKernel
             Middleware\UpdateUserInfo::class,
             Middleware\VerifyUserAlways::class,
             Middleware\CheckUserBanStatus::class,
+            Middleware\TomYumImportMissingBeatmaps::class,
         ],
         'lio' => [
             Middleware\LegacyInterOpAuth::class,

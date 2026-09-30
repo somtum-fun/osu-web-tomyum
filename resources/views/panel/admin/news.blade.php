@@ -11,7 +11,7 @@
     ]])
     <div class="osu-page osu-page--admin tomyum-panel">
         <div class="tomyum-panel__card">
-            <h2>{{ $editing === null ? 'Write a post' : 'Edit "'.$editing->title().'"' }}</h2>
+            <h2><i class="fas fa-pen"></i>{{ $editing === null ? 'Write a post' : 'Edit "'.$editing->title().'"' }}</h2>
             <p class="tomyum-panel__hint">
                 Shown on the website's news page, the dashboard and in lazer. Written in the osu! wiki's markdown:
                 **bold**, *italic*, [links](https://osu.sundei.eu), ![images](https://…/image.jpg) (the first image is
@@ -62,9 +62,9 @@
         </div>
 
         <div class="tomyum-panel__card">
-            <h2>Posts</h2>
+            <h2><i class="fas fa-newspaper"></i>Posts</h2>
             @if (count($posts) === 0)
-                <p class="tomyum-panel__hint">None yet.</p>
+                <p class="tomyum-panel__empty">None yet.</p>
             @else
                 <table class="tomyum-panel__table">
                     <tr><th>Title</th><th>Date</th><th></th></tr>

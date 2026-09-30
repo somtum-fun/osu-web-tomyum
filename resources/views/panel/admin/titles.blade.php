@@ -11,7 +11,7 @@
     ]])
     <div class="osu-page osu-page--admin tomyum-panel">
         <div class="tomyum-panel__card">
-            <h2>Give a title</h2>
+            <h2><i class="fas fa-user-tag"></i>Give a title</h2>
             <p class="tomyum-panel__hint">A title shows under the player's name on their profile (like osu!'s "Community Contributor").</p>
             @if (count($titles) === 0)
                 <p class="tomyum-panel__hint">Make a title below first.</p>
@@ -37,16 +37,22 @@
         </div>
 
         <div class="tomyum-panel__card">
-            <h2>Titles</h2>
+            <h2><i class="fas fa-id-badge"></i>Titles</h2>
             @if (count($titles) === 0)
-                <p class="tomyum-panel__hint">None yet.</p>
+                <p class="tomyum-panel__empty">None yet.</p>
             @else
+                @php
+                    // Titles rarely link anywhere: only show the column when one does.
+                    $withLinks = collect($titles)->contains(fn ($title) => present($title->url));
+                @endphp
                 <table class="tomyum-panel__table">
-                    <tr><th>Title</th><th>Link</th><th>Players</th><th></th></tr>
+                    <tr><th>Title</th>@if ($withLinks)<th>Link</th>@endif<th>Players</th><th></th></tr>
                     @foreach ($titles as $title)
                         <tr>
-                            <td>{{ $title->rank_title }}</td>
-                            <td>@if (present($title->url))<a href="{{ $title->url }}" rel="nofollow noopener" target="_blank">link</a>@else – @endif</td>
+                            <td><span class="tomyum-panel__pill tomyum-panel__pill--pink">{{ $title->rank_title }}</span></td>
+                            @if ($withLinks)
+                                <td>@if (present($title->url))<a href="{{ $title->url }}" rel="nofollow noopener" target="_blank"><i class="fas fa-external-link-alt"></i> link</a>@endif</td>
+                            @endif
                             <td>
                                 @forelse ($holders[$title->getKey()] ?? [] as $holder)
                                     <a href="{{ route('users.show', ['user' => $holder->getKey()]) }}">{{ $holder->username }}</a>@if (!$loop->last), @endif
@@ -54,7 +60,7 @@
                                     <span class="tomyum-panel__hint">nobody</span>
                                 @endforelse
                             </td>
-                            <td>
+                            <td style="text-align: right">
                                 <form method="POST" action="{{ route('panel.admin.titles.destroy', ['title' => $title->getKey()]) }}"
                                     onsubmit="return confirm('Remove this title (and take it from everyone who has it)?')">
                                     @csrf
@@ -68,7 +74,7 @@
         </div>
 
         <div class="tomyum-panel__card">
-            <h2>Make a title</h2>
+            <h2><i class="fas fa-plus"></i>Make a title</h2>
             <form method="POST" action="{{ route('panel.admin.titles.store') }}" class="tomyum-panel__row">
                 @csrf
                 <label class="tomyum-panel__field">

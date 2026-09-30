@@ -41,7 +41,7 @@ class TomYumImportMissingBeatmaps
     {
         // Only for signed-in clients (lazer always sends a token; site visitors have a session),
         // so anonymous traffic can't make the server fetch arbitrary maps.
-        $signedIn = $request->bearerToken() !== null || $request->cookies->has(config('session.cookie'));
+        $signedIn = auth()->check();
         if ($signedIn && present($GLOBALS['cfg']['osu']['legacy']['shared_interop_secret'])) {
             try {
                 $this->importMissing($request);
@@ -84,19 +84,19 @@ class TomYumImportMissingBeatmaps
         foreach (array_unique(array_filter(array_map('get_int', $setIds))) as $setId) {
             if ($imports < static::MAX_IMPORTS && !Beatmapset::whereKey($setId)->exists()) {
                 $imports++;
-                $this->import('set', (string) $setId, fn (TomYumAdmin $admin) => $admin->post("/beatmapsets/{$setId}/import"));
+                $this->import('set', (string) $setId, fn (TomYumAdmin $admin, array $via) => $admin->post("/beatmapsets/{$setId}/import", null, $via));
             }
         }
         foreach (array_unique(array_filter(array_map('get_int', $beatmapIds))) as $beatmapId) {
             if ($imports < static::MAX_IMPORTS && !Beatmap::whereKey($beatmapId)->exists()) {
                 $imports++;
-                $this->import('beatmap', (string) $beatmapId, fn (TomYumAdmin $admin) => $admin->post('/beatmaps/import', ['beatmapId' => $beatmapId]));
+                $this->import('beatmap', (string) $beatmapId, fn (TomYumAdmin $admin, array $via) => $admin->post('/beatmaps/import', ['beatmapId' => $beatmapId], $via));
             }
         }
         foreach (array_unique(array_filter($checksums, fn ($c) => is_string($c) && preg_match('/^[0-9a-f]{32}$/i', $c) === 1)) as $checksum) {
             if ($imports < static::MAX_IMPORTS && !Beatmap::where('checksum', $checksum)->exists()) {
                 $imports++;
-                $this->import('checksum', strtolower($checksum), fn (TomYumAdmin $admin) => $admin->post('/beatmaps/import', ['checksum' => $checksum]));
+                $this->import('checksum', strtolower($checksum), fn (TomYumAdmin $admin, array $via) => $admin->post('/beatmaps/import', ['checksum' => $checksum], $via));
             }
         }
     }
@@ -114,7 +114,9 @@ class TomYumImportMissingBeatmaps
         }
         RateLimiter::hit("tomyum-import:{$ip}", 3600);
 
-        $response = $send(new TomYumAdmin(auth()->user()));
+        // The import log shows who asked, and from which client.
+        $via = ['via' => request()->bearerToken() !== null ? 'lazer' : 'website'];
+        $response = $send(new TomYumAdmin(auth()->user()), $via);
         if ($response->status() === 404) {
             Cache::put($key, true, static::UNKNOWN_TTL);
         }

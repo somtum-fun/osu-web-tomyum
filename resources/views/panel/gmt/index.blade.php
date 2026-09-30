@@ -8,7 +8,7 @@
     @include('panel._header', ['crumbs' => [['url' => route('panel.gmt.index'), 'title' => 'GMT panel']]])
     <div class="osu-page osu-page--admin tomyum-panel">
         <div class="tomyum-panel__card">
-            <h2>Find a player</h2>
+            <h2><i class="fas fa-search"></i>Find a player</h2>
             <form method="GET" action="{{ route('panel.gmt.index') }}" class="tomyum-panel__row">
                 <label class="tomyum-panel__field">
                     Username or user id
@@ -19,7 +19,7 @@
             </form>
             @if ($query !== '')
                 @if (count($matches) === 0)
-                    <p class="tomyum-panel__hint">Nobody matches "{{ $query }}".</p>
+                    <p class="tomyum-panel__empty">Nobody matches "{{ $query }}".</p>
                 @else
                     <ul>
                         @foreach ($matches as $match)
@@ -31,7 +31,7 @@
         </div>
 
         <div class="tomyum-panel__card">
-            <h2>Recent reports</h2>
+            <h2><i class="fas fa-flag"></i>Recent reports</h2>
             @if (count($reports) === 0)
                 <p class="tomyum-panel__hint">No reports yet. Players report others from their profile (the "…" menu) or scores.</p>
             @else
@@ -40,9 +40,9 @@
         </div>
 
         <div class="tomyum-panel__card">
-            <h2>Recent moderation</h2>
+            <h2><i class="fas fa-history"></i>Recent moderation</h2>
             @if (count($entries) === 0)
-                <p class="tomyum-panel__hint">No restrictions, silences or score removals yet.</p>
+                <p class="tomyum-panel__empty">No restrictions, silences or score removals yet.</p>
             @else
                 @include('panel._staff_log')
             @endif
