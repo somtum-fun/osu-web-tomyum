@@ -43,6 +43,8 @@ interface UserExtendedAdditionalAttributes {
   max_blocks: number;
   max_friends: number;
   occupation: string | null;
+  // TomYum: the song Last.fm says they are listening to (profile pages only).
+  tomyum_listening?: { artist: string; title: string; url: string | null } | null;
   playmode: Ruleset;
   playstyle: string[];
   post_count: number;

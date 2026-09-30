@@ -17,7 +17,7 @@ import { trans, transChoice } from 'utils/lang';
 const textKeys = ['join_date', 'last_visit', 'playstyle', 'post_count', 'comments_count'] as const;
 type TextKey = (typeof textKeys)[number];
 
-const bioKeys = ['location', 'interests', 'occupation'] as const;
+const bioKeys = ['location', 'interests', 'occupation', 'tomyum_listening'] as const;
 type BioKey = (typeof bioKeys)[number];
 
 const mediaKeys = ['twitter', 'discord', 'website'] as const;
@@ -52,6 +52,13 @@ const linkMapping: Record<LinkKey, (user: UserExtendedJson) => LinkProps> = {
   occupation: (user: UserExtendedJson) => ({
     icon: 'fas fa-suitcase',
     text: user.occupation,
+  }),
+  // TomYum: the song Last.fm says they're listening to (connected in account settings).
+  tomyum_listening: (user: UserExtendedJson) => ({
+    icon: 'fab fa-lastfm',
+    text: `${user.tomyum_listening?.artist ?? ''} – ${user.tomyum_listening?.title ?? ''}`,
+    title: 'Listening to (Last.fm)',
+    url: user.tomyum_listening?.url,
   }),
   twitter: (user: UserExtendedJson) => ({
     icon: 'fab fa-twitter',

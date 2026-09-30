@@ -705,6 +705,8 @@ class UsersController extends Controller
             return $userArray;
         } else {
             $achievements = app('medals')->json();
+            // TomYum: what they're listening to on Last.fm (connected in account settings).
+            $userArray['tomyum_listening'] = static::tomyumListening($user);
             $currentUser = \Auth::user();
             if ($currentUser !== null && $currentUser->getKey() === $user->getKey()) {
                 $userCoverPresets = app('user-cover-presets')->json();
@@ -723,6 +725,18 @@ class UsersController extends Controller
 
             return ext_view('users.show', compact('initialData', 'mode', 'user'));
         }
+    }
+
+    /** TomYum: the song Last.fm says the player is listening to (artist, title, url), or null. */
+    private static function tomyumListening(User $user): ?array
+    {
+        try {
+            $response = (new \App\Libraries\TomYumAdmin())->get("/lastfm/{$user->getKey()}/listening");
+        } catch (\App\Exceptions\InvariantException $e) {
+            return null;
+        }
+
+        return $response->status() === 200 ? $response->json() : null;
     }
 
     public function unlockClientSideAchievement($achievementId)

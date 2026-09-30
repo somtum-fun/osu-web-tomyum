@@ -28,6 +28,19 @@
                                 <a href="https://www.last.fm/user/{{ rawurlencode($lastFm['username']) }}" rel="nofollow noopener" target="_blank">{{ $lastFm['username'] }}</a>:
                                 every map you pass, on stable or lazer, as its song. Last.fm shows what you're playing while you play.
                             </p>
+                            @if (count($lastFm['recent'] ?? []) > 0)
+                                <div style="margin: 12px 0 16px">
+                                    <div style="font-weight: 600; margin-bottom: 6px">Recently scrobbled</div>
+                                    @foreach ($lastFm['recent'] as $scrobble)
+                                        <div style="align-items: baseline; display: flex; flex-wrap: wrap; gap: 4px 10px; padding: 3px 0">
+                                            <a href="{{ route('beatmaps.show', ['beatmap' => $scrobble['beatmapId']]) }}">{{ $scrobble['artist'] }} – {{ $scrobble['title'] }}</a>
+                                            {{-- The clients' colours on osu!'s changelog: stable blue, lazer red. --}}
+                                            <span style="background: hsla(var({{ $scrobble['client'] === 'lazer' ? '--hsl-red-1' : '--hsl-blue-1' }}), 0.2); border-radius: 999px; color: hsl(var({{ $scrobble['client'] === 'lazer' ? '--hsl-red-1' : '--hsl-blue-1' }})); font-size: 11px; font-weight: 600; padding: 0 8px">{{ $scrobble['client'] }}</span>
+                                            <span style="color: hsl(var(--hsl-c2)); font-size: 12px">{!! timeago(Carbon\Carbon::parse($scrobble['scrobbledAt'], 'UTC')) !!}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
                             <form method="POST" action="{{ route('account.lastfm.destroy') }}">
                                 @csrf
                                 @method('DELETE')
