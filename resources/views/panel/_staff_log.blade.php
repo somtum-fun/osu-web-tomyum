@@ -50,6 +50,21 @@
         'banner.remove' => ['Remove banner', 'pink'],
         'user.banner_add' => ['Give banner', 'pink'],
         'user.banner_remove' => ['Take banner', 'pink'],
+        'user.lock' => ['Lock', 'bad'],
+        'user.unlock' => ['Unlock', 'good'],
+        'user.whitelist' => ['Whitelist', 'info'],
+        'user.whitelist_remove' => ['Unwhitelist', 'warn'],
+        'user.hwid_wipe' => ['Wipe HWID', 'warn'],
+        'user.note' => ['Note', 'info'],
+        'user.reset_avatar' => ['Reset avatar', 'pink'],
+        'user.reset_cover' => ['Reset banner', 'pink'],
+        'user.reset_page' => ['Reset me! page', 'pink'],
+        'user.unlink_discord' => ['Unlink Discord', 'warn'],
+        'user.unlink_lastfm' => ['Unlink Last.fm', 'warn'],
+        'user.rollback' => ['Rollback', 'bad'],
+        'user.username_rollback' => ['Name rollback', 'warn'],
+        'anticheat.flagged' => ['circleguard flag', 'warn'],
+        'anticheat.suspicious' => ['Suspicious play', 'warn'],
     ];
     // Actions whose target isn't a player.
     $notPlayers = ['beatmapset.', 'title.', 'news.', 'seasonal.', 'daily_challenge.', 'matchmaking.', 'scores.', 'mods.', 'banner.'];

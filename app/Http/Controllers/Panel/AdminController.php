@@ -6,13 +6,18 @@
 namespace App\Http\Controllers\Panel;
 
 use App\Exceptions\ChangeUsernameException;
+use App\Libraries\TomYumAccount;
 use App\Libraries\TomYumCountryStats;
+use App\Libraries\User\AvatarHelper;
 use App\Libraries\User\PasswordHelper;
 use App\Models\Beatmap;
 use App\Models\Country;
 use App\Models\Group;
 use App\Models\User;
+use App\Models\UserAccountHistory;
+use App\Models\UsernameChangeHistory;
 use App\Models\UserStatistics;
+use App\Transformers\UserCompactTransformer;
 use Auth;
 use Carbon\Carbon;
 use DB;
@@ -87,9 +92,32 @@ class AdminController extends Controller
             fn ($entry) => !str_starts_with($entry['action'], 'beatmapset.'),
         ));
 
+        $devices = $this->tomyum()->get("/users/{$target->getKey()}/devices");
+        $links = $this->tomyum()->get("/users/{$target->getKey()}/links");
+        $anticheat = $this->tomyum()->get('/log', ['targetId' => $target->getKey(), 'limit' => 200]);
+
         return ext_view('panel.admin.user', [
             'target' => $target,
             'isSelf' => $target->getKey() === Auth::user()->getKey(),
+            // The header: osu-web's user card, and their main mode's numbers.
+            'userCard' => json_item($target, new UserCompactTransformer(), UserCompactTransformer::CARD_INCLUDES),
+            'stats' => $target->statistics($target->playmode ?? 'osu'),
+            // Moderation (TomYum): flags, standing, devices, logins, links, anti-cheat, names.
+            'flags' => TomYumAccount::flags($target->getKey()),
+            'silencedUntil' => GmtController::silencedUntil($target),
+            'silenceLengths' => GmtController::SILENCE_LENGTHS,
+            'modes' => GmtController::MODES,
+            'history' => $target->accountHistories()->with('actor')->orderByDesc('timestamp')->orderByDesc('ban_id')->limit(50)->get(),
+            'devices' => $devices->successful() ? $devices->json() : null,
+            'verifiedDevices' => DB::table('osu_user_security')->where('user_id', $target->getKey())->get()
+                ->mapWithKeys(fn ($row) => [bin2hex($row->unique_md5) => (bool) $row->verified])->all(),
+            'links' => $links->successful() ? $links->json() : null,
+            'logins' => TomYumAccount::loginHistory($target->getKey(), 50),
+            'lastDetection' => collect($anticheat->successful() ? $anticheat->json() : [])->first(fn ($entry) =>
+                str_starts_with($entry['action'], 'anticheat.')
+                || $entry['action'] === 'user.client_flags'
+                || ($entry['action'] === 'user.restrict' && in_array($entry['result'] ?? null, ['circleguard', 'client flags'], true))),
+            'usernames' => UsernameChangeHistory::where('user_id', $target->getKey())->orderByDesc('change_id')->limit(30)->get(),
             'groups' => Group::whereNotIn('identifier', static::UNASSIGNABLE_GROUPS)->orderByRaw('display_order IS NULL, display_order')->get(),
             'memberships' => $target->userGroups()->get()->keyBy('group_id'),
             'countries' => Country::orderBy('name')->pluck('name', 'acronym'),
@@ -273,6 +301,190 @@ class AdminController extends Controller
         return $this->done($target->fresh(), 'admin.delete', "Deleted {$old}'s account.", "Deleted {$old}: renamed, banned from the game, removed from all groups. Their scores stay on record but hidden.");
     }
 
+    /** Lock: no logins anywhere (website, lazer, stable) and signed out everywhere; unlock undoes it. */
+    public function lock(string $user)
+    {
+        $target = User::findOrFail((int) $user);
+        $reason = $this->reason();
+        if (Request::input('action') === 'unlock') {
+            TomYumAccount::setLocked($target, Auth::user(), null);
+            $this->history($target, 'note', 'Account unlocked'.($reason === null ? '' : ": {$reason}"));
+
+            return $this->done($target, 'user.unlock', "Unlocked {$target->username}".($reason === null ? '.' : ": {$reason}"), 'Unlocked: they can log in again.');
+        }
+        if ($target->getKey() === Auth::user()->getKey()) {
+            return $this->back($target, 'error', 'You can\'t lock your own account.');
+        }
+        if ($reason === null) {
+            return $this->back($target, 'error', 'Give a reason for the lock.');
+        }
+
+        TomYumAccount::setLocked($target, Auth::user(), $reason);
+        $target->resetSessions();
+        $this->disconnect($target, 'Your account was locked by staff.');
+        $this->history($target, 'note', "Account locked: {$reason}");
+
+        return $this->done($target, 'user.lock', "Locked {$target->username}: {$reason}", 'Locked: signed out everywhere, and no logins until unlocked.');
+    }
+
+    /** The anti-cheat whitelist: circleguard and the suspicious-play checks leave the player alone. */
+    public function whitelist(string $user)
+    {
+        $target = User::findOrFail((int) $user);
+        $reason = $this->reason();
+        if (Request::input('action') === 'remove') {
+            TomYumAccount::setWhitelisted($target, Auth::user(), null);
+
+            return $this->done($target, 'user.whitelist_remove', "Took {$target->username} off the anti-cheat whitelist.", 'Off the whitelist: anti-cheat checks them again.');
+        }
+        if ($reason === null) {
+            return $this->back($target, 'error', 'Give a reason for whitelisting.');
+        }
+        TomYumAccount::setWhitelisted($target, Auth::user(), $reason);
+
+        return $this->done($target, 'user.whitelist', "Whitelisted {$target->username} (anti-cheat): {$reason}", 'Whitelisted: anti-cheat leaves their plays alone.');
+    }
+
+    /** Wipes the player's device verifications: every stable device has to be confirmed on the website again. */
+    public function wipeDevices(string $user)
+    {
+        $target = User::findOrFail((int) $user);
+        $reason = $this->reason() ?? 'Devices reset by staff';
+        $count = DB::table('osu_user_security')->where('user_id', $target->getKey())->update(['verified' => 0]);
+        $this->disconnect($target, 'Your devices were reset by staff: verify this one on the website to play.');
+
+        return $this->done($target, 'user.hwid_wipe', "Reset {$target->username}'s {$count} device verification(s): {$reason}",
+            "Reset {$count} device(s): their next stable login asks them to verify the device.");
+    }
+
+    /** A note in the account's standing history. */
+    public function note(string $user)
+    {
+        $target = User::findOrFail((int) $user);
+        $reason = $this->reason();
+        if ($reason === null) {
+            return $this->back($target, 'error', 'Write the note.');
+        }
+        $this->history($target, 'note', $reason);
+
+        return $this->done($target, 'user.note', "Note on {$target->username}: {$reason}", 'Note added.');
+    }
+
+    /** Resets the avatar, profile banner or me! page, with a note and/or a silence if chosen. */
+    public function reset(string $user)
+    {
+        $target = User::findOrFail((int) $user);
+        $what = Request::input('what');
+        $labels = ['avatar' => 'avatar', 'cover' => 'profile banner', 'page' => 'me! page'];
+        if (!isset($labels[$what])) {
+            return $this->back($target, 'error', 'Pick what to reset.');
+        }
+        $reason = $this->reason() ?? 'inappropriate content';
+
+        match ($what) {
+            'avatar' => AvatarHelper::set($target, null),
+            'cover' => (function () use ($target) {
+                $target->cover()->set(null, null);
+                $target->customCover()->delete();
+                $target->saveOrExplode();
+            })(),
+            'page' => $target->userPage === null ? null : $target->updatePage(''),
+        };
+
+        $extra = [];
+        if (Request::boolean('warn')) {
+            $this->history($target, 'note', "Warned: {$labels[$what]} reset ({$reason})");
+            $extra[] = 'warned';
+        }
+        $seconds = (int) Request::input('silence');
+        if ($seconds > 0 && isset(GmtController::SILENCE_LENGTHS[$seconds])) {
+            $this->history($target, 'silence', "{$labels[$what]} reset: {$reason}", $seconds);
+            $extra[] = 'silenced for '.GmtController::SILENCE_LENGTHS[$seconds];
+        }
+        $tail = count($extra) > 0 ? ' ('.implode(', ', $extra).')' : '';
+
+        return $this->done($target, 'user.reset_'.$what, "Reset {$target->username}'s {$labels[$what]}: {$reason}{$tail}", ucfirst($labels[$what])." reset{$tail}.");
+    }
+
+    /** Unlinks a connected profile (Discord, Last.fm). */
+    public function unlink(string $user)
+    {
+        $target = User::findOrFail((int) $user);
+        $service = Request::input('service');
+        $response = match ($service) {
+            'discord' => $this->tomyum()->post("/users/{$target->getKey()}/links/discord/unlink"),
+            'lastfm' => $this->tomyum()->post("/lastfm/{$target->getKey()}/unlink"),
+            default => null,
+        };
+        if ($response === null) {
+            return $this->back($target, 'error', 'Unknown service.');
+        }
+        $name = $service === 'discord' ? 'Discord' : 'Last.fm';
+        if ($response->notFound()) {
+            return $this->back($target, 'error', "They have no {$name} linked.");
+        }
+        if (!$response->successful()) {
+            return $this->back($target, 'error', "Unlinking failed (HTTP {$response->status()}).");
+        }
+
+        return $this->done($target, 'user.unlink_'.$service, "Unlinked {$target->username}'s {$name}.", "{$name} unlinked.");
+    }
+
+    /** Removes every score set after a moment (in one mode or all), recalculating their bests and stats. */
+    public function rollback(string $user)
+    {
+        $target = User::findOrFail((int) $user);
+        $reason = $this->reason();
+        $mode = Request::input('mode');
+        $mode = $mode === 'all' ? null : (int) $mode;
+        try {
+            $after = Carbon::parse((string) Request::input('after'), 'UTC');
+        } catch (\Throwable) {
+            $after = null;
+        }
+        if ($reason === null || $after === null || $after->isFuture() || ($mode !== null && !isset(GmtController::MODES[$mode]))) {
+            return $this->back($target, 'error', 'Pick a date in the past and a mode, and give a reason.');
+        }
+
+        $response = $this->tomyum()->post("/users/{$target->getKey()}/wipe-scores", [
+            'mode' => $mode,
+            'reason' => $reason,
+            'after' => $after->toIso8601String(),
+        ]);
+        if (!$response->successful()) {
+            return $this->back($target, 'error', "The rollback failed (HTTP {$response->status()}).");
+        }
+        $which = $mode === null ? 'all modes' : GmtController::MODES[$mode];
+
+        return $this->back($target, 'success', "Rolled back to {$after->toDayDateTimeString()} UTC: removed {$response->json('removed')} score(s) ({$which}); their earlier bests count again.");
+    }
+
+    /** Changes the name back to one from their username history, with a warning if chosen. */
+    public function usernameRollback(string $user)
+    {
+        $target = User::findOrFail((int) $user);
+        $name = trim(Request::input('username') ?? '');
+        $known = UsernameChangeHistory::where('user_id', $target->getKey())
+            ->where(fn ($q) => $q->where('username_last', $name)->orWhere('username', $name))->exists();
+        if ($name === '' || !$known || $name === $target->username) {
+            return $this->back($target, 'error', 'Pick one of their earlier names.');
+        }
+
+        $old = $target->username;
+        try {
+            $target->changeUsername($name, 'revert');
+        } catch (ChangeUsernameException $e) {
+            return $this->back($target, 'error', 'Username not changed: '.implode(' ', $e->getErrors()->allMessages()));
+        }
+        $reason = $this->reason();
+        if (Request::boolean('warn')) {
+            $this->history($target, 'note', "Warned: username reverted from {$old} to {$name}".($reason === null ? '' : " ({$reason})"));
+        }
+
+        return $this->done($target->fresh(), 'user.username_rollback', "Reverted {$old}'s name to {$name}".($reason === null ? '.' : ": {$reason}"),
+            "Renamed back to {$name}".(Request::boolean('warn') ? ' (warned).' : '.'));
+    }
+
     /** Recalculates every score's pp on the game server (after a pp update), which also updates this site. */
     public function recalculate()
     {
@@ -299,5 +511,36 @@ class AdminController extends Controller
     {
         return redirect(route('panel.admin.users.show', ['user' => $target->getKey()]))
             ->with('panel_status', ['type' => $type, 'message' => $message, 'link' => null]);
+    }
+
+    private function reason(): ?string
+    {
+        $reason = trim(Request::input('reason') ?? '');
+
+        return $reason === '' ? null : mb_substr($reason, 0, 500);
+    }
+
+    /** An entry in the account's standing history (osu_user_banhistory), by the current admin. */
+    private function history(User $target, string $type, string $reason, int $period = 0): void
+    {
+        UserAccountHistory::create([
+            'user_id' => $target->getKey(),
+            'banner_id' => Auth::user()->getKey(),
+            'ban_status' => UserAccountHistory::TYPES[$type],
+            'reason' => mb_substr($reason, 0, 2000),
+            'period' => $period,
+            'permanent' => false,
+            'timestamp' => Carbon::now(),
+        ]);
+    }
+
+    /** Kicks their stable session (best effort), so a lock or a device reset applies now. */
+    private function disconnect(User $target, string $message): void
+    {
+        try {
+            $this->tomyum()->post("/users/{$target->getKey()}/disconnect", ['message' => $message]);
+        } catch (\Throwable $e) {
+            log_error($e);
+        }
     }
 }

@@ -65,7 +65,24 @@ class ChangeUsername
             return $this->validationErrors();
         }
 
+        // TomYum: staff reverting a player to one of their own earlier names (the admin panel): the
+        // name is kept for them, so its 180-day reservation doesn't stand in the way.
+        if ($this->type === 'revert' && $this->isOwnEarlierName()) {
+            return $this->validationErrors();
+        }
+
         return $this->validationErrors()->merge(UsernameValidation::validateAvailability($this->username));
+    }
+
+    /** TomYum: whether the last rename involving this name was the player's own (nobody had it since). */
+    private function isOwnEarlierName(): bool
+    {
+        $last = \App\Models\UsernameChangeHistory::where('username_last', $this->username)
+            ->orWhere('username', $this->username)
+            ->orderByDesc('change_id')
+            ->first();
+
+        return $last !== null && $last->user_id === $this->user->getKey();
     }
 
     public function validationErrorsTranslationPrefix(): string

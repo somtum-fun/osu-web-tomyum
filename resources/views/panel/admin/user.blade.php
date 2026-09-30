@@ -5,6 +5,21 @@
 @php
     $userId = $target->getKey();
     $targets = [$userId => $target->username];
+    $sections = [
+        'standing' => ['fas fa-balance-scale', 'Standing'],
+        'access' => ['fas fa-lock', 'Lock & whitelist'],
+        'devices' => ['fas fa-desktop', 'Devices'],
+        'logins' => ['fas fa-sign-in-alt', 'Logins'],
+        'connections' => ['fas fa-link', 'Connections'],
+        'content' => ['fas fa-eraser', 'Content'],
+        'rollback' => ['fas fa-undo', 'Rollback'],
+        'names' => ['fas fa-id-badge', 'Names'],
+        'profile' => ['fas fa-user', 'Profile'],
+        'groups' => ['fas fa-users', 'Groups'],
+        'supporter' => ['fas fa-heart', 'Supporter'],
+        'log' => ['fas fa-history', 'Staff actions'],
+    ];
+    $rank = $stats?->globalRank();
 @endphp
 @extends('master', ['titlePrepend' => $target->username])
 
@@ -15,27 +30,61 @@
         ['title' => $target->username],
     ]])
     <div class="osu-page osu-page--admin tomyum-panel">
-        <div class="tomyum-panel__card tomyum-panel__row" style="align-items: center">
-            <img src="{{ App\Libraries\User\AvatarHelper::url($target) }}" alt="" style="border-radius: 12px; height: 64px; width: 64px; object-fit: cover">
-            <div style="flex: 1">
-                <h2 style="margin: 0">
-                    <a href="{{ route('users.show', ['user' => $userId]) }}">{{ $target->username }}</a>
-                    <span class="tomyum-panel__hint">#{{ $userId }}</span>
-                </h2>
-                <p class="tomyum-panel__hint" style="margin: 4px 0 0">
-                    joined {{ $target->user_regdate?->toFormattedDateString() }}
-                    &middot; last seen {!! $target->user_lastvisit ? timeago($target->user_lastvisit) : 'never' !!}
-                    @if ($target->isRestricted())
-                        &middot; <span class="tomyum-panel__badge tomyum-panel__badge--error">{{ $target->isBanned() ? 'Banned' : 'Restricted' }}</span>
-                    @endif
-                </p>
+        <div class="tomyum-panel__hero">
+            <div class="js-react u-contents" data-react="user-card" data-user="{{ json_encode($userCard) }}"></div>
+
+            <div class="tomyum-panel__card">
+                <div class="tomyum-panel__card-head">
+                    <h2><i class="fas fa-id-card"></i>{{ $target->username }} <span class="tomyum-panel__muted">#{{ $userId }}</span></h2>
+                    <div class="tomyum-panel__row" style="gap: 8px">
+                        <a class="tomyum-panel__button tomyum-panel__button--secondary tomyum-panel__button--small" href="{{ route('users.show', ['user' => $userId]) }}">
+                            <i class="fas fa-external-link-alt"></i>Profile
+                        </a>
+                        @if (App\Http\Controllers\Panel\Controller::canUseGmt(Auth::user()))
+                            <a class="tomyum-panel__button tomyum-panel__button--secondary tomyum-panel__button--small" href="{{ route('panel.gmt.users.show', ['user' => $userId]) }}">
+                                <i class="fas fa-gavel"></i>GMT panel
+                            </a>
+                        @endif
+                    </div>
+                </div>
+                <div class="tomyum-panel__facts">
+                    <div class="tomyum-panel__fact">
+                        <span class="tomyum-panel__kicker">Joined</span>
+                        <span class="tomyum-panel__fact-value">{{ $target->user_regdate?->toFormattedDateString() ?? '—' }}</span>
+                    </div>
+                    <div class="tomyum-panel__fact">
+                        <span class="tomyum-panel__kicker">Last seen</span>
+                        <span class="tomyum-panel__fact-value">{!! $target->user_lastvisit ? timeago($target->user_lastvisit) : 'never' !!}</span>
+                    </div>
+                    <div class="tomyum-panel__fact">
+                        <span class="tomyum-panel__kicker">{{ $playmodes[$target->playmode] ?? 'osu!' }} rank</span>
+                        <span class="tomyum-panel__fact-value">{{ $rank === null ? '—' : '#'.number_format($rank) }}</span>
+                    </div>
+                    <div class="tomyum-panel__fact">
+                        <span class="tomyum-panel__kicker">Performance</span>
+                        <span class="tomyum-panel__fact-value">{{ number_format($stats?->rank_score ?? 0) }}pp</span>
+                    </div>
+                    <div class="tomyum-panel__fact">
+                        <span class="tomyum-panel__kicker">Play count</span>
+                        <span class="tomyum-panel__fact-value">{{ number_format($stats?->playcount ?? 0) }}</span>
+                    </div>
+                    <div class="tomyum-panel__fact">
+                        <span class="tomyum-panel__kicker">Email</span>
+                        <span class="tomyum-panel__fact-value" title="{{ $target->user_email }}">{{ $target->user_email ?? '—' }}</span>
+                    </div>
+                </div>
             </div>
-            @if (App\Http\Controllers\Panel\Controller::canUseGmt(Auth::user()))
-                <a href="{{ route('panel.gmt.users.show', ['user' => $userId]) }}">Moderation (GMT panel)</a>
-            @endif
         </div>
 
-        <div class="tomyum-panel__card">
+        <nav class="tomyum-panel__nav">
+            @foreach ($sections as $id => [$icon, $label])
+                <a class="tomyum-panel__nav-link" href="#{{ $id }}"><i class="{{ $icon }}"></i>{{ $label }}</a>
+            @endforeach
+        </nav>
+
+        @include('panel.admin._moderation')
+
+        <div class="tomyum-panel__card" id="profile">
             <h2><i class="fas fa-user"></i>Profile</h2>
             <p class="tomyum-panel__hint">A rename keeps the old name in their username history. Changes reach the game immediately (they reconnect).</p>
             <form method="POST" action="{{ route('panel.admin.users.profile', ['user' => $userId]) }}" class="tomyum-panel__row">
@@ -56,12 +105,10 @@
                         @endforeach
                     </select>
                 </label>
-                <button class="tomyum-panel__button" type="submit">Save</button>
+                <button class="tomyum-panel__button" type="submit"><i class="fas fa-save"></i>Save</button>
             </form>
-        </div>
 
-        <div class="tomyum-panel__card">
-            <h2><i class="fas fa-key"></i>Password</h2>
+            <h3>Password</h3>
             <p class="tomyum-panel__hint">Sets a new password for the website and the game. Give it to them privately; they can change it in their settings.</p>
             <form method="POST" action="{{ route('panel.admin.users.password', ['user' => $userId]) }}" class="tomyum-panel__row" autocomplete="off">
                 @csrf
@@ -69,90 +116,93 @@
                     New password (at least 8 characters)
                     <input type="text" name="password" minlength="8" required autocomplete="new-password">
                 </label>
-                <button class="tomyum-panel__button" type="submit">Set password</button>
+                <button class="tomyum-panel__button" type="submit"><i class="fas fa-key"></i>Set password</button>
             </form>
         </div>
 
-        <div class="tomyum-panel__card">
-            <h2><i class="fas fa-users"></i>Groups</h2>
-            <p class="tomyum-panel__hint">
-                Admin, GMT and developer groups also give in-game staff powers. Beatmap nominator groups are per game mode.
-                @if ($isSelf)
-                    You can't remove your own admin group.
-                @endif
-            </p>
-            <form method="POST" action="{{ route('panel.admin.users.groups', ['user' => $userId]) }}">
-                @csrf
-                <table class="tomyum-panel__table">
-                    @foreach ($groups as $group)
-                        @php
-                            $membership = $memberships[$group->getKey()] ?? null;
-                            $modes = $membership?->playmodes ?? [];
-                        @endphp
-                        <tr>
-                            <td style="width: 30px">
-                                <input type="checkbox" name="groups[]" value="{{ $group->identifier }}" id="group-{{ $group->identifier }}" @checked($membership !== null)>
-                            </td>
-                            <td>
-                                <label for="group-{{ $group->identifier }}">
-                                    @if ($group->colour)
-                                        <span class="tomyum-panel__badge" style="background: {{ $group->colour }}; color: #000">{{ $group->short_name }}</span>
-                                    @endif
-                                    {{ $group->group_name }}
-                                </label>
-                                @if ($group->identifier === 'no_profile')
-                                    <span class="tomyum-panel__hint">(hides their profile)</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if ($group->has_playmodes)
-                                    @foreach ($playmodes as $mode => $label)
-                                        <label style="margin-right: 10px; white-space: nowrap">
-                                            <input type="checkbox" name="playmodes[{{ $group->identifier }}][]" value="{{ $mode }}" @checked(in_array($mode, $modes, true))>
-                                            {{ $label }}
-                                        </label>
-                                    @endforeach
-                                @endif
-                            </td>
-                        </tr>
-                    @endforeach
-                </table>
-                <p><button class="tomyum-panel__button" type="submit">Save groups</button></p>
-            </form>
-        </div>
-
-        <div class="tomyum-panel__card">
-            <h2><i class="fas fa-heart"></i>Supporter</h2>
-            <p>
-                @if ($target->isSupporter())
-                    Supporter until {{ $target->osu_subscriptionexpiry?->toFormattedDateString() ?? '—' }} (level {{ $target->supportLevel() }}, {{ $target->support_length ?? 0 }} months total).
-                @else
-                    Not a supporter ({{ $target->support_length ?? 0 }} months in the past).
-                @endif
-            </p>
-            <div class="tomyum-panel__row">
-                <form method="POST" action="{{ route('panel.admin.users.supporter', ['user' => $userId]) }}" class="tomyum-panel__row" style="flex: 1">
+        <div class="tomyum-panel__columns">
+            <div class="tomyum-panel__card" id="groups">
+                <h2><i class="fas fa-users"></i>Groups</h2>
+                <p class="tomyum-panel__hint">
+                    Admin, GMT and developer groups also give in-game staff powers. Beatmap nominator groups are per game mode.
+                    @if ($isSelf)
+                        You can't remove your own admin group.
+                    @endif
+                </p>
+                <form method="POST" action="{{ route('panel.admin.users.groups', ['user' => $userId]) }}">
                     @csrf
-                    <input type="hidden" name="action" value="grant">
-                    <label class="tomyum-panel__field" style="flex: 0 1 160px">
-                        Months to add
-                        <input type="number" name="months" min="1" max="120" value="1" required>
-                    </label>
-                    <button class="tomyum-panel__button" type="submit">Give supporter</button>
+                    <table class="tomyum-panel__table">
+                        @foreach ($groups as $group)
+                            @php
+                                $membership = $memberships[$group->getKey()] ?? null;
+                                $modes = $membership?->playmodes ?? [];
+                            @endphp
+                            <tr>
+                                <td style="width: 30px">
+                                    <input type="checkbox" name="groups[]" value="{{ $group->identifier }}" id="group-{{ $group->identifier }}" @checked($membership !== null)>
+                                </td>
+                                <td>
+                                    <label for="group-{{ $group->identifier }}">
+                                        @if ($group->colour)
+                                            <span class="tomyum-panel__badge" style="background: {{ $group->colour }}; color: #000">{{ $group->short_name }}</span>
+                                        @endif
+                                        {{ $group->group_name }}
+                                    </label>
+                                    @if ($group->identifier === 'no_profile')
+                                        <span class="tomyum-panel__hint">(hides their profile)</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if ($group->has_playmodes)
+                                        @foreach ($playmodes as $mode => $label)
+                                            <label class="tomyum-panel__check" style="min-height: 0; margin-right: 8px">
+                                                <input type="checkbox" name="playmodes[{{ $group->identifier }}][]" value="{{ $mode }}" @checked(in_array($mode, $modes, true))>
+                                                {{ $label }}
+                                            </label>
+                                        @endforeach
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </table>
+                    <p><button class="tomyum-panel__button" type="submit"><i class="fas fa-save"></i>Save groups</button></p>
                 </form>
-                @if ($target->isSupporter())
-                    <form method="POST" action="{{ route('panel.admin.users.supporter', ['user' => $userId]) }}" onsubmit="return confirm('Remove supporter now?')">
-                        @csrf
-                        <input type="hidden" name="action" value="remove">
-                        <button class="tomyum-panel__button tomyum-panel__button--danger" type="submit">Remove supporter</button>
-                    </form>
-                @endif
             </div>
-            <p class="tomyum-panel__hint">Supporter levels come from the total time: level 2 after 1 year, level 3 after 5 years.</p>
+
+            <div class="tomyum-panel__card" id="supporter">
+                <h2><i class="fas fa-heart"></i>Supporter</h2>
+                <p>
+                    @if ($target->isSupporter())
+                        <span class="tomyum-panel__pill tomyum-panel__pill--pink">Supporter</span>
+                        until {{ $target->osu_subscriptionexpiry?->toFormattedDateString() ?? '—' }} (level {{ $target->supportLevel() }}, {{ $target->support_length ?? 0 }} months total).
+                    @else
+                        Not a supporter ({{ $target->support_length ?? 0 }} months in the past).
+                    @endif
+                </p>
+                <div class="tomyum-panel__row">
+                    <form method="POST" action="{{ route('panel.admin.users.supporter', ['user' => $userId]) }}" class="tomyum-panel__row" style="flex: 1">
+                        @csrf
+                        <input type="hidden" name="action" value="grant">
+                        <label class="tomyum-panel__field" style="flex: 0 1 160px">
+                            Months to add
+                            <input type="number" name="months" min="1" max="120" value="1" required>
+                        </label>
+                        <button class="tomyum-panel__button" type="submit"><i class="fas fa-heart"></i>Give supporter</button>
+                    </form>
+                    @if ($target->isSupporter())
+                        <form method="POST" action="{{ route('panel.admin.users.supporter', ['user' => $userId]) }}" onsubmit="return confirm('Remove supporter now?')">
+                            @csrf
+                            <input type="hidden" name="action" value="remove">
+                            <button class="tomyum-panel__button tomyum-panel__button--danger" type="submit">Remove supporter</button>
+                        </form>
+                    @endif
+                </div>
+                <p class="tomyum-panel__hint">Supporter levels come from the total time: level 2 after 1 year, level 3 after 5 years.</p>
+            </div>
         </div>
 
         @if (!$isSelf && !$target->isAdmin() && !$target->trashed())
-            <div class="tomyum-panel__card tomyum-panel__card--danger">
+            <div class="tomyum-panel__card tomyum-panel__card--danger" id="delete">
                 <h2><i class="fas fa-trash"></i>Delete account</h2>
                 <p class="tomyum-panel__hint">
                     Renames it to DeletedUser_{{ $userId }}, removes the email and all groups, and bans it from the game.
@@ -165,12 +215,12 @@
                         Type "{{ $target->username }}" to confirm
                         <input type="text" name="confirm" required autocomplete="off">
                     </label>
-                    <button class="tomyum-panel__button tomyum-panel__button--danger" type="submit">Delete</button>
+                    <button class="tomyum-panel__button tomyum-panel__button--danger" type="submit"><i class="fas fa-trash"></i>Delete</button>
                 </form>
             </div>
         @endif
 
-        <div class="tomyum-panel__card">
+        <div class="tomyum-panel__card" id="log">
             <h2><i class="fas fa-history"></i>Staff actions</h2>
             @if (count($entries) === 0)
                 <p class="tomyum-panel__empty">None yet.</p>

@@ -73,6 +73,15 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('users/{user}/groups', 'AdminController@groups')->name('users.groups');
             Route::post('users/{user}/supporter', 'AdminController@supporter')->name('users.supporter');
             Route::post('users/{user}/delete', 'AdminController@delete')->name('users.delete');
+            // TomYum: moderation on the account page.
+            Route::post('users/{user}/lock', 'AdminController@lock')->name('users.lock');
+            Route::post('users/{user}/whitelist', 'AdminController@whitelist')->name('users.whitelist');
+            Route::post('users/{user}/devices/wipe', 'AdminController@wipeDevices')->name('users.devices.wipe');
+            Route::post('users/{user}/note', 'AdminController@note')->name('users.note');
+            Route::post('users/{user}/reset', 'AdminController@reset')->name('users.reset');
+            Route::post('users/{user}/unlink', 'AdminController@unlink')->name('users.unlink');
+            Route::post('users/{user}/rollback', 'AdminController@rollback')->name('users.rollback');
+            Route::post('users/{user}/username-rollback', 'AdminController@usernameRollback')->name('users.username-rollback');
 
             Route::get('daily-challenge', 'DailyChallengeController@index')->name('daily-challenge.index');
             Route::post('daily-challenge', 'DailyChallengeController@store')->name('daily-challenge.store');
@@ -216,6 +225,9 @@ Route::group(['middleware' => ['web']], function () {
     });
 
     Route::resource('client-verifications', 'ClientVerificationsController', ['only' => ['create', 'store']]);
+    // TomYum: what osu!stable opens when bancho says a new device needs verifying
+    // (p/verify?u=<name>&reason=bancho&ch=<client hash>): the same page, which reads ch.
+    Route::get('p/verify', 'ClientVerificationsController@create')->name('client-verifications.legacy');
 
     Route::resource('comments', 'CommentsController', ['except' => ['create', 'edit']]);
     Route::post('comments/{comment}/pin', 'CommentsController@pinStore')->name('comments.pin');
