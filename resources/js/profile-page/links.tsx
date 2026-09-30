@@ -159,7 +159,7 @@ function Link(props: LinkProps) {
 type Listening = NonNullable<UserExtendedJson['tomyum_listening']>;
 
 // TomYum: what they're listening to on Last.fm (connected in account settings), asked again every
-// 30 seconds while the page is in view.
+// 10 seconds while the page is in view.
 function ListeningLink({ user }: Props) {
   const [song, setSong] = React.useState<Listening | null>(user.tomyum_listening ?? null);
 
@@ -174,7 +174,7 @@ function ListeningLink({ user }: Props) {
         })
         .catch(() => undefined);
     };
-    const timer = window.setInterval(refresh, 30000);
+    const timer = window.setInterval(refresh, 10000);
     document.addEventListener('visibilitychange', refresh);
 
     return () => {
@@ -185,7 +185,20 @@ function ListeningLink({ user }: Props) {
 
   if (song == null) return null;
 
-  return <Link icon='fab fa-lastfm' text={`${song.artist} – ${song.title}`} title='Listening to (Last.fm)' url={song.url} />;
+  const text = `${song.artist} – ${song.title}`;
+
+  return (
+    <div className='profile-links__item'>
+      <span className='profile-links__icon' title='Listening to (Last.fm)'>
+        {song.image != null
+          ? <img alt='' src={song.image} style={{ borderRadius: 3, height: '1.25em', objectFit: 'cover', verticalAlign: 'middle', width: '1.25em' }} />
+          : <span className='fa-fw fab fa-lastfm' />}
+      </span>
+      {song.url != null
+        ? <a className='profile-links__value profile-links__value--link' href={song.url} rel='nofollow noopener noreferrer' target='_blank'>{text}</a>
+        : <span className='profile-links__value'>{text}</span>}
+    </div>
+  );
 }
 
 export default class Links extends React.PureComponent<Props> {

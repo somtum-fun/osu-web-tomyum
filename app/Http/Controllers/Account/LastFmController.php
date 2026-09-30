@@ -41,6 +41,15 @@ class LastFmController extends Controller
         return $response->successful() ? $response->json() : null;
     }
 
+    /** The history list again (the account page refreshes it every 10 seconds). */
+    public function recent()
+    {
+        $recent = static::status(Auth::user())['recent'] ?? [];
+
+        return response(view('accounts._lastfm_recent', ['recent' => $recent])->render())
+            ->header('Cache-Control', 'no-store');
+    }
+
     /** Off to Last.fm to approve the server. */
     public function create()
     {
