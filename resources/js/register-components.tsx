@@ -1,7 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
 // See the LICENCE file in the repository root for full licence text.
 
-import BeatmapsetPanel, { Props as BeatmapsetPanelProps } from 'beatmapset-panel';
+import { Props as BeatmapsetPanelProps } from 'beatmapset-panel';
+import BeatmapsetCardAuto from 'beatmapset-panel/beatmapset-card-auto';
 import BasicSelectOptions from 'components/basic-select-options';
 import BeatmapsetEvents, { Props as BeatmapsetEventsProps } from 'components/beatmapset-events';
 import BlockButton from 'components/block-button';
@@ -72,7 +73,8 @@ core.reactTurbolinks.register('beatmap-discussion-events', () => {
 core.reactTurbolinks.register('beatmapset-panel', (container) => {
   const props: BeatmapsetPanelProps = reqJson(container.dataset.beatmapsetPanel);
 
-  return <BeatmapsetPanel {...observable(props)} />;
+  // TomYum: in the view picked on the beatmap listing
+  return <BeatmapsetCardAuto {...observable(props)} />;
 });
 
 core.reactTurbolinks.register('basic-select-options', (container) => (

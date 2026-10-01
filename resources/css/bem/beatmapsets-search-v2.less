@@ -1,0 +1,215 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
+// See the LICENCE file in the repository root for full licence text.
+
+// TomYum: the beatmap listing after osu!'s search design proposal (beatmaps/search-panel.tsx,
+// search-filter.tsx, search-content.tsx): the keywords in a rounded box, the filters in columns
+// under a line each, the selected ones marked with a lime dot, statuses as coloured pills and ranks
+// as grade badges; then "View Nano Mini Normal Extra Cover List" and the sort.
+.beatmapsets-search:not(.beatmapsets-search--sticky) {
+  background-color: hsl(var(--hsl-b5));
+  padding-bottom: 24px;
+
+  .beatmapsets-search__cover {
+    display: none;
+  }
+
+  .beatmapsets-search__input-container {
+    background-color: hsl(var(--hsl-b4));
+    border: none;
+    border-radius: 10px;
+    margin: 16px 0 10px;
+  }
+
+  .beatmapsets-search__input {
+    font-size: 20px;
+    padding: 10px 0;
+  }
+}
+
+.beatmapsets-search {
+  &__columns {
+    display: grid;
+    gap: 16px 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    @media @desktop {
+      grid-template-columns: 1fr 2fr repeat(5, 1fr);
+    }
+  }
+
+  &__column {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+  }
+}
+
+.beatmapsets-search-filter {
+  &--column {
+    border-top: 3px solid hsl(var(--hsl-b3));
+    display: block;
+    margin: 0;
+    padding-top: 6px;
+
+    .beatmapsets-search-filter__header {
+      color: hsl(var(--hsl-c1));
+      font-size: @font-size--small;
+      font-weight: 700;
+      margin: 0 0 4px;
+    }
+
+    .beatmapsets-search-filter__items {
+      align-items: flex-start;
+      flex-direction: column;
+      flex-wrap: nowrap;
+      gap: 1px;
+    }
+
+    .beatmapsets-search-filter__item {
+      --colour: hsl(var(--hsl-c2));
+      --colour-hover: hsl(var(--hsl-c1));
+      font-size: @font-size--small;
+      position: relative;
+
+      // the lime dot before a selected one
+      &--active::before {
+        background-color: hsl(var(--hsl-lime-1));
+        border-radius: 50%;
+        content: "";
+        height: 4px;
+        left: -9px;
+        position: absolute;
+        top: calc(50% - 2px);
+        width: 4px;
+      }
+
+      &--active {
+        --colour: hsl(var(--hsl-c1));
+      }
+    }
+  }
+
+  // Categories: each status a pill in its colour
+  &--pill {
+    .beatmapsets-search-filter__items {
+      gap: 3px;
+    }
+
+    .beatmapsets-search-filter__item {
+      background-color: var(--bg);
+      border-radius: 10000px;
+      color: var(--colour);
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 14px;
+      max-width: 100%;
+      opacity: 0.55;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      width: 90px;
+      text-align: center;
+      text-transform: uppercase;
+
+      &:hover,
+      &:focus,
+      &:active {
+        color: var(--colour);
+        opacity: 0.85;
+      }
+
+      &--active {
+        opacity: 1;
+      }
+    }
+  }
+
+  // Rank Achieved: the grade badges, four a row
+  &--grade {
+    .beatmapsets-search-filter__items {
+      display: grid;
+      gap: 10px 14px;
+      grid-template-columns: repeat(4, max-content);
+      padding-left: 10px;
+    }
+
+    .beatmapsets-search-filter__item {
+      display: flex;
+      opacity: 0.5;
+
+      &:hover {
+        opacity: 0.8;
+      }
+
+      &--active {
+        opacity: 1;
+      }
+    }
+
+    .score-rank {
+      font-size: 16px;
+    }
+  }
+}
+
+.beatmapsets {
+  &__toolbar {
+    background-color: hsl(var(--hsl-b5));
+    flex-wrap: wrap;
+    gap: 6px 20px;
+    padding: 14px 20px 4px;
+  }
+
+  // "View Nano Mini Normal Extra Cover List"
+  &__views {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    font-size: @font-size--normal;
+    gap: 4px 16px;
+  }
+
+  &__views-title {
+    color: hsl(var(--hsl-c1));
+  }
+
+  &__view {
+    .reset-input();
+    color: hsl(var(--hsl-l1));
+    cursor: pointer;
+    font-weight: 600;
+
+    &:hover {
+      color: hsl(var(--hsl-c1));
+    }
+
+    &--active {
+      color: hsl(var(--hsl-c1));
+      font-weight: 700;
+    }
+  }
+
+  &__items {
+    &--list .beatmapsets__item {
+      @media @desktop {
+        width: calc(100% - 10px);
+      }
+    }
+
+    &--list .beatmapsets__item {
+      margin-bottom: 2.5px;
+      margin-top: 2.5px;
+    }
+
+    &--nano .beatmapsets__item {
+      margin-bottom: 2px;
+      margin-top: 2px;
+    }
+
+    &--mini .beatmapsets__item {
+      margin-bottom: 4px;
+      margin-top: 4px;
+    }
+  }
+}

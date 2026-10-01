@@ -26,8 +26,14 @@ import { trans } from 'utils/lang';
 import { beatmapsetDownloadDirect } from 'utils/url';
 import BeatmapsPopup from './beatmaps-popup';
 
-export const beatmapsetCardSizes = ['normal', 'extra'] as const;
+// TomYum: the views of osu!'s search design proposal; this panel draws "normal" and "extra", the
+// others are BeatmapsetCard (beatmap listing only).
+export const beatmapsetCardSizes = ['nano', 'mini', 'normal', 'extra', 'cover', 'list'] as const;
 export type BeatmapsetCardSize = typeof beatmapsetCardSizes[number];
+
+export function panelSize() {
+  return core.userPreferences.get('beatmapset_card_size') === 'extra' ? 'extra' : 'normal';
+}
 
 export interface Props {
   beatmapset: BeatmapsetExtendedJson;
@@ -265,7 +271,7 @@ export default class BeatmapsetPanel extends React.Component<Props> {
     let blockClass = classWithModifiers('beatmapset-panel', {
       'beatmaps-popup-visible': this.isBeatmapsPopupVisible,
       'mobile-expanded': this.mobileExpanded,
-      [`size-${core.userPreferences.get('beatmapset_card_size')}`]: true,
+      [`size-${panelSize()}`]: true,
       'with-hype-counts': this.showHypeCounts,
     });
     if (this.showAudio) {

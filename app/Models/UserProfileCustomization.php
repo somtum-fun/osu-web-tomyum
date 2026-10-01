@@ -52,7 +52,8 @@ class UserProfileCustomization extends Model
         'kudosu',
     ];
 
-    const BEATMAPSET_CARD_SIZES = ['normal', 'extra'];
+    // TomYum: the views of osu!'s search design proposal besides osu-web's two
+    const BEATMAPSET_CARD_SIZES = ['normal', 'extra', 'nano', 'mini', 'cover', 'list'];
 
     // TomYum: the level hexagon's colours on player cards: a new metal or gem every 10 levels, or
     // osu-web's level tiers (the profile's).

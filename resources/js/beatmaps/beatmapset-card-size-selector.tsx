@@ -8,9 +8,14 @@ import core from 'osu-core-singleton';
 import * as React from 'react';
 import { classWithModifiers } from 'utils/css';
 
-const icon = {
-  extra: 'fas fa-th-large',
-  normal: 'fas fa-th',
+// TomYum: the views by name, as in osu!'s search design proposal ("View Nano Mini Normal ...")
+const names: Record<BeatmapsetCardSize, string> = {
+  cover: 'Cover',
+  extra: 'Extra',
+  list: 'List',
+  mini: 'Mini',
+  nano: 'Nano',
+  normal: 'Normal',
 };
 
 interface Props {
@@ -34,11 +39,11 @@ export default class BeatmapsetCardViewSelector extends React.Component<Props> {
   render() {
     return (
       <button
-        className={classWithModifiers(this.props.classElement, { active: this.isActive, button: true })}
+        className={classWithModifiers(this.props.classElement, { active: this.isActive })}
         onClick={this.handleClick}
         type='button'
       >
-        <span className={icon[this.props.size]} />
+        {names[this.props.size]}
       </button>
     );
   }

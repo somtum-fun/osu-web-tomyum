@@ -1,7 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
 // See the LICENCE file in the repository root for full licence text.
 
-import BeatmapsetPanel from 'beatmapset-panel';
+import BeatmapsetCardAuto from 'beatmapset-panel/beatmapset-card-auto';
 import LazyLoad from 'components/lazy-load';
 import ProfilePageExtraSectionTitle from 'components/profile-page-extra-section-title';
 import ShowMoreLink from 'components/show-more-link';
@@ -81,7 +81,7 @@ export default class Beatmapsets extends React.Component<ExtraPageProps> {
         {state.items.length > 0 && (
           <div className='page-extra__beatmapsets js-audio--group'>
             {state.items.map((beatmapset) => (
-              <BeatmapsetPanel key={beatmapset.id} beatmapset={beatmapset} />
+              <BeatmapsetCardAuto key={beatmapset.id} beatmapset={beatmapset} />
             ))}
 
             <ShowMoreLink

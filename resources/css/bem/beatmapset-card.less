@@ -1,0 +1,503 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
+// See the LICENCE file in the repository root for full licence text.
+
+// TomYum: the beatmap cards of osu!'s search design proposal (beatmapset-panel/beatmapset-card.tsx).
+// Nano, Mini, Normal and List: the cover at the start, an info box over the faded cover after it.
+// Cover: the big cover with the status and numbers on it, the mapper and source under it.
+.beatmapset-card {
+  @_top: beatmapset-card;
+  --cover-width: 100px;
+  --height: 100px;
+  --radius: 10px;
+  --title-size: 18px;
+  --artist-size: 14px;
+  color: hsl(var(--hsl-c1));
+  display: flex;
+  font-weight: 600;
+  height: var(--height);
+  position: relative;
+
+  &--nano {
+    --cover-width: 48px;
+    --height: 32px;
+    --radius: 6px;
+    --title-size: 13px;
+    --artist-size: 11px;
+  }
+
+  &--mini {
+    --cover-width: 80px;
+    --height: 60px;
+    --title-size: 14px;
+    --artist-size: 12px;
+  }
+
+  &--list {
+    // a whole row in the profile and search page grids
+    grid-column: 1 / -1;
+    --cover-width: 80px;
+    --height: 40px;
+    --radius: 6px;
+    --title-size: 14px;
+    --artist-size: 12px;
+  }
+
+  &--cover {
+    --height: 200px;
+    background-color: hsl(var(--hsl-b4));
+    border-radius: 10px;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  // the cover, under the info box's rounded start
+  &__cover {
+    border-radius: var(--radius) 0 0 var(--radius);
+    flex: none;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+    width: calc(var(--cover-width) + var(--radius));
+
+    .@{_top}--cover & {
+      .full-size();
+      border-radius: 0;
+    }
+  }
+
+  &__cover-link {
+    .full-size();
+  }
+
+  // the preview play button, over the cover on hover
+  &__play {
+    .reset-input();
+    .center-content();
+    background-color: hsla(0, 0%, 0%, 0.5);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    font-size: 12px;
+    height: 100%;
+    opacity: 0;
+    position: absolute;
+    top: 0;
+    transition: opacity 120ms;
+    width: var(--cover-width);
+
+    .@{_top}:hover &,
+    .js-audio--playing & {
+      opacity: 1;
+    }
+
+    .@{_top}--nano & {
+      display: none;
+    }
+
+    .@{_top}--cover & {
+      background: none;
+      font-size: 20px;
+      height: 60px;
+      left: calc(50% - 30px);
+      top: 30px;
+      width: 60px;
+    }
+  }
+
+  &__info {
+    align-items: center;
+    background-color: hsl(var(--hsl-b4));
+    border-radius: var(--radius);
+    display: flex;
+    flex: 1;
+    margin-left: calc(-1 * var(--radius));
+    min-width: 0;
+    overflow: hidden;
+    position: relative;
+  }
+
+  // the info box's cover, faded from the start
+  &__info-bg {
+    .full-size();
+    pointer-events: none;
+
+    &::after {
+      .full-size();
+      background: linear-gradient(to right, hsl(var(--hsl-b4)), hsla(var(--hsl-b4), 0.7));
+      content: "";
+    }
+  }
+
+  // video / storyboard, black circles over the cover
+  &__icons {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    left: 5px;
+    pointer-events: none;
+    position: absolute;
+    top: 5px;
+
+    .@{_top}--mini & {
+      bottom: 4px;
+      justify-content: space-between;
+    }
+  }
+
+  &__icon {
+    .center-content();
+    background-color: hsla(0, 0%, 0%, 0.5);
+    border-radius: 10000px;
+    color: #fff;
+    display: flex;
+    flex: none;
+    font-size: 10px;
+    height: 20px;
+    width: 20px;
+  }
+
+  &__main {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+    padding: 0 10px;
+    position: relative;
+
+    .@{_top}--normal & {
+      align-self: stretch;
+      padding: 4px 10px 6px;
+    }
+
+    .@{_top}--nano & {
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+      padding: 0 8px;
+    }
+
+    .@{_top}--list & {
+      flex: 0 1 430px;
+
+      @media @mobile {
+        flex: 1;
+      }
+    }
+  }
+
+  &__titles {
+    .link-plain();
+    .link-white();
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    text-shadow: 0 2px 2px hsla(0, 0%, 0%, 0.25);
+
+    .@{_top}--nano & {
+      flex: 1;
+    }
+  }
+
+  &__title {
+    font-size: var(--title-size);
+    line-height: 1.25;
+  }
+
+  &__artist {
+    font-size: var(--artist-size);
+  }
+
+  &__mapper {
+    color: hsl(var(--hsl-c2));
+    font-size: 12px;
+    min-width: 0;
+
+    .@{_top}--nano & {
+      flex: none;
+      max-width: 40%;
+    }
+  }
+
+  &__mapper-link {
+    color: hsl(var(--hsl-l1));
+  }
+
+  &__line {
+    align-items: center;
+    display: flex;
+    gap: 6px;
+    min-width: 0;
+
+    .@{_top}--normal & {
+      margin-top: auto;
+    }
+  }
+
+  &__status {
+    background-color: var(--bg);
+    border-radius: 10000px;
+    color: var(--colour);
+    flex: none;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 14px;
+    padding: 0 8px;
+    text-transform: uppercase;
+
+    .@{_top}--nano & {
+      font-size: 10px;
+      line-height: 12px;
+      padding: 0 5px;
+    }
+  }
+
+  // the difficulties: each mode's icon and a bar per difficulty in its colour
+  &__diffs {
+    align-items: center;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  &__diff-group {
+    align-items: center;
+    display: flex;
+    flex: none;
+    gap: 2px;
+  }
+
+  &__mode {
+    font-size: 14px;
+    margin-right: 2px;
+  }
+
+  &__keys {
+    font-size: 12px;
+    margin-right: 2px;
+  }
+
+  &__diff {
+    background-color: var(--bg);
+    border-radius: 10px;
+    height: 8px;
+    width: 4px;
+
+    .@{_top}--mini &,
+    .@{_top}--list & {
+      height: 6px;
+      width: 3px;
+    }
+
+    .@{_top}--cover & {
+      border-radius: 3px;
+      height: 12px;
+      width: 8px;
+    }
+  }
+
+  &__diff-more {
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  // List: the explicit pill, the difficulties over the numbers, the buttons
+  &__explicit {
+    display: flex;
+    flex: none;
+    justify-content: flex-end;
+    padding-right: 10px;
+    position: relative;
+    width: 80px;
+
+    @media @mobile {
+      display: none;
+    }
+  }
+
+  &__explicit-pill {
+    background-color: hsl(0, 0%, 0%);
+    border-radius: 10000px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 14px;
+    padding: 0 8px;
+    text-transform: uppercase;
+  }
+
+  &__list-stats {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    position: relative;
+
+    @media @mobile {
+      display: none;
+    }
+  }
+
+  &__stat {
+    align-items: center;
+    display: inline-flex;
+    font-size: 12px;
+    gap: 4px;
+    margin-right: 12px;
+    white-space: nowrap;
+
+    .fas {
+      font-size: 10px;
+    }
+
+    .@{_top}--cover & {
+      margin: 0;
+      text-shadow: 0 1px 2px hsla(0, 0%, 0%, 0.5);
+    }
+  }
+
+  &__actions {
+    align-items: center;
+    align-self: stretch;
+    display: flex;
+    flex: none;
+    gap: 12px;
+    padding: 0 14px;
+    position: relative;
+
+    .@{_top}--list & {
+      background-color: hsla(var(--hsl-b6), 0.5);
+    }
+
+    // Normal / Mini: only on hover, over the end of the info box
+    .@{_top}--normal &,
+    .@{_top}--mini & {
+      background: linear-gradient(to right, transparent, hsla(var(--hsl-b6), 0.8) 30%);
+      bottom: 0;
+      flex-direction: column;
+      gap: 8px;
+      justify-content: center;
+      opacity: 0;
+      padding: 0 10px 0 24px;
+      position: absolute;
+      right: 0;
+      top: 0;
+      transition: opacity 120ms;
+    }
+
+    .@{_top}--normal:hover &,
+    .@{_top}--mini:hover & {
+      opacity: 1;
+    }
+
+    .@{_top}--mini & {
+      flex-direction: row;
+    }
+
+    .@{_top}--cover & {
+      align-self: center;
+      gap: 10px;
+      padding: 0 12px;
+    }
+  }
+
+  &__action {
+    .reset-input();
+    .link-plain();
+    color: hsl(var(--hsl-c1));
+    cursor: pointer;
+    font-size: 14px;
+
+    &:hover {
+      color: hsl(var(--hsl-l1));
+    }
+
+    &--disabled {
+      cursor: default;
+      opacity: 0.5;
+
+      &:hover {
+        color: hsl(var(--hsl-c1));
+      }
+    }
+  }
+
+  // Cover: the top part
+  &__top {
+    flex: none;
+    height: 140px;
+    position: relative;
+
+    &::after {
+      .full-size();
+      background: linear-gradient(to bottom, hsla(0, 0%, 0%, 0.1), hsla(0, 0%, 0%, 0.6));
+      content: "";
+      pointer-events: none;
+    }
+
+    .@{_top}__titles {
+      bottom: 6px;
+      left: 10px;
+      position: absolute;
+      right: 10px;
+      z-index: 1;
+    }
+
+    .@{_top}__title {
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      display: -webkit-box;
+      overflow: hidden;
+    }
+  }
+
+  &__top-start,
+  &__top-end {
+    position: absolute;
+    top: 10px;
+    z-index: 1;
+  }
+
+  &__top-start {
+    align-items: center;
+    display: flex;
+    gap: 4px;
+    left: 10px;
+
+    .@{_top}__icon {
+      border-radius: 5px;
+      height: 14px;
+    }
+  }
+
+  &__top-end {
+    align-items: flex-end;
+    display: flex;
+    flex-direction: column;
+    right: 10px;
+  }
+
+  &__bottom {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+
+  &__bottom-info {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    justify-content: center;
+    min-width: 0;
+    padding: 4px 10px;
+  }
+
+  &__source {
+    color: hsl(var(--hsl-c2));
+    font-size: 12px;
+  }
+}
