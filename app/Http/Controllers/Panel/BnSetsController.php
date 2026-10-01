@@ -128,6 +128,15 @@ class BnSetsController extends Controller
         }
 
         $changed = $response->json('changed');
+        // Back to pending (or to bancho's status): the nominations so far no longer count, as when
+        // osu! disqualifies or unranks a set; otherwise the BNs couldn't nominate it again.
+        if (in_array($status, ['pending', 'bancho'], true) && count($beatmapIds) === 0) {
+            $beatmapset = Beatmapset::find($setId);
+            if ($beatmapset !== null && $beatmapset->beatmapsetNominations()->current()->exists()) {
+                $beatmapset->beatmapsetNominations()->current()->update(['reset' => true, 'reset_at' => now(), 'reset_user_id' => Auth::user()->getKey()]);
+                $beatmapset->refreshCache();
+            }
+        }
         if ($status === 'bancho') {
             $message = count($changed) === 0
                 ? "Nothing to unlock: no staff-set status there (or osu! doesn't know the set)."

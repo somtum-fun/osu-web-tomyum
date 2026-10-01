@@ -2084,7 +2084,9 @@ class User extends Model implements AfterCommit, AuthenticatableContract, HasLoc
         if ($user === null) {
             $authError = 'nonexistent_user';
         } else {
-            $isLoginBlocked = $user->isLoginBlocked();
+            $isLoginBlocked = $user->isLoginBlocked()
+                // TomYum: bot accounts use IRC and the website, not the game (lazer signs in here).
+                || ($user->isBot() && Request::is('oauth/*'));
 
             if ($isLoginBlocked) {
                 $authError = 'user_login_blocked';

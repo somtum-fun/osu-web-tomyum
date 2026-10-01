@@ -58,6 +58,11 @@
         <a class="simple-menu__item" href="{{ route('panel.index') }}">Staff panel</a>
     @endif
 
+    {{-- TomYum: owners manage their bot accounts. --}}
+    @if (!App\Libraries\TomYumBots::canManageAll($currentUser) && App\Libraries\TomYumBots::ownedBy($currentUser)->isNotEmpty())
+        <a class="simple-menu__item" href="{{ route('panel.bots.index') }}">My bots</a>
+    @endif
+
     <button
         class="js-logout-link simple-menu__item"
         type="button"

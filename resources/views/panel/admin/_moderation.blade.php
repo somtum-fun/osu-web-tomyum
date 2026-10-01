@@ -5,7 +5,7 @@
 {{-- TomYum: moderation on the admin panel's account page. --}}
 @php
     $historyTypes = [0 => 'Note', 1 => 'Restriction', 2 => 'Silence', 3 => 'Tournament ban'];
-    $resultLabels = ['ok' => 'Logged in', 'held' => 'Device to verify', 'locked' => 'Refused (locked)', 'bad_password' => 'Wrong password'];
+    $resultLabels = ['ok' => 'Logged in', 'held' => 'Device to verify', 'locked' => 'Refused (locked)', 'bad_password' => 'Wrong password', 'bot' => 'Refused (bot)'];
     $locked = $flags?->locked_at !== null;
     $whitelisted = $flags?->whitelisted_at !== null;
     $actorNames = App\Http\Controllers\Panel\GmtController::userNames([$flags?->locked_by, $flags?->whitelisted_by]);

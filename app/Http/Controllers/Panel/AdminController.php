@@ -192,6 +192,9 @@ class AdminController extends Controller
         return $this->done($target, 'admin.password', "Set a new password for {$target->username}.", 'Password changed. Tell them the new one privately.');
     }
 
+    /** Groups whose members nominate (and so need modes). */
+    private const NOMINATOR_GROUPS = ['bng', 'bng_limited', 'nat'];
+
     public function groups(string $user)
     {
         $target = User::findOrFail((int) $user);
@@ -199,6 +202,14 @@ class AdminController extends Controller
         $modes = Request::input('playmodes') ?? [];
         $added = [];
         $removed = [];
+
+        // Nominators nominate only in their modes (osu-web's nomination rules): without one they can't.
+        foreach (static::NOMINATOR_GROUPS as $identifier) {
+            $group = app('groups')->byIdentifier($identifier);
+            if ($group?->has_playmodes && in_array($identifier, $wanted, true) && count(array_intersect(array_keys(static::PLAYMODES), $modes[$identifier] ?? [])) === 0) {
+                return $this->back($target, 'error', "Pick at least one mode for {$group->group_name}: they can only nominate in their modes.");
+            }
+        }
 
         foreach (Group::whereNotIn('identifier', static::UNASSIGNABLE_GROUPS)->get() as $group) {
             $want = in_array($group->identifier, $wanted, true);

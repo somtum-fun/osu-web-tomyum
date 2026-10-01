@@ -38,6 +38,20 @@ Route::group(['middleware' => ['web']], function () {
     Route::group(['as' => 'panel.', 'prefix' => 'panel', 'namespace' => 'Panel'], function () {
         Route::get('/', 'PagesController@index')->name('index');
 
+        // Bot accounts: admins/developers make them; owners manage their own.
+        Route::group(['as' => 'bots.', 'prefix' => 'bots'], function () {
+            Route::get('/', 'BotsController@index')->name('index');
+            Route::post('/', 'BotsController@store')->name('store');
+            Route::get('{bot}', 'BotsController@show')->name('show');
+            Route::post('{bot}/avatar', 'BotsController@avatar')->name('avatar');
+            Route::post('{bot}/cover', 'BotsController@cover')->name('cover');
+            Route::post('{bot}/page', 'BotsController@page')->name('page');
+            Route::post('{bot}/rename', 'BotsController@rename')->name('rename');
+            Route::post('{bot}/irc', 'BotsController@irc')->name('irc');
+            Route::post('{bot}/password', 'BotsController@password')->name('password');
+            Route::post('{bot}/settings', 'BotsController@settings')->name('settings');
+        });
+
         Route::group(['as' => 'bn.', 'prefix' => 'bn'], function () {
             Route::get('/', 'BnController@index')->name('index');
             Route::post('import', 'BnController@import')->name('import');

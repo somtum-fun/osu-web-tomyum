@@ -90,6 +90,14 @@
             </div>
         </div>
 
+        @if ($target->isBot() && !App\Libraries\TomYumBots::isBanchoBot($target))
+            <div class="tomyum-panel__card tomyum-panel__row" style="align-items: center">
+                <i class="fas fa-robot"></i>
+                <span style="flex: 1">This is a bot account (IRC and the website only).</span>
+                <a class="btn-osu-big btn-osu-big--rounded-small btn-osu-big--panel-secondary" href="{{ route('panel.bots.show', ['bot' => $userId]) }}">Bot settings</a>
+            </div>
+        @endif
+
         @include('panel.admin._moderation')
 
         <div class="tomyum-panel__card" id="profile">

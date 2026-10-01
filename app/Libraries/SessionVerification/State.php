@@ -52,7 +52,9 @@ class State
             }
         }
 
-        if (!is_valid_email_format($this->user->user_email)) {
+        // TomYum: a bot's codes go to its owner (nobody reads a bot's address).
+        $recipient = \App\Libraries\TomYumBots::mailRecipient($this->user);
+        if (!is_valid_email_format($recipient->user_email)) {
             return;
         }
 
@@ -64,7 +66,7 @@ class State
 
         $requestCountry = app('countries')->byCode(request_country() ?? '')?->name;
 
-        \Mail::to($this->user)->queue(new UserVerificationMail([
+        \Mail::to($recipient)->queue(new UserVerificationMail([
             'keys' => $keys,
             'requestCountry' => $requestCountry,
             'user' => $this->user,
