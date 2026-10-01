@@ -58,7 +58,7 @@ class AdminController extends Controller
             'online' => $online->successful() ? $online->json() : [],
             'counts' => [
                 'Players' => User::where('user_type', '<>', 1)->count(),
-                'Restricted' => User::where(fn ($q) => $q->where('user_warnings', '>', 0)->orWhere('user_type', 1))->count(),
+                'Restricted' => User::where('user_warnings', '>', 0)->count(),
                 'Scores (24h)' => DB::table('scores')->where('ended_at', '>=', Carbon::now()->subDay())->count(),
                 'Beatmap sets' => DB::table('osu_beatmapsets')->whereNull('deleted_at')->count(),
             ],
@@ -344,23 +344,21 @@ class AdminController extends Controller
                     $target->removeFromGroup($membership->group, Auth::user());
                 }
             }
-            // osu-web treats DeletedUser_* as deleted; a banned account type keeps them out of the game,
-            // and the restricted flag takes their scores out of leaderboards and rankings (ppy's score
-            // indexer only drops scores of restricted players, not of a banned account type).
+            // osu-web treats DeletedUser_* as deleted; the banned account type keeps them out of the game
+            // and the rankings. Deleted isn't restricted: their scores stay on beatmap leaderboards.
             $name = "DeletedUser_{$target->getKey()}";
             $target->update([
                 'username' => $name,
                 'username_clean' => strtolower($name),
                 'user_email' => null,
                 'user_type' => 1,
-                'user_warnings' => 1,
                 'osu_subscriber' => false,
             ]);
         });
 
         TomYumCountryStats::recalculate($target->country_acronym);
 
-        return $this->done($target->fresh(), 'admin.delete', "Deleted {$old}'s account.", "Deleted {$old}: renamed, banned from the game, removed from all groups. Their scores stay on record but hidden.");
+        return $this->done($target->fresh(), 'admin.delete', "Deleted {$old}'s account.", "Deleted {$old}: renamed, banned from the game, removed from all groups. Their scores stay on beatmap leaderboards; they leave the rankings.");
     }
 
     /** Lock: no logins anywhere (website, lazer, stable) and signed out everywhere; unlock undoes it. */

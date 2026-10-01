@@ -228,7 +228,7 @@
                 <h2><i class="fas fa-trash"></i>Delete account</h2>
                 <p class="tomyum-panel__hint">
                     Renames it to DeletedUser_{{ $userId }}, removes the email and all groups, and bans it from the game.
-                    Scores stay on record but are hidden. This can't be undone from the panel.
+                    Their scores stay on beatmap leaderboards (deleted isn't restricted), but they leave the rankings and can't log in. This can't be undone from the panel.
                 </p>
                 <form method="POST" action="{{ route('panel.admin.users.delete', ['user' => $userId]) }}" class="tomyum-panel__row"
                     onsubmit="return confirm('Delete this account?')">
