@@ -63,7 +63,7 @@ class ChangeUsername
             return $this->validationErrors();
         }
 
-        if ($this->validationErrors()->merge(UsernameValidation::validateUsersOfUsername($this->username))->isAny()) {
+        if ($this->validationErrors()->merge(UsernameValidation::validateUsersOfUsername($this->username, $this->user->getKey()))->isAny()) {
             return $this->validationErrors();
         }
 
