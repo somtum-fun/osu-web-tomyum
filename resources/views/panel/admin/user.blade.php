@@ -7,17 +7,17 @@
     $targets = [$userId => $target->username];
     $sections = [
         'standing' => ['fas fa-balance-scale', 'Standing'],
-        'access' => ['fas fa-lock', 'Lock & whitelist'],
+        'access' => ['fas fa-lock', 'Lock'],
         'devices' => ['fas fa-desktop', 'Devices'],
         'logins' => ['fas fa-sign-in-alt', 'Logins'],
-        'connections' => ['fas fa-link', 'Connections'],
+        'connections' => ['fas fa-link', 'Links'],
         'content' => ['fas fa-eraser', 'Content'],
         'rollback' => ['fas fa-undo', 'Rollback'],
         'names' => ['fas fa-id-badge', 'Names'],
         'profile' => ['fas fa-user', 'Profile'],
         'groups' => ['fas fa-users', 'Groups'],
         'supporter' => ['fas fa-heart', 'Supporter'],
-        'log' => ['fas fa-history', 'Staff actions'],
+        'log' => ['fas fa-history', 'Log'],
     ];
     $rank = $stats?->globalRank();
 @endphp
