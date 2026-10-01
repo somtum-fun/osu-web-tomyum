@@ -809,6 +809,8 @@ Route::group(['prefix' => '_lio', 'middleware' => 'lio', 'as' => 'interop.'], fu
     Route::post('tomyum/chat-message', 'TomYumInterOpController@chatMessage');
     Route::post('tomyum/chat-channels', 'TomYumInterOpController@chatChannels');
     Route::post('tomyum/beatmapset-extras/{beatmapset}', 'TomYumInterOpController@beatmapsetExtras');
+    // TomYum: BN groups as BN Management (QAT) decided them (applications, evaluations, resignations).
+    Route::post('tomyum/bn-groups/{user}', 'TomYumInterOpController@bnGroups');
 
     Route::group(['namespace' => 'InterOp'], function () {
         Route::post('artist-tracks/reindex-all', 'ArtistTracksController@reindexAll');

@@ -142,6 +142,54 @@ class TomYumInterOpController extends Controller
     }
 
     /**
+     * A player's Beatmap Nominator groups as BN Management (QAT) decided them: `modes` is
+     * {ruleset: "full" | "probation" | null} (QAT's names: osu, taiko, catch, mania). Sets the `bng`
+     * and `bng_limited` groups' modes to match (leaving a group when it has none); NAT and every other
+     * group are left alone. `actor_id` is the NAT member who decided (the group history shows them).
+     */
+    public function bnGroups($id)
+    {
+        $user = User::findOrFail(get_int($id));
+        $actor = User::find(get_int(request()->input('actor_id')))
+            ?? User::find($GLOBALS['cfg']['osu']['legacy']['bancho_bot_user_id']);
+        $rulesets = ['osu' => 'osu', 'taiko' => 'taiko', 'catch' => 'fruits', 'fruits' => 'fruits', 'mania' => 'mania'];
+
+        $wanted = ['bng' => [], 'bng_limited' => []];
+        foreach ((array) request()->input('modes', []) as $mode => $level) {
+            $ruleset = $rulesets[$mode] ?? null;
+            if ($ruleset === null) {
+                continue;
+            }
+            if ($level === 'full') {
+                $wanted['bng'][] = $ruleset;
+            } elseif ($level === 'probation') {
+                $wanted['bng_limited'][] = $ruleset;
+            }
+        }
+
+        foreach ($wanted as $identifier => $playmodes) {
+            $group = app('groups')->byIdentifier($identifier);
+            if ($group === null) {
+                continue;
+            }
+            if ($playmodes !== []) {
+                $user->addToGroup($group, $playmodes, $actor);
+            } elseif ($user->findUserGroup($group) !== null) {
+                $user->removeFromGroup($group, $actor);
+            }
+        }
+
+        // The game follows (BN privileges, the badge), as with a change from the admin panel.
+        try {
+            (new \App\Libraries\TomYumAdmin($actor))->post("/users/{$user->getKey()}/refresh");
+        } catch (\Throwable $e) {
+            log_error($e);
+        }
+
+        return $wanted;
+    }
+
+    /**
      * A set's osu! description (`description`, BBCode, null = leave as is) and current nominators
      * (`nominators`: [{id, username, rulesets}], osu! users), from TomYum's osu! API v2 import.
      */
