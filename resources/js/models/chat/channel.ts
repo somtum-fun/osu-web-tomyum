@@ -109,14 +109,6 @@ export default class Channel {
 
     return count;
   }
-
-  // TomYum: whether there may be more unread than counted (the loaded messages don't go back as far
-  // as the last one read).
-  @computed
-  get unreadCountIsPartial(): boolean {
-    return this.unreadCount > 0 && this.hasEarlierMessages && this.minMessageId > (this.lastReadId ?? -1);
-  }
-
   @computed
   get lastMessage(): Message | undefined {
     return this.messages[this.messages.length - 1];
