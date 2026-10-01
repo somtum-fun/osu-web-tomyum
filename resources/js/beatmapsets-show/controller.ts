@@ -37,9 +37,20 @@ export default class Controller {
   @observable state: State;
   private readonly config: Config;
 
+  // TomYum: a ruleset the set has difficulties for shows only those, not the osu! ones converted to
+  // it as well (its tab counts only its own); the converts stay for a ruleset it has none for.
   @computed
   get beatmaps() {
-    return group([...this.beatmapset.beatmaps, ...this.beatmapset.converts]);
+    const grouped = group([...this.beatmapset.beatmaps, ...this.beatmapset.converts]);
+
+    for (const [mode, beatmaps] of grouped) {
+      const own = beatmaps.filter((beatmap) => !beatmap.convert);
+      if (own.length > 0 && own.length < beatmaps.length) {
+        grouped.set(mode, own);
+      }
+    }
+
+    return grouped;
   }
 
   get beatmapset() {
