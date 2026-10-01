@@ -748,7 +748,6 @@
   align-items: center;
   display: flex;
   height: 19px;
-  padding-left: 4px;
 }
 
 .beatmapset-header-v2__favourite {
@@ -760,6 +759,11 @@
   margin-left: -6px;
   transition: transform 120ms;
   width: 22px;
+
+  // the first one in line with the label (as is "No favourites yet")
+  &:first-child {
+    margin-left: 0;
+  }
 
   &:hover {
     position: relative;
