@@ -57,6 +57,34 @@
     font-weight: bold;
   }
 
+  // TomYum: the friend status pill on player cards (osu!'s player card design): black at half
+  // strength, the icon in osu-web's mutual pink for a mutual friend.
+  &--player-card {
+    background: hsla(0, 0%, 0%, 0.5);
+    border-radius: 10000px;
+    flex: none;
+    font-size: 9px;
+    height: 16px;
+    width: 20px;
+
+    &:hover {
+      background: hsla(0, 0%, 0%, 0.7);
+    }
+
+    &.@{_top}--mutual,
+    &.@{_top}--friend {
+      background: hsla(0, 0%, 0%, 0.5);
+    }
+
+    &.@{_top}--friend {
+      color: @green; // you added them, they haven't added you back
+    }
+
+    &.@{_top}--mutual {
+      color: @pink;
+    }
+  }
+
   &--quick-search {
     height: 100%;
     width: 30px;
@@ -120,7 +148,8 @@
     width: 50px;
     position: relative;
 
-    .@{_top}--quick-search & {
+    .@{_top}--quick-search &,
+    .@{_top}--player-card & {
       width: 100%;
     }
   }

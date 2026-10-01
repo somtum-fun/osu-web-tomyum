@@ -28,7 +28,8 @@ let inCard = false;
 let tooltipWithActiveMenu: string | null = null;
 
 function createTooltipOptions(card: HTMLElement) {
-  const at = (card.dataset.tooltipPosition ?? 'right center') as PositionAt;
+  // TomYum: the expanded card hangs down from the name (centred on it, it stuck out above).
+  const at = (card.dataset.tooltipPosition ?? 'right top') as PositionAt;
 
   return {
     content: {
@@ -214,18 +215,20 @@ export class UserCardTooltip extends React.PureComponent<Props> {
     super(props);
     makeObservable(this);
 
+    // TomYum: the hover card is the expanded player card, with numbers the page's own user doesn't
+    // have: shown straight away for yourself, and filled in when they arrive.
     const currentUser = core.currentUser;
     if (currentUser != null && this.props.lookup === currentUser.id.toString()) {
       this.user = currentUser;
-    } else {
-      this.xhr = apiLookupUsers([this.props.lookup])
-        .done((response) => runInAction(() => {
-          this.user = response.users[0] ?? userNotFoundJson;
-        }))
-        .always(() => {
-          this.xhr = undefined;
-        });
     }
+
+    this.xhr = apiLookupUsers([this.props.lookup], undefined, true)
+      .done((response) => runInAction(() => {
+        this.user = response.users[0] ?? this.user ?? userNotFoundJson;
+      }))
+      .always(() => {
+        this.xhr = undefined;
+      });
 
     this.disposer = autorun(() => {
       tooltipWithActiveMenu = this.activeKeyState.value;
@@ -233,6 +236,12 @@ export class UserCardTooltip extends React.PureComponent<Props> {
         $(`.${userCardTooltipClass}`).qtip('hide');
       }
     });
+  }
+
+  // TomYum: the card grows when its numbers arrive (the expansion): placed again around the name, or
+  // it'd hang where the empty card was.
+  componentDidUpdate() {
+    $(this.props.container).closest('.qtip').qtip('reposition');
   }
 
   componentWillUnmount() {
@@ -249,6 +258,7 @@ export class UserCardTooltip extends React.PureComponent<Props> {
           <KeyContext.Provider value={this.props.lookup}>
             <UserCard
               activated={activated}
+              expanded
               reportable={this.reportable}
               user={this.user}
             />

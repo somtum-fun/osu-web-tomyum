@@ -1,0 +1,419 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
+// See the LICENCE file in the repository root for full licence text.
+
+// TomYum: player cards (friends, teams, searches, the card on hover), after osu!'s player card design:
+// "Player Card" (375 × 90: a 60px info box over a status strip) and "Player Card, List" (one 40px
+// row). Sizes are the design's; the colours are the player's profile hue (--card-hue).
+.player-card {
+  @_top: player-card;
+  @_radius: 10px;
+
+  // The palette again in the player's hue (osu-web works it out on <body> from the page's hue).
+  --card-hue: var(--base-hue);
+  --hsl-b4: var(--card-hue), 10%, 20%;
+  --hsl-b5: var(--card-hue), 10%, 15%;
+  --hsl-c1: var(--card-hue), 40%, 100%;
+
+  border-radius: @_radius;
+  background-color: hsl(var(--hsl-b4));
+  // A hairline edge, so a card in the site's own colour (no profile colour) still stands off the page.
+  box-shadow: inset 0 0 0 1px hsla(var(--hsl-c1), 0.1);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+
+  &--highlightable:hover,
+  &--active {
+    box-shadow: inset 0 0 0 1px hsla(var(--hsl-c1), 0.1), 0 0 0 2px hsla(var(--hsl-c1), 0.3);
+  }
+
+  // Card view: on hover the card drops down over the ones below into the expansion (the status
+  // strip makes way), once the numbers are there. Its slot (player-card-slot) keeps its place.
+  &--dropdown {
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    transition: box-shadow 120ms;
+  }
+
+  &--dropdown &__expansion {
+    display: none;
+  }
+
+  .player-card-slot:hover &--has-expansion,
+  &--dropdown&--has-expansion&--active {
+    box-shadow: inset 0 0 0 1px hsla(var(--hsl-c1), 0.1), 0 0 0 2px hsla(var(--hsl-c1), 0.3), 0 6px 16px hsla(0, 0%, 0%, 0.5);
+    z-index: 10;
+
+    .@{_top}__status {
+      display: none;
+    }
+
+    .@{_top}__expansion {
+      display: grid;
+    }
+  }
+
+  // The hover card (osu!'s "Player Card" expansion): a bit wider than the design's 375px, for the
+  // pills of players in a few groups with a supporter tag.
+  .qtip--user-card & {
+    box-shadow: inset 0 0 0 1px hsla(var(--hsl-c1), 0.1), 0 4px 12px hsla(0, 0%, 0%, 0.4);
+    width: 410px;
+  }
+
+  // The info box: the cover behind it, fading in from the left.
+  &__info {
+    align-items: center;
+    background:
+      linear-gradient(90deg, hsl(var(--hsl-b5)) 14.5%, hsla(var(--hsl-b5), 0.6)),
+      var(--cover, none) center / cover,
+      hsl(var(--hsl-b5));
+    border-radius: @_radius;
+    display: flex;
+    gap: 8px;
+    height: 60px;
+    padding-right: 4px;
+    position: relative;
+
+    .@{_top}--list & {
+      height: 40px;
+      border-radius: 5px;
+      gap: 6px;
+    }
+  }
+
+  &__avatar {
+    background: hsl(var(--hsl-b6, var(--card-hue), 10%, 10%)) center / cover;
+    border-radius: @_radius;
+    display: block;
+    flex: none;
+    height: 60px;
+    width: 60px;
+
+    .@{_top}--list & {
+      border-radius: 5px;
+      height: 40px;
+      width: 40px;
+    }
+  }
+
+  // The player's group's colour beside the avatar.
+  &__group-bar {
+    align-self: center;
+    background-color: var(--group-colour);
+    border-radius: 10px;
+    flex: none;
+    height: 40px;
+    margin-left: -3px;
+    width: 4px;
+
+    .@{_top}--list & {
+      height: 16px;
+      margin-left: -1px;
+    }
+  }
+
+  &__details {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+
+    .@{_top}--list & {
+      align-items: center;
+      flex-direction: row;
+      gap: 10px;
+    }
+  }
+
+  &__username {
+    .link-plain();
+    color: #fff;
+    font-size: @font-size--title-small-3; // 16px
+    font-weight: 600;
+    line-height: 1.2;
+    text-shadow: 0 2px 2px hsla(0, 0%, 0%, 0.25);
+
+    .link-hover({
+      color: #fff;
+      text-decoration: underline;
+    });
+
+    .@{_top}--list & {
+      flex: 0 1 auto;
+    }
+  }
+
+  // One row, like the design: pills that don't fit are cut off at the edge, rather than wrapping out
+  // of the 60px info box.
+  &__badges {
+    align-items: center;
+    display: flex;
+    gap: 2px;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  &__ruleset {
+    font-size: 16px;
+    margin-right: 4px;
+  }
+
+  // Pills: black at half strength (groups), osu!'s pink (supporter).
+  &__pill {
+    .link-plain();
+    align-items: center;
+    background-color: hsla(0, 0%, 0%, 0.5);
+    border-radius: 10000px;
+    display: inline-flex;
+    flex: none;
+    gap: 3px;
+    height: 16px;
+    justify-content: center;
+
+    &--group {
+      color: var(--group-colour);
+      font-size: @font-size--normal;
+      font-weight: 700;
+      padding: 0 8px;
+
+      .link-hover({
+        color: var(--group-colour);
+      });
+    }
+
+    // With little room the dots give way (cut off at the pill's end), not the pills after them.
+    &--dots {
+      flex-shrink: 1;
+      gap: 2px;
+      justify-content: flex-start;
+      min-width: 16px;
+      overflow: hidden;
+      padding: 0 5px;
+    }
+
+    &--supporter {
+      background-color: #eb549c;
+      color: #fff;
+      font-size: 9px;
+      gap: 0;
+      padding: 0 5.5px;
+
+      .link-hover({
+        color: #fff;
+      });
+    }
+  }
+
+  // A brick (osu!'s "Bricks Normal"): one 40px row, as wide as its contents.
+  &--brick {
+    display: inline-flex;
+  }
+
+  &--brick &__info {
+    padding-right: 10px;
+  }
+
+  // The level fits inside the 40px row of the list and bricks (the ring kept about 2px thick).
+  &--list .level-hexagon {
+    height: 30px;
+    width: 30px;
+
+    &__track,
+    &__progress {
+      stroke-width: 3.5px;
+    }
+
+    &__level {
+      font-size: 12px;
+    }
+  }
+
+  &--brick &__username {
+    max-width: 160px;
+  }
+
+  &__pill--friend {
+    font-size: 9px;
+    width: 20px;
+  }
+
+  // Friend status in osu-web's colours: green when they haven't added you back, pink when mutual.
+  &__pill--friend {
+    color: @green;
+  }
+
+  &__pill--mutual {
+    color: @pink;
+  }
+
+  &__remove {
+    .reset-input();
+    color: hsl(var(--hsl-c1));
+    cursor: pointer;
+    font-size: 12px;
+    padding: 0 4px;
+
+    &:hover {
+      color: hsl(var(--hsl-red-1));
+    }
+  }
+
+  // Small enough for a few groups and the supporter pill to fit beside them on the card's one row.
+  &__dot {
+    background-color: var(--group-colour);
+    flex: none;
+    border-radius: 50%;
+    height: 6px;
+    width: 6px;
+  }
+
+  // Flags: stacked on the card, in a row in the list; centred (their links are inline otherwise,
+  // sitting on the text's baseline).
+  &__flags {
+    align-items: center;
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    font-size: 15px; // flag size
+    gap: 4px;
+
+    .@{_top}--list & {
+      flex-direction: row;
+      margin-left: 12px;
+    }
+
+    a {
+      display: flex;
+    }
+  }
+
+  // The ⋮ menu, at the right edge (osu-web's popup-menu button is absolutely positioned: it fills
+  // this slot).
+  &__menu {
+    align-self: stretch;
+    flex: none;
+    font-size: 14px;
+    position: relative;
+    text-shadow: 0 2px 2px hsla(0, 0%, 0%, 0.25);
+    width: 20px;
+
+    .popup-menu {
+      color: #fff;
+      height: 100%;
+      inset: 0;
+      width: 100%;
+    }
+  }
+
+  // The status strip (under the info box; at the end of the list row).
+  &__status {
+    align-items: center;
+    display: flex;
+    font-size: @font-size--normal;
+    font-weight: 600;
+    gap: 10px;
+    height: 30px;
+    padding-left: 23px;
+
+    .@{_top}--list & {
+      flex-direction: row-reverse;
+      height: auto;
+      margin-left: auto;
+      padding-left: 0;
+    }
+  }
+
+  &__status-ring {
+    border: 4px solid hsl(var(--hsl-f1, 0, 0%, 50%));
+    border-radius: 50%;
+    flex: none;
+    height: 14px;
+    width: 14px;
+
+    &--online {
+      border-color: #b2ff66;
+    }
+
+    .@{_top}--list & {
+      height: 22px;
+      width: 22px;
+    }
+  }
+
+  // The hover card's numbers, under the info box: ranks, then medals / pp / play time, then grades,
+  // lined up under the name (76px in).
+  &__expansion {
+    display: grid;
+    gap: 10px 0;
+    grid-template-columns: 69px 69px minmax(0, 1fr);
+    padding: 6px 12px 12px 76px;
+  }
+
+  &__stat {
+    min-width: 0;
+
+    &--rank:first-child {
+      grid-column: span 2;
+    }
+  }
+
+  &__stat-label {
+    font-size: @font-size--normal; // 12px
+    font-weight: 600;
+  }
+
+  &__stat-value {
+    color: hsl(var(--hsl-c2, var(--card-hue), 40%, 90%));
+    font-size: @font-size--title-small-3; // 16px
+    line-height: 1.2;
+
+    .@{_top}__stat--rank & {
+      color: #fff;
+      font-size: 24px;
+    }
+  }
+
+  &__grades {
+    display: flex;
+    gap: 10px;
+    grid-column: 1 / -1;
+    margin-top: 4px;
+  }
+
+  &__grade {
+    align-items: center;
+    color: hsl(var(--hsl-c2, var(--card-hue), 40%, 90%));
+    display: flex;
+    flex-direction: column;
+    font-size: @font-size--normal;
+    font-weight: 600;
+    gap: 3px;
+    width: 32px;
+
+    .score-rank {
+      font-size: 16px; // 32 × 16
+    }
+  }
+
+  &__status-text {
+    min-width: 0;
+
+    .@{_top}--card & {
+      margin-left: 31px; // in line with the name above
+    }
+  }
+}
+
+// TomYum: a card view card's place in the grid, as high as the card (60px info box, 30px status
+// strip), for the card to drop down from on hover (player-card--dropdown).
+.player-card-slot {
+  height: 90px;
+  min-width: 0;
+  position: relative;
+}

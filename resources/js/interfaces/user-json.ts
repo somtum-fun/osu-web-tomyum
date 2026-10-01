@@ -7,6 +7,7 @@ import MatchmakingUserStatsJson from './matchmaking-user-stats-json';
 import ProfileBannerJson from './profile-banner';
 import RankHighestJson from './rank-highest-json';
 import RankHistoryJson from './rank-history-json';
+import Ruleset from './ruleset';
 import SeasonStatsJson from './season-stats-json';
 import TeamJson from './team-json';
 import UserAccountHistoryJson from './user-account-history-json';
@@ -28,6 +29,8 @@ interface UserJsonAvailableIncludes {
   badges: UserBadgeJson[];
   beatmap_playcounts_count: number;
   blocks: UserRelationJson[];
+  // TomYum: the hover card's numbers, in their default ruleset.
+  card_statistics: UserStatisticsJson & { medal_count: number; ruleset: Ruleset };
   comments_count: number;
   country: CountryJson | null;
   cover: UserCoverJson;
@@ -62,7 +65,9 @@ interface UserJsonAvailableIncludes {
     raw: string;
   };
   pending_beatmapset_count: number;
+  playmode: Ruleset | null; // TomYum: their default ruleset (player cards)
   previous_usernames: string[];
+  profile_hue: number | null; // TomYum: their profile colour's hue (player cards)
   rank_highest: RankHighestJson | null;
   rank_history: RankHistoryJson | null;
   ranked_beatmapset_count: number;

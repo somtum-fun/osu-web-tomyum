@@ -7,6 +7,7 @@ import UserJson from 'interfaces/user-json';
 import { route } from 'laroute';
 import { usernameSortAscending } from 'models/user';
 import * as moment from 'moment';
+import { observer } from 'mobx-react';
 import core from 'osu-core-singleton';
 import * as React from 'react';
 import { classWithModifiers } from 'utils/css';
@@ -41,6 +42,32 @@ interface State {
 function rankSortDescending(x: UserJson, y: UserJson) {
   return (x.statistics?.global_rank ?? Number.MAX_VALUE) - (y.statistics?.global_rank ?? Number.MAX_VALUE);
 }
+
+// TomYum: the level hexagons' colours on the cards, saved like the view mode (an observer, so the
+// active button follows the preference).
+const levelColourOptions = [
+  ['gems', 'fa-gem', 'Level colours: metals and gems'],
+  ['tiers', 'fa-medal', 'Level colours: osu! tiers'],
+] as const;
+
+const LevelColoursSwitch = observer(() => {
+  const current = core.userPreferences.get('level_colours');
+
+  return (
+    <div className='user-list__view-modes'>
+      {levelColourOptions.map(([value, icon, title]) => (
+        <button
+          key={value}
+          className={classWithModifiers('user-list__view-mode', current === value ? ['active'] : [])}
+          onClick={() => core.userPreferences.set('level_colours', value)}
+          title={title}
+        >
+          <span className={`fas ${icon}`} />
+        </button>
+      ))}
+    </div>
+  );
+});
 
 export class UserList extends React.PureComponent<Props> {
   state: Readonly<State> = {
@@ -179,6 +206,7 @@ export class UserList extends React.PureComponent<Props> {
             )}
             <div className='user-list__toolbar-row'>
               <div className='user-list__toolbar-item'>{this.renderSorter()}</div>
+              <div className='user-list__toolbar-item'>{this.renderLevelColours()}</div>
               <div className='user-list__toolbar-item'>{this.renderViewMode()}</div>
             </div>
           </div>
@@ -233,6 +261,10 @@ export class UserList extends React.PureComponent<Props> {
         values={sortModes}
       />
     );
+  }
+
+  renderLevelColours() {
+    return <LevelColoursSwitch />;
   }
 
   renderViewMode() {

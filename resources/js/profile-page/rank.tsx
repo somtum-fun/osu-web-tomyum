@@ -18,7 +18,7 @@ interface Props {
   type: RankType;
 }
 
-function globalTier(stats: UserStatisticsJson) {
+export function globalTier(stats: UserStatisticsJson) {
   const rank = stats.global_rank;
   const percent = stats.global_rank_percent;
 

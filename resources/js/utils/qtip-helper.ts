@@ -6,6 +6,7 @@ const atToMy = {
   'bottom left': 'top left',
   'left center': 'right center',
   'right center': 'left center',
+  'right top': 'left top',
   'top center': 'bottom center',
   'top left': 'bottom left',
   'top right': 'bottom left',

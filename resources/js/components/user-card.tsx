@@ -6,32 +6,34 @@ import FriendButton from 'components/friend-button';
 import Reportable from 'interfaces/reportable';
 import UserJson from 'interfaces/user-json';
 import { route } from 'laroute';
-import { action, makeObservable, observable } from 'mobx';
 import { observer } from 'mobx-react';
 import core from 'osu-core-singleton';
 import * as React from 'react';
-import { classWithModifiers, Modifiers } from 'utils/css';
+import { grades } from 'interfaces/user-statistics-json';
+import { playTimeStrings } from 'profile-page/play-time';
+import { globalTier } from 'profile-page/rank';
+import { classWithModifiers, groupColour, Modifiers } from 'utils/css';
+import { formatNumber } from 'utils/html';
 import { trans } from 'utils/lang';
 import { present } from 'utils/string';
 import { giftSupporterTagUrl } from 'utils/url';
+import { apiLookupUsers } from 'utils/user';
 import FlagCountry from './flag-country';
 import FlagTeam from './flag-team';
-import FollowUserMappingButton from './follow-user-mapping-button';
+import LevelHexagon from './level-hexagon';
 import { PopupMenuPersistent } from './popup-menu-persistent';
 import PopupMenuState from './popup-menu-state';
 import { ReportReportable } from './report-reportable';
-import { Spinner } from './spinner';
 import StringWithComponent from './string-with-component';
-import SupporterIcon from './supporter-icon';
 import TimeWithTooltip from './time-with-tooltip';
 import UserCardBrick from './user-card-brick';
-import UserGroupBadges from './user-group-badges';
 
 export type ViewMode = 'brick' | 'card' | 'list';
 export const viewModes: ViewMode[] = ['card', 'list', 'brick'];
 
 interface Props {
   activated: boolean;
+  expanded?: boolean; // TomYum: the hover card, with their ranks and numbers (osu!'s "Player Card" expansion)
   mode: ViewMode;
   modifiers?: Modifiers;
   reportable?: Reportable;
@@ -39,10 +41,13 @@ interface Props {
 }
 
 interface State {
-  avatarLoaded: boolean;
-  backgroundLoaded: boolean;
+  cardStatistics?: UserJson['card_statistics'];
 }
 
+// TomYum: the card and list views follow osu!'s player card design ("Player Card" 375 × 90 and
+// "Player Card, List" 1000 × 42): the player's cover in their profile colour, their avatar beside
+// their group's colour, name, default ruleset, group pills, friend status and supporter pill, flags,
+// level, and whether they're online. The brick view is UserCardBrick.
 @observer
 export class UserCard extends React.PureComponent<Props, State> {
   static defaultProps = {
@@ -67,18 +72,24 @@ export class UserCard extends React.PureComponent<Props, State> {
     username: trans('users.card.loading'),
   };
 
-  @observable private avatarLoaded = false;
-  @observable private backgroundLoaded = false;
+  readonly state: State = {};
   private readonly popupMenuState = new PopupMenuState();
   private url?: string;
+  private xhr?: JQuery.jqXHR;
+
+  // TomYum: in card view the card drops down on hover into the hover card's expansion (ranks and
+  // numbers), fetched the first time.
+  private get dropdown() {
+    return this.props.mode === 'card' && !this.props.expanded && this.isUserVisible;
+  }
+
+  private get cardStatistics() {
+    return this.user.card_statistics ?? this.state.cardStatistics;
+  }
 
   private get canMessage() {
     return !this.isSelf
       && !core.currentUserModel.blocks.has(this.user.id);
-  }
-
-  private get isOnline() {
-    return this.user.is_online;
   }
 
   private get isSelf() {
@@ -101,9 +112,8 @@ export class UserCard extends React.PureComponent<Props, State> {
     return this.props.user || UserCard.userLoading;
   }
 
-  constructor(props: Props) {
-    super(props);
-    makeObservable(this);
+  componentWillUnmount() {
+    this.xhr?.abort();
   }
 
   render() {
@@ -112,226 +122,207 @@ export class UserCard extends React.PureComponent<Props, State> {
         return null;
       }
 
-      return <UserCardBrick {...this.props} user={this.props.user} />;
+      return <UserCardBrick {...this.props} playerCard user={this.props.user} />;
     }
 
+    const list = this.props.mode === 'list';
     const blockClass = classWithModifiers(
-      'user-card',
+      'player-card',
       this.props.modifiers,
       this.props.mode,
       // Setting the active modifiers from the parent causes unwanted renders unless deep comparison is used.
       this.popupMenuState.active || this.props.activated ? 'active' : 'highlightable',
+      { dropdown: this.dropdown, 'has-expansion': this.cardStatistics != null },
     );
+    const style = {
+      ...groupColour(this.user.groups?.[0]),
+      '--card-hue': this.user.profile_hue ?? undefined,
+      '--cover': this.user.cover?.url == null ? undefined : `url('${this.user.cover.url}')`,
+    } as React.CSSProperties;
 
     this.url = this.isUserVisible ? route('users.show', { user: this.user.id }) : undefined;
 
-    return (
-      <div className={blockClass}>
-        {this.renderBackground()}
-
-        <div className='user-card__card'>
-          <div className='user-card__content user-card__content--details'>
-            <div className='user-card__user'>
-              {this.renderAvatar()}
-            </div>
-            <div className='user-card__details'>
-              {this.renderIcons()}
-              <div className='user-card__username-row'>
-                {this.renderUsername()}
-                <UserGroupBadges groups={this.user.groups} wrapper='u-contents u-hover' />
+    const card = (
+      <div className={blockClass} style={style}>
+        <div className='player-card__info'>
+          {this.renderAvatar()}
+          <div className='player-card__group-bar' title={this.user.groups?.[0]?.name} />
+          {list && this.renderLevel()}
+          <div className='player-card__details'>
+            {this.renderUsername()}
+            {this.isUserVisible && (
+              <div className='player-card__badges'>
+                {!list && this.renderRuleset()}
+                {this.renderGroups()}
+                {this.renderFriend()}
+                {this.renderSupporter()}
+                {list && this.renderFlags()}
               </div>
-              {this.renderListModeIcons()}
-            </div>
+            )}
           </div>
-          {this.renderStatusBar()}
+          {!list && this.renderFlags()}
+          {!list && this.renderLevel()}
+          {list && this.renderStatus()}
+          {this.renderMenuButton()}
+        </div>
+        {!list && !this.props.expanded && this.renderStatus()}
+        {(this.props.expanded || this.dropdown) && this.renderExpansion()}
+      </div>
+    );
+
+    // The dropdown card hangs over the cards below it, keeping its place in the grid.
+    return this.dropdown ? (
+      <div className='player-card-slot' onMouseEnter={this.handleMouseEnter}>{card}</div>
+    ) : card;
+  }
+
+  private readonly handleMouseEnter = () => {
+    if (this.cardStatistics != null || this.xhr != null) return;
+
+    this.xhr = apiLookupUsers([this.user.id.toString()], undefined, true)
+      .done((response) => {
+        const cardStatistics = response.users[0]?.card_statistics;
+        if (cardStatistics != null) {
+          this.setState({ cardStatistics });
+        }
+      })
+      .fail(() => {
+        this.xhr = undefined; // try again next time
+      });
+  };
+
+  private renderAvatar() {
+    const hasAvatar = present(this.user.avatar_url) && !this.isUserNotFound && this.isUserLoaded;
+    const avatar = <span className='player-card__avatar' style={hasAvatar ? { backgroundImage: `url('${this.user.avatar_url}')` } : undefined} />;
+
+    return this.url == null ? avatar : <a className='u-contents' href={this.url}>{avatar}</a>;
+  }
+
+  // The hover card's expansion: global and country rank, medals, pp, play time and grade counts in
+  // their default ruleset. Nothing until the numbers have loaded.
+  private renderExpansion() {
+    const stats = this.cardStatistics;
+    if (stats == null || !this.isUserVisible) return null;
+
+    // The ranks as on the profile, in the player's rank tier's colours (rank-value): the country one too.
+    const rank = (value: number | null | undefined, tier?: string | null) => (
+      <div
+        className={classWithModifiers('rank-value', tier ?? 'base')}
+        style={{ '--colour': tier == null ? '' : `var(--level-tier-${tier})` } as React.CSSProperties}
+      >
+        {value == null ? '-' : `#${formatNumber(value)}`}
+      </div>
+    );
+    const country = this.user.country?.name;
+    const tier = globalTier(stats);
+
+    return (
+      <div className='player-card__expansion'>
+        <div className='player-card__stat player-card__stat--rank'>
+          <div className='player-card__stat-label'>{trans('users.show.rank.global_simple')}</div>
+          <div className='player-card__stat-value'>{rank(stats.global_rank, tier)}</div>
+        </div>
+        <div className='player-card__stat player-card__stat--rank'>
+          <div className='player-card__stat-label u-ellipsis-overflow'>
+            {trans('users.show.rank.country_simple')}{country == null ? '' : `, ${country}`}
+          </div>
+          <div className='player-card__stat-value'>{rank(stats.country_rank, tier)}</div>
+        </div>
+        <div className='player-card__stat player-card__stat--small'>
+          <div className='player-card__stat-label'>{trans('users.show.stats.medals')}</div>
+          <div className='player-card__stat-value'>{formatNumber(stats.medal_count)}</div>
+        </div>
+        <div className='player-card__stat player-card__stat--small'>
+          <div className='player-card__stat-label'>pp</div>
+          <div className='player-card__stat-value'>{formatNumber(Math.round(stats.pp))}</div>
+        </div>
+        <div className='player-card__stat'>
+          <div className='player-card__stat-label'>{trans('users.show.stats.play_time')}</div>
+          <div className='player-card__stat-value'>{playTimeStrings(stats.play_time).value}</div>
+        </div>
+        <div className='player-card__grades'>
+          {grades.map((grade) => (
+            <div key={grade} className='player-card__grade'>
+              <div className={`score-rank score-rank--rank-${grade}`} />
+              {formatNumber(stats.grade_counts[grade])}
+            </div>
+          ))}
         </div>
       </div>
     );
   }
 
-  renderAvatar() {
-    const modifiers = this.avatarLoaded ? 'loaded' : null;
-    const hasAvatar = present(this.user.avatar_url) && !this.isUserNotFound;
+  private renderFlags() {
+    if (!this.isUserVisible) return null;
 
     return (
-      <div className='user-card__avatar-space'>
-        <div className={classWithModifiers('user-card__avatar-spinner', modifiers)}>
-          {hasAvatar && <Spinner modifiers={modifiers} />}
-        </div>
-        {this.isUserLoaded && hasAvatar && (
-          <img
-            className={classWithModifiers('user-card__avatar', modifiers)}
-            onError={this.onAvatarLoad} // remove spinner if error
-            onLoad={this.onAvatarLoad}
-            src={this.user.avatar_url}
-          />
-        )}
-      </div>
-    );
-  }
-
-  renderBackground() {
-    const overlay = (<div className={classWithModifiers(
-      'user-card__background-overlay',
-      { online: this.isOnline },
-    )} />);
-
-    const background = this.user.cover?.url == null
-      ? overlay
-      : (<>
-        <img
-          className={classWithModifiers('user-card__background', { loading: !this.backgroundLoaded })}
-          onLoad={this.onBackgroundLoad}
-          src={this.user.cover.url}
-        />
-        {overlay}
-      </>);
-
-    return this.isUserVisible
-      ? (
-        <a className='user-card__background-container' href={this.url}>
-          {background}
-        </a>
-      ) : background;
-  }
-
-  renderIcons() {
-    if (!this.isUserVisible) {
-      return null;
-    }
-
-    return (
-      <div className='user-card__icons user-card__icons--card'>
-        <a
-          className='user-card__icon user-card__icon--flag'
-          href={route('rankings', { country: this.user.country_code, mode: 'osu', type: 'performance' })}
-        >
+      <div className='player-card__flags'>
+        <a href={route('rankings', { country: this.user.country_code, mode: 'osu', type: 'performance' })}>
           <FlagCountry country={this.user.country} />
         </a>
-
         {this.user.team != null && (
-          <a
-            className='user-card__icon user-card__icon--flag'
-            href={route('teams.show', { team: this.user.team.id })}
-          >
+          <a href={route('teams.show', { team: this.user.team.id })}>
             <FlagTeam team={this.user.team} />
           </a>
         )}
-
-        {this.props.mode === 'card' && (
-          <>
-            {this.user.is_supporter && (
-              <a className='user-card__icon' href={route('support-the-game')}>
-                <SupporterIcon modifiers='user-card' />
-              </a>
-            )}
-            <div className='user-card__icon'>
-              <FriendButton modifiers='user-card' userId={this.user.id} />
-            </div>
-            {!this.user.is_bot && (
-              <div className='user-card__icon'>
-                <FollowUserMappingButton modifiers='user-card' userId={this.user.id} />
-              </div>
-            )}
-          </>
-        )}
       </div>
     );
   }
 
-  renderListModeIcons() {
-    if (this.props.mode !== 'list' || !this.isUserVisible) {
-      return null;
-    }
+  private renderFriend() {
+    if (this.isSelf) return null;
+
+    return <FriendButton modifiers='player-card' userId={this.user.id} />;
+  }
+
+  private renderGroups() {
+    const groups = this.user.groups ?? [];
+    if (groups.length === 0) return null;
+    const [main, ...others] = groups;
 
     return (
-      <div className='user-card__icons'>
-        {this.user.is_supporter && (
-          <a className='user-card__icon' href={route('support-the-game')}>
-            <SupporterIcon level={this.user.support_level} modifiers='user-list' />
-          </a>
+      <>
+        <a
+          className='player-card__pill player-card__pill--group'
+          href={main.has_listing ? route('groups.show', { group: main.id }) : undefined}
+          style={groupColour(main)}
+          title={main.name}
+        >
+          {main.short_name}
+        </a>
+        {others.length > 0 && (
+          <span className='player-card__pill player-card__pill--dots' title={others.map((group) => group.name).join(', ')}>
+            {others.map((group) => <span key={group.id} className='player-card__dot' style={groupColour(group)} />)}
+          </span>
         )}
-
-        <div className='user-card__icon'>
-          <FriendButton modifiers='user-list' userId={this.user.id} />
-        </div>
-
-        {!this.user.is_bot && (
-          <div className='user-card__icon'>
-            <FollowUserMappingButton modifiers='user-list' userId={this.user.id} />
-          </div>
-        )}
-      </div>
+      </>
     );
   }
 
-  renderMenuButton() {
-    return this.isSelf
-      ? null
-      : (
-        <div className='user-card__icon user-card__icon--menu'>
-          <PopupMenuPersistent state={this.popupMenuState}>
-            {this.renderMenuItems}
-          </PopupMenuPersistent>
-        </div>
-      );
-  }
-
-  renderStatusBar() {
-    if (!this.isUserVisible) {
-      return null;
-    }
-
-    const status = this.isOnline ? trans('users.status.online') : trans('users.status.offline');
+  private renderLevel() {
+    const level = (this.user.statistics ?? this.cardStatistics)?.level;
+    if (level == null || !this.isUserVisible) return null;
 
     return (
-      <div className='user-card__content user-card__content--status'>
-        <div className='user-card__status'>
-          {this.renderStatusIcon()}
-          <div className='user-card__status-messages'>
-            <span className='user-card__status-message user-card__status-message--sub u-ellipsis-overflow'>
-              {!this.isOnline && this.user.last_visit != null && (
-                <StringWithComponent
-                  mappings={{
-                    date: <TimeWithTooltip dateTime={this.user.last_visit} relative />,
-                  }}
-                  pattern={trans('users.show.lastvisit')}
-                />
-              )}
-            </span>
-            <span className='user-card__status-message u-ellipsis-overflow'>
-              {status}
-            </span>
-          </div>
-        </div>
-        <div className='user-card__icons user-card__icons--menu'>
-          {this.renderMenuButton()}
-        </div>
-      </div>
+      <LevelHexagon
+        level={level.current}
+        modifiers={this.props.mode === 'list' ? 'small' : undefined}
+        progress={level.progress}
+      />
     );
   }
 
-  renderStatusIcon() {
-    if (!this.isUserVisible) {
-      return null;
-    }
+  private renderMenuButton() {
+    if (this.isSelf || !this.isUserVisible) return null;
 
     return (
-      <div className='user-card__status-icon-container'>
-        <div className={`user-card__status-icon user-card__status-icon--${this.isOnline ? 'online' : 'offline'}`} />
+      <div className='player-card__menu'>
+        <PopupMenuPersistent state={this.popupMenuState}>
+          {this.renderMenuItems}
+        </PopupMenuPersistent>
       </div>
     );
   }
-
-  @action
-  private readonly onAvatarLoad = () => {
-    this.avatarLoaded = true;
-  };
-
-  @action
-  private readonly onBackgroundLoad = () => {
-    this.backgroundLoaded = true;
-  };
 
   private readonly renderMenuItems = () => (
     <div className='simple-menu'>
@@ -373,13 +364,57 @@ export class UserCard extends React.PureComponent<Props, State> {
     </div>
   );
 
+  private renderRuleset() {
+    if (this.user.playmode == null) return null;
+
+    return (
+      <span
+        className={`player-card__ruleset fal fa-extra-mode-${this.user.playmode}`}
+        title={trans(`beatmaps.mode.${this.user.playmode}`)}
+      />
+    );
+  }
+
+  private renderStatus() {
+    if (!this.isUserVisible) return null;
+
+    const online = this.user.is_online;
+
+    return (
+      <div className='player-card__status'>
+        <span className={classWithModifiers('player-card__status-ring', { online })} />
+        <span className='player-card__status-text u-ellipsis-overflow'>
+          {online || this.user.last_visit == null
+            ? trans(online ? 'users.status.online' : 'users.status.offline')
+            : (
+              <StringWithComponent
+                mappings={{ date: <TimeWithTooltip dateTime={this.user.last_visit} relative /> }}
+                pattern={trans('users.show.lastvisit')}
+              />
+            )}
+        </span>
+      </div>
+    );
+  }
+
+  private renderSupporter() {
+    if (!this.user.is_supporter) return null;
+    const level = Math.max(1, this.user.support_level ?? 1);
+
+    return (
+      <a className='player-card__pill player-card__pill--supporter' href={route('support-the-game')} title={trans('users.show.is_supporter')}>
+        {Array.from({ length: level }, (_, i) => <span key={i} className='fas fa-heart' />)}
+      </a>
+    );
+  }
+
   private renderUsername() {
     const displayName = this.user.is_deleted ? trans('users.deleted') : this.user.username;
 
     return this.url == null ? (
-      <div className='user-card__username u-ellipsis-pre-overflow'>{displayName}</div>
+      <div className='player-card__username u-ellipsis-pre-overflow'>{displayName}</div>
     ) : (
-      <a className='user-card__username u-ellipsis-pre-overflow' href={this.url}>
+      <a className='player-card__username u-ellipsis-pre-overflow' href={this.url}>
         {displayName}
       </a>
     );
