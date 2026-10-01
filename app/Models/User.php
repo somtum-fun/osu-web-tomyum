@@ -2110,6 +2110,13 @@ class User extends Model implements AfterCommit, AuthenticatableContract, HasLoc
             return osu_trans('users.login.failed');
         }
 
+        // TomYum: during maintenance only staff sign in to lazer (the website itself stays open).
+        if ($client === 'lazer' && \App\Libraries\TomYumMaintenance::isLockedFor($user)) {
+            \App\Libraries\TomYumAccount::recordLogin($user, $client, 'maintenance');
+
+            return \App\Libraries\TomYumMaintenance::notice();
+        }
+
         LoginAttempt::logLoggedIn($ip, $user);
         \App\Libraries\TomYumAccount::recordLogin($user, $client);
     }

@@ -65,6 +65,66 @@
             </form>
         </div>
 
+        <div class="tomyum-panel__card {{ ($maintenance['enabled'] ?? false) ? 'tomyum-panel__card--danger' : '' }}" id="maintenance">
+            <h2><i class="fas fa-tools"></i>Maintenance</h2>
+            @if ($maintenance['enabled'] ?? false)
+                <p>
+                    <span class="tomyum-panel__badge tomyum-panel__badge--error">{{ ($maintenance['locked'] ?? false) ? 'ON' : 'STARTING' }}</span>
+                    @if (!($maintenance['locked'] ?? false) && $maintenance['startsAt'])
+                        Locks {!! timeago(Carbon\Carbon::parse($maintenance['startsAt'])) !!}.
+                    @else
+                        Only staff can log in (stable, lazer, IRC) since {!! $maintenance['since'] ? timeago(Carbon\Carbon::parse($maintenance['since'])) : '—' !!}.
+                    @endif
+                </p>
+                <p class="tomyum-panel__hint">Players see: "{{ $maintenance['notice'] }}". Their game keeps reconnecting and gets back in on its own when you end it.</p>
+                <form method="POST" action="{{ route('panel.admin.maintenance') }}">
+                    @csrf
+                    <input type="hidden" name="action" value="stop">
+                    <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-play"></i>End maintenance</button>
+                </form>
+            @else
+                <p class="tomyum-panel__hint">
+                    Keeps everyone but staff (admins, developers, GMT) out of stable, lazer and IRC. Players are told at once (an in-game
+                    alert, and a BanchoBot message in lazer); when the lock starts, stable is disconnected and keeps reconnecting until
+                    maintenance ends, then gets back in by itself. Score submission stays open, so plays in progress are kept. The website stays up.
+                </p>
+                <form method="POST" action="{{ route('panel.admin.maintenance') }}" class="tomyum-panel__row" style="align-items: flex-end"
+                    onsubmit="return confirm('Start maintenance? Players will be disconnected.')">
+                    @csrf
+                    <input type="hidden" name="action" value="start">
+                    <label class="input-container tomyum-panel__field">
+                        <span class="input-container__label">Message for players (optional)</span>
+                        <input class="input-text" type="text" name="message" maxlength="500" placeholder="{{ 'production is under maintenance. You\'ll be reconnected automatically when it\'s over.' }}">
+                    </label>
+                    <label class="input-container input-container--select tomyum-panel__field" style="flex: 0 1 170px">
+                        <span class="input-container__label">Lock</span>
+                        <select class="input-text" name="delay">
+                            <option value="0">now</option>
+                            <option value="60">in 1 minute</option>
+                            <option value="300" selected>in 5 minutes</option>
+                            <option value="600">in 10 minutes</option>
+                            <option value="1800">in 30 minutes</option>
+                        </select>
+                    </label>
+                    <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit"><i class="fas fa-tools"></i>Start maintenance</button>
+                </form>
+            @endif
+        </div>
+
+        <div class="tomyum-panel__card" id="alert">
+            <h2><i class="fas fa-bullhorn"></i>In-game alert</h2>
+            <p class="tomyum-panel__hint">A notification to everyone online in stable (osu!'s yellow pop-up); lazer players get it as a BanchoBot message.</p>
+            <form method="POST" action="{{ route('panel.admin.alert') }}" class="tomyum-panel__row" style="align-items: flex-end">
+                @csrf
+                <label class="input-container tomyum-panel__field">
+                    <span class="input-container__label">Message</span>
+                    <input class="input-text" type="text" name="message" maxlength="500" required>
+                </label>
+                <label class="tomyum-panel__check"><input type="checkbox" name="lazer" value="1" checked> Also lazer</label>
+                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-bullhorn"></i>Send alert</button>
+            </form>
+        </div>
+
         <div class="tomyum-panel__card">
             <h2><i class="fas fa-calculator"></i>Performance points</h2>
             <p class="tomyum-panel__hint">

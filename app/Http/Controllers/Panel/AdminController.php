@@ -64,7 +64,55 @@ class AdminController extends Controller
             ],
             'entries' => $entries,
             'actors' => BnController::actorNames($entries),
+            'maintenance' => \App\Libraries\TomYumMaintenance::status(),
         ]);
+    }
+
+    /** Maintenance mode on (a message, a countdown) or off: only staff can log in while it's on. */
+    public function maintenance()
+    {
+        $enable = Request::input('action') === 'start';
+        $message = trim(Request::input('message') ?? '');
+        $delay = (int) Request::input('delay', 0);
+        $response = $this->tomyum()->post('/maintenance', [
+            'enabled' => $enable,
+            'message' => $message === '' ? null : mb_substr($message, 0, 500),
+            'delaySeconds' => max(0, min($delay, 86400)),
+        ]);
+        \App\Libraries\TomYumMaintenance::forget();
+        if (!$response->successful()) {
+            return $this->backToIndex('error', "The game server couldn't be reached (HTTP {$response->status()}).");
+        }
+
+        $summary = $enable
+            ? 'Started maintenance'.($delay > 0 ? ' in '.intdiv($delay, 60).' min' : '').($message === '' ? '.' : ": {$message}")
+            : 'Ended maintenance.';
+        $this->staffLog($enable ? 'server.maintenance_on' : 'server.maintenance_off', null, $summary);
+
+        return $this->backToIndex('success', $enable
+            ? 'Maintenance is on: players were told, and only staff can log in'.($delay > 0 ? ' once the countdown ends' : '').'.'
+            : 'Maintenance is over: players are let back in as their game reconnects.');
+    }
+
+    /** An in-game alert to everyone online (and a BanchoBot message to lazer players). */
+    public function alert()
+    {
+        $message = trim(Request::input('message') ?? '');
+        if ($message === '') {
+            return $this->backToIndex('error', 'Write a message.');
+        }
+        $response = $this->tomyum()->post('/alert', ['message' => mb_substr($message, 0, 500), 'lazer' => Request::boolean('lazer')]);
+        if (!$response->successful()) {
+            return $this->backToIndex('error', "The game server couldn't be reached (HTTP {$response->status()}).");
+        }
+        $this->staffLog('server.alert', null, "Alert: {$message}");
+
+        return $this->backToIndex('success', 'Alert sent to '.($response->json('reached') ?? 0).' player(s).');
+    }
+
+    private function backToIndex(string $type, string $message)
+    {
+        return redirect(route('panel.admin.index'))->with('panel_status', ['type' => $type, 'message' => $message, 'link' => null]);
     }
 
     public function users()
