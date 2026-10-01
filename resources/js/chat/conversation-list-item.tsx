@@ -22,6 +22,13 @@ export default class ConversationListItem extends React.Component<Props> {
     return this.props.channel.type !== 'TEAM';
   }
 
+  // TomYum: channels as "# osu", as in the chat design.
+  get displayName() {
+    const name = this.props.channel.name;
+
+    return name.startsWith('#') ? `# ${name.slice(1)}` : name;
+  }
+
   @computed
   get selected() {
     return this.props.channel.channelId === core.dataStore.chatState.selectedChannel?.channelId;
@@ -68,7 +75,7 @@ export default class ConversationListItem extends React.Component<Props> {
           <div className={`${baseClassName}__avatar`}>
             <UserAvatar modifiers='full-circle' user={{ avatar_url: this.props.channel.icon }} />
           </div>
-          <div className={`${baseClassName}__name u-ellipsis-overflow`}>{this.props.channel.name}</div>
+          <div className={`${baseClassName}__name u-ellipsis-overflow`}>{this.displayName}</div>
           <div className={`${baseClassName}__chevron`}>
             <i className='fas fa-chevron-right' />
           </div>

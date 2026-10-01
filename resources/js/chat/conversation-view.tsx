@@ -244,6 +244,7 @@ export default class ConversationView extends React.Component<Props> {
             callback={this.loadEarlierMessages}
             direction='up'
             hasMore={channel.hasEarlierMessages}
+            label='load older messages'
             loading={channel.loadingEarlierMessages}
             modifiers='chat-conversation-earlier-messages'
           />
@@ -307,6 +308,11 @@ export default class ConversationView extends React.Component<Props> {
     // keep marker at the end when autoScrolling but only if window has focus.
     if (this.currentChannel.uiState.autoScroll && core.windowFocusObserver.hasFocus) {
       this.currentChannel.moveMarkAsReadMarker();
+    }
+
+    // TomYum: older messages load as the top is reached (the chat design has no button for them).
+    if (chatView.scrollTop < 50 && this.currentChannel.hasEarlierMessages && !this.currentChannel.loadingEarlierMessages) {
+      this.loadEarlierMessages();
     }
   };
 

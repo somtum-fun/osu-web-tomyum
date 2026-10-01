@@ -35,17 +35,24 @@
 }
 
 @media @desktop {
+  // the design's measures: titles and names 49px in (avatars 53px), rows 26px apart, 17px between
+  // the sections
   .chat-conversation-list {
     background-color: hsl(var(--hsl-b5));
-    padding-top: 4px;
+    padding-top: 13px;
     width: 220px;
+
+    &__group {
+      margin-bottom: 17px;
+    }
 
     &__header {
       background-color: hsl(var(--hsl-b5));
       color: #fff;
       font-size: 12px;
       font-weight: 600;
-      padding: 12px 20px 4px;
+      line-height: 14px;
+      padding: 0 20px 4px 49px;
     }
 
     &__header-icon {
@@ -76,7 +83,12 @@
     }
 
     &__tile {
-      margin-left: 10px;
+      margin-left: 39px; // the name 49px in
+
+      .chat-conversation-list-item--PM &,
+      .chat-conversation-list-item--GROUP & {
+        margin-left: 43px; // the avatar 53px in
+      }
     }
 
     // channels are "#name" with nothing before it
@@ -89,7 +101,7 @@
 
     &__avatar {
       height: 22px;
-      margin-right: 6px;
+      margin-right: 7px;
       width: 22px;
     }
 
@@ -125,6 +137,33 @@
     &__new-chat-avatar,
     &__chat-label {
       display: none;
+    }
+  }
+
+  // older messages load on reaching the top; this is just a quiet line for when there's no
+  // scrolling yet
+  .chat-conversation .show-more-link--chat-conversation-earlier-messages {
+    background: none;
+    box-shadow: none;
+    color: hsl(var(--hsl-b1));
+    font-size: 12px;
+    font-weight: 600;
+    margin: 0 0 8px;
+    min-height: 0;
+    padding: 0;
+    text-transform: none;
+
+    &:hover {
+      background: none;
+      color: hsl(var(--hsl-c2));
+    }
+
+    .show-more-link__label-icon {
+      display: none;
+    }
+
+    .show-more-link__label-text {
+      text-transform: none;
     }
   }
 
