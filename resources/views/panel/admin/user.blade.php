@@ -76,11 +76,19 @@
             </div>
         </div>
 
-        <nav class="tomyum-panel__nav">
-            @foreach ($sections as $id => [$icon, $label])
-                <a class="tomyum-panel__nav-link" href="#{{ $id }}"><i class="{{ $icon }}"></i>{{ $label }}</a>
-            @endforeach
-        </nav>
+        {{-- The sections, like a profile's (osu-web's page-mode tabs); the one being read is underlined. --}}
+        <div class="sticky-toolbar tomyum-panel__sections js-tomyum-sections">
+            <div class="page-mode page-mode--profile-page-extra">
+                @foreach ($sections as $id => [, $label])
+                    <a class="page-mode__item" href="#{{ $id }}" data-section="{{ $id }}">
+                        <span class="page-mode-link page-mode-link--profile-page">
+                            <span class="fake-bold" data-content="{{ $label }}">{{ $label }}</span>
+                            <span class="page-mode-link__stripe"></span>
+                        </span>
+                    </a>
+                @endforeach
+            </div>
+        </div>
 
         @include('panel.admin._moderation')
 
@@ -229,4 +237,30 @@
             @endif
         </div>
     </div>
+@endsection
+
+@section('script')
+    @parent
+    <script>
+        // The section being read gets the tab's underline (like a profile's tabs while scrolling).
+        (() => {
+            const bar = document.querySelector('.js-tomyum-sections');
+            if (bar == null || !('IntersectionObserver' in window)) return;
+
+            const links = new Map([...bar.querySelectorAll('[data-section]')].map((link) => [link.dataset.section, link.querySelector('.page-mode-link')]));
+            const visible = new Set();
+            const update = () => {
+                const current = [...links.keys()].find((id) => visible.has(id));
+                links.forEach((link, id) => link.classList.toggle('page-mode-link--is-active', id === current));
+            };
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => entry.isIntersecting ? visible.add(entry.target.id) : visible.delete(entry.target.id));
+                update();
+            }, { rootMargin: '-120px 0px -55% 0px' });
+            links.forEach((_link, id) => {
+                const section = document.getElementById(id);
+                if (section != null) observer.observe(section);
+            });
+        })();
+    </script>
 @endsection

@@ -22,7 +22,7 @@
     border-radius: @border-radius-large;
     min-width: 0;
     padding: 20px 25px;
-    scroll-margin-top: 110px; // below the sticky navbar and section tabs
+    scroll-margin-top: 150px; // below the sticky navbar and section tabs
 
     @media @mobile {
       padding: 15px;
@@ -147,45 +147,15 @@
     white-space: nowrap;
   }
 
-  // Section tabs on long pages (the account page): stay under the navbar while scrolling.
-
-  &__nav {
-    background: hsla(var(--hsl-b5), 0.92);
-    backdrop-filter: blur(6px);
-    border-radius: 10000px;
-    display: flex;
-    gap: 4px;
-    overflow-x: auto;
-    padding: 5px;
-    position: sticky;
-    scrollbar-width: none;
-    top: 60px;
-    z-index: 5;
-
-    &::-webkit-scrollbar {
-      display: none;
-    }
-  }
-
-  &__nav-link {
-    border-radius: 10000px;
-    color: hsl(var(--hsl-c2));
-    flex: none;
-    font-size: @font-size--normal;
-    font-weight: 600;
-    padding: 5px 12px;
-    transition: background 120ms, color 120ms;
-
-    .link-hover({
-      background: hsl(var(--hsl-b3));
-      color: hsl(var(--hsl-c1));
-      text-decoration: none;
-    });
-
-    .fas,
-    .fab {
-      color: hsl(var(--hsl-h1));
-      margin-right: 6px;
+  // A long page's sections (the account page): osu-web's profile tabs in a sticky-toolbar, wrapping
+  // onto a second line rather than hiding the last ones off the edge.
+  &__sections {
+    .page-mode {
+      border-radius: @border-radius-large;
+      flex-wrap: wrap;
+      gap: 10px 20px;
+      overflow: visible;
+      padding: 12px 20px 16px;
     }
   }
 
