@@ -96,7 +96,11 @@
             @endif
 
             @if ($user->getKey() !== null)
-                <a class="forum-post-info__row forum-post-info__row--posts" href="{{ route('users.posts', $user) }}">
+                <a
+                    class="forum-post-info__row forum-post-info__row--posts"
+                    data-post-count-user="{{ $user->getKey() }}"
+                    href="{{ route('users.posts', $user) }}"
+                >
                     {{ osu_trans_choice('forum.post.info.post_count', $user->user_posts) }}
                     @if ($user->user_regdate !== null)
                         <br>since {{ $user->user_regdate->year }}
