@@ -98,6 +98,12 @@
             </div>
         @endif
 
+        <div class="tomyum-panel__card tomyum-panel__row" style="align-items: center">
+            <i class="fas fa-medal"></i>
+            <span style="flex: 1">Kudosu: {{ number_format($target->osu_kudostotal) }} earned, {{ number_format($target->osu_kudosavailable) }} available.</span>
+            <a class="btn-osu-big btn-osu-big--rounded-small btn-osu-big--panel-secondary" href="{{ route('panel.kudosu.index', ['user' => $userId]) }}">Change kudosu</a>
+        </div>
+
         @include('panel.admin._moderation')
 
         <div class="tomyum-panel__card" id="profile">

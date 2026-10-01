@@ -32,6 +32,14 @@
                     <p class="tomyum-panel__hint">Make bot accounts for IRC, pick their owners, and change their name, avatar, banner, me! page and passwords.</p>
                 </a>
             @endif
+            @if ($panels['kudosu'])
+                <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('panel.kudosu.index') }}">
+                    <span class="tomyum-panel__link-icon"><i class="fas fa-medal"></i></span>
+                    <span class="tomyum-panel__kicker">Admins and developers</span>
+                    <h2>Kudosu</h2>
+                    <p class="tomyum-panel__hint">Give or take a player's kudosu, with a reason that shows on their profile.</p>
+                </a>
+            @endif
             @if ($panels['admin'])
                 <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('panel.admin.index') }}">
                     <span class="tomyum-panel__link-icon"><i class="fas fa-cog"></i></span>

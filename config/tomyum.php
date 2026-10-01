@@ -16,6 +16,21 @@ return [
         'url' => presence(env('TOMYUM_PAYMENTS_URL')),
     ],
 
+    // Accounts players link in their settings (App\Libraries\TomYumConnections): an osu! OAuth app
+    // (osu.ppy.sh/home/account/edit#oauth, callback .../home/account/connections/osu_bancho/callback)
+    // and a Discord application (callback .../home/account/connections/discord/callback). Either one
+    // without its id and secret isn't offered.
+    'connections' => [
+        'osu_bancho' => [
+            'client_id' => presence(env('OSU_LINK_CLIENT_ID')),
+            'client_secret' => presence(env('OSU_LINK_CLIENT_SECRET')),
+        ],
+        'discord' => [
+            'client_id' => presence(env('DISCORD_OAUTH_CLIENT_ID')),
+            'client_secret' => presence(env('DISCORD_OAUTH_CLIENT_SECRET')),
+        ],
+    ],
+
     // Mail through NoCodeAPI's Zoho Mail endpoint when MAIL_DRIVER=nocodeapi (TomYumNocodeapiTransport).
     'nocodeapi_mail_url' => presence(env('NOCODEAPI_MAIL_URL')),
 

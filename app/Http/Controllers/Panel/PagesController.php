@@ -20,6 +20,7 @@ class PagesController extends Controller
                 'gmt' => static::canUseGmt($user),
                 'admin' => static::canUseAdmin($user),
                 'bots' => \App\Libraries\TomYumBots::canManageAll($user),
+                'kudosu' => KudosuController::canAdjustKudosu($user),
             ],
         ]);
     }

@@ -38,6 +38,10 @@ Route::group(['middleware' => ['web']], function () {
     Route::group(['as' => 'panel.', 'prefix' => 'panel', 'namespace' => 'Panel'], function () {
         Route::get('/', 'PagesController@index')->name('index');
 
+        // Kudosu by hand: admins and developers.
+        Route::get('kudosu', 'KudosuController@index')->name('kudosu.index');
+        Route::post('kudosu/{user}', 'KudosuController@adjust')->name('kudosu.adjust');
+
         // Bot accounts: admins/developers make them; owners manage their own.
         Route::group(['as' => 'bots.', 'prefix' => 'bots'], function () {
             Route::get('/', 'BotsController@index')->name('index');
@@ -355,6 +359,11 @@ Route::group(['middleware' => ['web']], function () {
             Route::get('github-users/callback', 'Account\GithubUsersController@callback')->name('github-users.callback');
             Route::resource('github-users', 'Account\GithubUsersController', ['only' => ['create']]);
             Route::delete('github-users', 'Account\GithubUsersController@destroy')->name('github-users.destroy');
+
+            // TomYum: linking Discord and the player's osu! account.
+            Route::get('connections/{kind}', 'Account\ConnectionsController@create')->name('connections.create');
+            Route::get('connections/{kind}/callback', 'Account\ConnectionsController@callback')->name('connections.callback');
+            Route::delete('connections/{kind}', 'Account\ConnectionsController@destroy')->name('connections.destroy');
 
             // TomYum: Last.fm scrobbling.
             Route::get('lastfm', 'Account\LastFmController@create')->name('lastfm.create');
@@ -732,6 +741,8 @@ Route::group(['as' => 'api.', 'prefix' => 'api', 'middleware' => ['api', Throttl
         Route::get('me/beatmapset-favourites', 'Account\BeatmapsetFavouritesController@index');
         //  GET /api/v2/me/download-quota-check
         Route::get('me/download-quota-check', 'HomeController@downloadQuotaCheck')->name('download-quota-check');
+        //  GET /api/v2/me/tomyum-connections (TomYum: linked Discord and osu! account, for QAT)
+        Route::get('me/tomyum-connections', 'Account\ConnectionsController@me')->middleware('require-scopes:identify')->name('me.tomyum-connections');
         //  GET /api/v2/me
         Route::get('me/{mode?}', 'UsersController@me')->name('me');
         //  PUT /api/v2/me/options
