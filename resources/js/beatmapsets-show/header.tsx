@@ -514,6 +514,10 @@ export default class Header extends React.Component<Props> {
                 <a
                   key={user.id}
                   className='beatmapset-header-v2__favourite js-usercard'
+                  // the plain player card, straight above (the expanded one, low on the page,
+                  // flipped up and grew upwards as its numbers came)
+                  data-card-size='compact'
+                  data-tooltip-position='top center'
                   data-user-id={user.id}
                   href={route('users.show', { user: user.id })}
                   style={{ backgroundImage: `url('${user.avatar_url}')` }}
