@@ -1,0 +1,69 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
+// See the LICENCE file in the repository root for full licence text.
+
+// TomYum: the design proposal's issues indicator on the discussion page (beatmap-discussions/
+// issue-timeline.tsx): a 20px dark bar with a 2px line where each timestamped discussion is in the
+// map, and a row of small dots under it for open problems and resolved ones.
+.beatmapset-issue-timeline {
+  @_top: beatmapset-issue-timeline;
+
+  margin-top: 10px;
+
+  &__bar {
+    background-color: hsl(0, 0%, 7%);
+    border-radius: 5px;
+    height: 20px;
+    position: relative;
+  }
+
+  &__mark {
+    background-color: #fff;
+    height: 100%;
+    margin-left: -1px;
+    position: absolute;
+    top: 0;
+    transition: transform 120ms;
+    width: 2px;
+
+    &:hover {
+      transform: scaleX(2);
+    }
+
+    each({
+      praise: #66ccff;
+      hype: #66ccff;
+      problem: #ff6666;
+      suggestion: #ebc247;
+      mapper_note: #8c66ff;
+      review: #dbf0e9;
+      resolved: #b2ff66;
+    }, {
+      &--@{key} {
+        background-color: @value;
+      }
+    });
+  }
+
+  &__dots {
+    height: 12px;
+    position: relative;
+  }
+
+  &__dot {
+    border-radius: 50px;
+    height: 6px;
+    margin-left: -2px;
+    position: absolute;
+    top: 3px;
+    width: 4px;
+
+    &--problem {
+      background-color: #ff6666;
+    }
+
+    &--resolved {
+      background-color: #b2ff66;
+      top: 9px;
+    }
+  }
+}

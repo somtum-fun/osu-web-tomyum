@@ -30,20 +30,18 @@ export class Events extends React.PureComponent<Props> {
     );
   }
 
+  // TomYum: each day in its own card (the design proposal's history).
   private renderEvents(events: BeatmapsetEventJson[]) {
-    let lastCreatedAtString: string | null = null;
-
-    const nodes: React.ReactNode[] = [];
+    const days: { events: React.ReactNode[]; title: string }[] = [];
 
     for (let i = events.length - 1; i >= 0; i--) {
       const event = events[i];
       const createdAtString = moment(event.created_at).format('LL');
-      if (lastCreatedAtString !== createdAtString) {
-        lastCreatedAtString = createdAtString;
-        nodes.push(<div key={`date-${lastCreatedAtString}`} className='beatmapset-events__title'>{lastCreatedAtString}</div>);
+      if (days.length === 0 || days[days.length - 1].title !== createdAtString) {
+        days.push({ events: [], title: createdAtString });
       }
 
-      nodes.push(
+      days[days.length - 1].events.push(
         <BeatmapsetEvent
           key={event.id}
           discussions={this.props.discussions}
@@ -55,6 +53,11 @@ export class Events extends React.PureComponent<Props> {
       );
     }
 
-    return nodes;
+    return days.map((day) => (
+      <div key={day.title} className='beatmapset-events__day'>
+        <div className='beatmapset-events__title'>{day.title}</div>
+        {day.events}
+      </div>
+    ));
   }
 }

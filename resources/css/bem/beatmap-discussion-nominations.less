@@ -79,3 +79,186 @@
     color: @osu-colour-orange-2;
   }
 }
+
+// TomYum: the design proposal's layout (nominations.tsx): the path to ranking, the status messages,
+// then the button bar (on the brighter card, like the beatmap page's).
+.beatmap-discussion-nominations--v2 {
+  @_top: beatmap-discussion-nominations;
+
+  background-color: transparent;
+  height: auto;
+  padding: 0;
+
+  .@{_top}__items--messages {
+    --item-margin: 0;
+    margin: 0;
+    padding: 0 var(--gutter, 50px);
+
+    &:has(.@{_top}__item:not(:empty)) {
+      padding-bottom: 12px;
+    }
+  }
+
+  // The path: the Hype! button, then the stages side by side, each as wide as its carriages.
+  .@{_top}__path {
+    align-items: flex-start;
+    border-top: 1px solid hsl(0, 0%, 7%);
+    display: flex;
+    gap: 7px;
+    margin: 0 var(--gutter, 50px);
+    padding: 9px 0 12px;
+  }
+
+  .@{_top}__hype-button {
+    .reset-input();
+    background-color: hsl(var(--hsl-lime-3));
+    border-radius: 10000px;
+    color: #fff;
+    cursor: pointer;
+    flex: none;
+    font-size: @font-size--normal;
+    font-weight: 600;
+    height: 30px;
+    margin-top: 7px;
+    padding: 0 18px;
+    text-shadow: 0 1px 2px hsla(0, 0%, 0%, 0.5);
+
+    &:hover {
+      filter: brightness(1.1);
+    }
+
+    &[disabled] {
+      cursor: default;
+      filter: grayscale(0.6);
+      opacity: 0.6;
+    }
+  }
+
+  .@{_top}__stages {
+    display: flex;
+    flex: 1;
+    gap: 0 3px;
+    min-width: 0;
+  }
+
+  .@{_top}__stage {
+    --segment: hsl(var(--hsl-b3));
+    --segment-filled: #82bb48;
+    flex: var(--segments) 1 0;
+    min-width: 80px;
+
+    &--hype {
+      flex-grow: calc(var(--segments) * 0.3);
+    }
+
+    &--nominations {
+      --segment-filled: #b5ff6b;
+    }
+
+    &--qualified {
+      --segment-filled: #d8ffb0;
+    }
+
+    &--ranked {
+      --segment-filled: #fff;
+    }
+  }
+
+  // The label, after a slanted tick in the stage's colour.
+  .@{_top}__stage-label {
+    align-items: center;
+    display: flex;
+    font-size: @font-size--normal;
+    font-weight: 600;
+    gap: 8px;
+    padding-left: 12px;
+    position: relative;
+    white-space: nowrap;
+
+    &::before {
+      background-color: var(--segment-filled);
+      border-radius: 5px;
+      content: "";
+      height: 10px;
+      left: 4px;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-20%) rotate(27deg);
+      width: 2px;
+    }
+  }
+
+  .@{_top}__stage-value {
+    color: #b8e0d3;
+  }
+
+  // The carriages: slanted, lit once reached; the last stage glows when the map is ranked.
+  .@{_top}__stage-segments {
+    display: flex;
+    gap: 3px;
+    margin-top: 11px;
+  }
+
+  .@{_top}__segment {
+    background-color: var(--segment);
+    flex: 1;
+    height: 10px;
+    transform: skewX(-27deg);
+    transition: background-color 300ms;
+
+    &--filled {
+      background-color: var(--segment-filled);
+    }
+  }
+
+  .@{_top}__stage--ranked.@{_top}__stage--reached .@{_top}__segment {
+    box-shadow: 0 0 8px hsla(90, 100%, 80%, 0.7);
+  }
+
+  .@{_top}__stage-names {
+    color: hsl(var(--hsl-l1));
+    font-size: @font-size--normal;
+    font-weight: 600;
+    margin-top: 8px;
+
+    a {
+      color: inherit;
+    }
+  }
+
+  // The button bar: osu-web's buttons as the design's 30px pills.
+  .@{_top}__actions {
+    align-items: center;
+    background-color: hsl(var(--hsl-b3));
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: space-between;
+    min-height: 50px;
+    padding: 10px var(--gutter, 50px);
+  }
+
+  .@{_top}__actions-group {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+
+    &:empty {
+      display: none;
+    }
+
+    &--end {
+      margin-left: auto;
+    }
+
+    .btn-osu-big {
+      border-radius: 10000px;
+      font-size: @font-size--normal;
+      min-height: 30px;
+      min-width: 120px;
+      padding: 0 15px;
+      width: auto; // osu-web's full-width buttons (watch) sit in the bar too
+    }
+  }
+}

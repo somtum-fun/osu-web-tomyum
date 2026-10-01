@@ -258,6 +258,12 @@ export class NewDiscussion extends React.Component<Props> {
           this.props.discussionsState.readPostIds.add(postId);
         }
         this.props.discussionsState.update({ beatmapset: json.beatmapset });
+        // TomYum: a filter that hides the new discussion (e.g. praises, after posting an issue) made
+        // it look like nothing was posted: show them all again.
+        const filter = this.props.discussionsState.currentFilter;
+        if (filter !== 'total' && !(filter === 'praises' && type === 'praise') && !(filter === 'mine')) {
+          this.props.discussionsState.changeFilter('total');
+        }
       }))
       .fail(onError)
       .always(action(() => {

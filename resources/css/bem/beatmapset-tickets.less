@@ -1,0 +1,229 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
+// See the LICENCE file in the repository root for full licence text.
+
+// TomYum: the discussion page's tickets after osu!'s "Beatmap Modding" design proposal
+// (beatmap-discussions/main.tsx): the "Tickets" heading and tabs (Timecode, General, …), the
+// composer (the message box with the timestamp and Praise / Suggestion / Problem), then the filters
+// and the discussions' sort and collapse buttons. osu-web's components, restyled.
+.beatmapset-tickets {
+  @_top: beatmapset-tickets;
+  @_accent: #66ffcc;
+  @_gutter: 50px;
+
+  background-color: hsl(var(--hsl-b5));
+
+  &__title {
+    font-size: @font-size--title-small; // 14px
+    font-weight: 600;
+    margin: 0;
+    padding: 12px @_gutter 0;
+
+    &::after {
+      background-color: @_accent;
+      border-radius: 10px;
+      content: "";
+      display: block;
+      height: 2px;
+      margin-top: 8px;
+      width: 53px;
+    }
+  }
+
+  // The tabs: links in the page's link colour, the open one white and bold, a line under them all
+  // and a thick one under the open one.
+  // (it sticks to the top while scrolling: solid, or what scrolls under it shows through)
+  .page-mode--tickets {
+    align-items: flex-end;
+    background-color: hsl(var(--hsl-b5));
+    border-bottom: 1px solid hsla(0, 0%, 7%, 0.5);
+    display: flex;
+    overflow-x: auto;
+    text-align: left;
+    box-shadow: inset 0 -1px 0 hsla(160, 100%, 70%, 0.35);
+    gap: 28px;
+    justify-content: flex-start;
+    padding: 6px @_gutter 0;
+
+    .page-mode-link {
+      color: hsl(var(--hsl-l1));
+      font-size: @font-size--title-small;
+      font-weight: 600;
+      padding: 8px 0 10px;
+
+      &--is-active {
+        color: #fff;
+        font-weight: 700;
+      }
+    }
+
+    .page-mode-link__subtitle {
+      font-size: @font-size--normal;
+      text-transform: uppercase;
+    }
+
+    .page-mode-link__stripe {
+      background-color: @_accent;
+      border-radius: 10px;
+      height: 5px;
+    }
+  }
+
+  // The composer: a card with "New Discussion" over a dark box, the timestamp hint and the buttons
+  // along the box's bottom.
+  .beatmap-discussion-new {
+    background-color: hsl(var(--hsl-b4));
+    box-shadow: none;
+    padding: 10px @_gutter 20px;
+
+    .page-title {
+      font-size: @font-size--title-small;
+      font-weight: 600;
+      margin: 0 0 8px;
+      padding: 0 0 0 20px;
+      text-transform: none;
+    }
+  }
+
+  .beatmap-discussion-new__content {
+    background-color: hsl(var(--hsl-b5));
+    border-radius: 10px 10px 0 0;
+    padding: 18px 20px 4px;
+  }
+
+  .beatmap-discussion-new__avatar {
+    display: none;
+  }
+
+  .beatmap-discussion-new__message {
+    font-size: @font-size--title-small;
+    padding-left: 0;
+  }
+
+  .beatmap-discussion-new__message-area {
+    min-height: 90px;
+  }
+
+  .beatmap-discussion-new__footer {
+    align-items: center;
+    background-color: hsl(var(--hsl-b5));
+    border-radius: 0 0 10px 10px;
+    padding: 10px;
+  }
+
+  // The timestamp (or how to add one) in a dark pill.
+  .beatmap-discussion-new__footer-content:not(.beatmap-discussion-new__footer-content--right) {
+    align-items: center;
+    background-color: hsl(var(--hsl-b6));
+    border-radius: 10000px;
+    gap: 10px;
+    min-height: 30px;
+    padding: 0 18px;
+  }
+
+  .beatmap-discussion-new__footer-message {
+    background: none;
+    border-radius: 0;
+    font-size: @font-size--normal;
+    font-weight: 600;
+    padding: 0;
+    text-shadow: none;
+
+    &:not(.beatmap-discussion-new__footer-message--label) {
+      color: hsl(var(--hsl-c2));
+    }
+  }
+
+  // Praise / Suggestion / Problem (and hype, notes) as the design's coloured pills.
+  .beatmap-discussion-new__footer-content--right .btn-osu-big {
+    --bg: hsl(var(--hsl-b3));
+    background-color: var(--bg);
+    border-radius: 10000px;
+    font-size: @font-size--normal;
+    min-height: 30px;
+    padding: 0 15px;
+
+    &[data-type="praise"] { --bg: #47b4eb; }
+    &[data-type="suggestion"] { --bg: #ebc247; }
+    &[data-type="problem"] { --bg: #cc3333; }
+    &[data-type="hype"] { --bg: hsl(var(--hsl-lime-3)); }
+    &[data-type="mapper_note"] { --bg: #8c66ff; }
+  }
+
+  // The filters and the discussions' sort / collapse as small rounded boxes.
+  .beatmapset-discussions-toolbar {
+    background: none;
+    padding: 12px @_gutter 0;
+  }
+
+  .beatmap-discussions__toolbar {
+    padding-left: @_gutter;
+    padding-right: @_gutter;
+  }
+
+  .sort--beatmapset-discussions .sort__item,
+  .beatmap-discussions__toolbar-item--link {
+    background-color: hsl(var(--hsl-b4));
+    border-radius: 5px;
+    font-size: @font-size--normal;
+    font-weight: 600;
+    padding: 4px 8px;
+  }
+
+  .sort--beatmapset-discussions .sort__item--title {
+    background-color: hsl(var(--hsl-b3));
+  }
+}
+
+// TomYum (comparing with the design again): the composer's buttons with their icon first; no
+// "Discussions" title (the sort and collapse row follows the composer); the user filter compact.
+.beatmapset-tickets {
+  .beatmap-discussion-new__footer-content--right .btn-osu-big__content {
+    flex-direction: row-reverse;
+    gap: 6px;
+    justify-content: center;
+  }
+
+  .beatmap-discussion-new__footer-content--right .btn-osu-big__icon {
+    margin: 0;
+  }
+
+  .beatmap-discussions > .page-title {
+    display: none;
+  }
+
+  .beatmapset-discussions-toolbar .user-filter,
+  .beatmapset-discussions-toolbar__group--filters > :first-child {
+    max-width: 320px;
+  }
+}
+
+// History: each day a rounded card, its rows a coloured bar, the time and what happened.
+.beatmapset-events__day {
+  background-color: hsl(var(--hsl-b4));
+  border-radius: 10px;
+  margin: 10px 50px;
+  padding: 10px 20px 12px;
+
+  .beatmapset-events__title {
+    font-size: @font-size--normal;
+    font-weight: 600;
+    margin: 0 0 6px;
+    padding: 0 0 0 57px;
+  }
+
+  .beatmapset-event__icon {
+    border-radius: 10px;
+    width: 3px;
+  }
+
+  .beatmapset-event__time {
+    font-variant-numeric: tabular-nums;
+    padding: 0 10px 0 8px;
+    width: 57px;
+  }
+}
+
+.beatmapset-tickets .beatmapset-events__empty {
+  color: hsl(var(--hsl-c2));
+  padding: 20px 50px;
+}

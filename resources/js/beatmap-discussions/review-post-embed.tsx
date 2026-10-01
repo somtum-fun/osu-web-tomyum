@@ -24,6 +24,10 @@ export function postEmbedModifiers(discussion: BeatmapsetDiscussionJson) {
     'general-all': discussion.beatmap_id == null,
     praise: discussion.message_type === 'praise',
     resolved: discussion.resolved && discussion.message_type !== 'praise',
+    // TomYum: the other types too, for the design proposal's tinted review rows
+    problem: discussion.message_type === 'problem',
+    suggestion: discussion.message_type === 'suggestion',
+    'mapper-note': discussion.message_type === 'mapper_note',
   };
 }
 

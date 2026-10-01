@@ -1,0 +1,120 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
+// See the LICENCE file in the repository root for full licence text.
+
+// TomYum: the design proposal's mappers and modders (beatmap-discussions/modding-people.tsx): a
+// darker strip, "Mappers" and "Modders" under a line each, their 60px avatars in one row that
+// scrolls sideways (arrows at the ends), each over their group's colour and their issue counts.
+.beatmapset-modding-people {
+  @_top: beatmapset-modding-people;
+
+  align-items: center;
+  background-color: hsl(var(--hsl-b5));
+  display: flex;
+  padding: 20px 0 16px;
+
+  &__arrow {
+    .reset-input();
+    color: #fff;
+    cursor: pointer;
+    flex: none;
+    font-size: 20px;
+    height: 60px;
+    text-align: center;
+    transition: opacity 150ms;
+    width: 55px;
+
+    &:hover {
+      color: hsl(var(--hsl-c1));
+      text-shadow: 0 0 6px hsla(0, 0%, 100%, 0.4);
+    }
+
+    &--hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+  }
+
+  &__scroller {
+    display: flex;
+    flex: 1;
+    gap: 20px;
+    min-width: 0;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  &__group-box {
+    border-top: 2px solid hsl(var(--hsl-l1));
+    flex: none;
+  }
+
+  &__label {
+    font-size: @font-size--normal;
+    font-weight: 600;
+    margin: 5px 0 6px;
+  }
+
+  &__row {
+    display: flex;
+    gap: 5px;
+  }
+
+  &__person {
+    align-items: center;
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    width: 60px;
+  }
+
+  &__avatar-button {
+    .reset-input();
+    border-radius: 20px;
+    cursor: pointer;
+    display: block;
+    transition: box-shadow 120ms, transform 120ms;
+
+    &:hover {
+      transform: translateY(-2px);
+    }
+
+    .@{_top}__person--selected & {
+      box-shadow: 0 0 0 2px hsl(var(--hsl-l1));
+    }
+  }
+
+  &__avatar {
+    background: hsl(var(--hsl-b3)) center / cover;
+    border-radius: 20px;
+    display: block;
+    height: 60px;
+    width: 60px;
+  }
+
+  &__group {
+    border-radius: 10px;
+    height: 4px;
+    margin-top: 5px;
+    width: 30px;
+  }
+
+  &__counts {
+    font-size: @font-size--normal;
+    font-weight: 600;
+    margin-top: 1px;
+    white-space: nowrap;
+  }
+
+  &__resolved {
+    color: #a4ff84;
+  }
+
+  &__pending {
+    color: #ff6666;
+  }
+}

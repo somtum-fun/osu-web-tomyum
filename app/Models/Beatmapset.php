@@ -1309,14 +1309,17 @@ class Beatmapset extends Model implements AfterCommit, CommentableInterface, Ind
         }
 
         $modes = $this->playmodes()->toArray();
+        // TomYum: sets qualified by an import or by the server have no queued_at (the page 500'd);
+        // the date they were qualified stands in.
+        $queuedAt = $this->queued_at ?? $this->approved_date ?? Carbon::now();
 
         $queueSize = static::qualified()
             ->withModesForRanking($modes)
-            ->where('queued_at', '<', $this->queued_at)
+            ->where('queued_at', '<', $queuedAt)
             ->count();
         $days = ceil($queueSize / $GLOBALS['cfg']['osu']['beatmapset']['rank_per_day']);
 
-        $minDays = $GLOBALS['cfg']['osu']['beatmapset']['minimum_days_for_rank'] - (int) $this->queued_at->diffInDays();
+        $minDays = $GLOBALS['cfg']['osu']['beatmapset']['minimum_days_for_rank'] - (int) $queuedAt->diffInDays();
         $days = max($minDays, $days);
 
         return [
@@ -1424,9 +1427,13 @@ class Beatmapset extends Model implements AfterCommit, CommentableInterface, Ind
                 'discussions.votes',
                 'eligible_main_rulesets',
                 'events',
+                'has_favourited',
                 'nominations',
                 'related_users',
                 'related_users.groups',
+                // TomYum: who made an imported set and its difficulties (and nominated it) on osu!.
+                'tomyum_mappers',
+                'tomyum_nominators',
                 'version_count',
             ]
         );
