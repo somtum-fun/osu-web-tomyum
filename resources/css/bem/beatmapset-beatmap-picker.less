@@ -27,13 +27,15 @@
     }
   }
 
-  // Four 9px dots.
+  // Four 9px osu! hit circles: a ring around a filled centre, like the difficulty icons beside it.
+  @_hit-circle: #fff 1.8px, transparent 2.2px, transparent 2.9px, #fff 3.3px, #fff 4.3px, transparent 4.7px;
+
   &__list-dots {
     background:
-      radial-gradient(circle at 4.5px 4.5px, #fff 4.5px, transparent 5px),
-      radial-gradient(circle at 15.5px 4.5px, #fff 4.5px, transparent 5px),
-      radial-gradient(circle at 4.5px 15.5px, #fff 4.5px, transparent 5px),
-      radial-gradient(circle at 15.5px 15.5px, #fff 4.5px, transparent 5px);
+      radial-gradient(circle at 4.5px 4.5px, @_hit-circle),
+      radial-gradient(circle at 15.5px 4.5px, @_hit-circle),
+      radial-gradient(circle at 4.5px 15.5px, @_hit-circle),
+      radial-gradient(circle at 15.5px 15.5px, @_hit-circle);
     height: 20px;
     width: 20px;
   }

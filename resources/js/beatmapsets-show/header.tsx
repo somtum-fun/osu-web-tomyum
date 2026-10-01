@@ -359,15 +359,16 @@ export default class Header extends React.Component<Props> {
     );
   }
 
-  // A mapper's avatar and name, linked to their profile here or on osu!.
-  private renderPerson(person: Person) {
+  // A mapper's avatar and name (only the avatar when compact, the name on hover), linked to their
+  // profile here (with its player card) or on osu!.
+  private renderPerson(person: Person, compact = false) {
     const content = (
       <>
         <span
           className='beatmapset-header-v2__avatar'
           style={person.avatarUrl == null ? undefined : { backgroundImage: `url('${person.avatarUrl}')` }}
         />
-        {person.username}
+        {!compact && person.username}
       </>
     );
 
@@ -376,7 +377,14 @@ export default class Header extends React.Component<Props> {
         {content}
       </UserLink>
     ) : (
-      <a className='beatmapset-header-v2__person' href={`https://osu.ppy.sh/users/${person.id}`} rel='noreferrer' target='_blank'>
+      <a
+        aria-label={compact ? person.username : undefined}
+        className='beatmapset-header-v2__person'
+        href={`https://osu.ppy.sh/users/${person.id}`}
+        rel='noreferrer'
+        target='_blank'
+        title={compact ? person.username : undefined}
+      >
         {content}
       </a>
     );
@@ -436,10 +444,13 @@ export default class Header extends React.Component<Props> {
   }
 
   // The difficulty being looked at (or hovered in the picker): its stars, name and mappers, its
-  // length and BPM on the right.
+  // length and BPM on the right. Always one line: a hovered difficulty with more mappers would
+  // otherwise wrap, push the picker out from under the cursor, end the hover, and the band would
+  // flicker. So past three mappers only their avatars show (names on hover), and the rest is cut.
   private renderDifficulty() {
     const beatmap = this.controller.hoveredBeatmap ?? this.controller.currentBeatmap;
     const mappers = this.mappers(beatmap);
+    const compact = mappers.length > 3;
 
     return (
       <div className='beatmapset-header-v2__difficulty'>
@@ -450,8 +461,8 @@ export default class Header extends React.Component<Props> {
             <StringWithComponent
               mappings={{
                 mapper: (
-                  <span className='beatmapset-header-v2__people'>
-                    {mappers.map((person) => <React.Fragment key={person.id}>{this.renderPerson(person)}</React.Fragment>)}
+                  <span className={classWithModifiers('beatmapset-header-v2__people', { compact })}>
+                    {mappers.map((person) => <React.Fragment key={person.id}>{this.renderPerson(person, compact)}</React.Fragment>)}
                   </span>
                 ),
               }}
