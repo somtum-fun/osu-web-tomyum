@@ -1,63 +1,78 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
 // See the LICENCE file in the repository root for full licence text.
 
-// TomYum: the chat page after osu!'s chat design (chat/main-view.tsx and the conversation list):
-// the Join Chat button at the end of the tabs, a narrower list of plain lines under small capital
-// titles (channels as "#name", direct messages with a small round avatar, unread ones in mint,
-// "Add More Channels" as a mint line), and "chatting in #channel" beside the message box. Phones
-// keep osu-web's row of icons.
+// TomYum: the chat page after osu!'s chat design (chat/main-view.tsx, the conversation list and
+// view), in the design's mint (the page's hue is 160, chat/index.blade.php):
+// - the Join Chat button at the end of the tabs;
+// - a 220px list of plain 14px lines under small titles (channels as "#name", direct messages with
+//   a small round avatar, unread ones and "Add More Channels" in mint);
+// - the messages straight away (no channel picture or "talking in" over them), and the message box
+//   right under the last one, "chatting in #channel" under the names, the box under the messages,
+//   sent with Enter (no Send button).
+// Phones keep osu-web's row of icons and box at the bottom.
+
+@_mint-text: hsl(var(--base-hue), 40%, 70%);
 
 .chat-join-button {
   .reset-input();
   align-self: center;
-  background-color: hsl(200, 55%, 42%);
+  background-color: hsl(200, 40%, 30%);
   border-radius: 10000px;
   color: #fff;
   cursor: pointer;
   flex: none;
-  font-size: @font-size--small;
+  font-size: 12px;
   font-weight: 600;
+  line-height: 20px;
   margin-left: auto;
-  padding: 3px 24px;
+  min-width: 120px;
+  padding: 0 16px;
+  text-align: center;
 
   &:hover {
-    background-color: hsl(200, 55%, 50%);
+    background-color: hsl(200, 40%, 38%);
   }
 }
 
 @media @desktop {
   .chat-conversation-list {
     background-color: hsl(var(--hsl-b5));
-    padding-top: 6px;
+    padding-top: 4px;
     width: 220px;
 
     &__header {
       background-color: hsl(var(--hsl-b5));
-      font-size: @font-size--small;
-      font-weight: 700;
-      padding: 10px 20px 6px;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 12px 20px 4px;
     }
 
     &__header-icon {
       display: none;
     }
+
+    &__empty {
+      color: hsl(var(--hsl-b1));
+      font-size: 13px;
+      padding: 12px 20px;
+    }
   }
 
   .chat-conversation-list-item {
-    @_top: chat-conversation-list-item;
-
-    font-size: @font-size--normal;
+    font-size: 14px;
+    font-weight: 600;
     height: 26px;
     margin-left: 0;
     padding-left: 10px;
 
-    &:hover,
-    &--selected {
-      background: hsl(var(--hsl-b4));
+    &:hover {
+      background: hsla(var(--hsl-b4), 0.6);
     }
 
-    &--selected {
-      background: hsl(var(--hsl-b3));
+    &--selected,
+    &--selected:hover {
+      background: hsl(var(--hsl-b4));
     }
 
     &__tile {
@@ -84,24 +99,73 @@
 
     &--unread,
     &--add {
-      color: hsl(var(--hsl-l1));
+      color: @_mint-text;
     }
 
-    // the mint line of the unread indicator is enough with the mint name
+    // the mint name is the unread marker
     &__unread-indicator {
       display: none;
     }
   }
 
-  .chat-input__label {
-    color: hsl(var(--hsl-c2));
-    flex: 0 1 auto;
-    font-size: @font-size--small;
-    max-width: 200px;
+  .chat-conversation-panel {
+    background-color: hsl(var(--hsl-b4));
   }
 
-  .chat-input__label-channel {
-    color: #fff;
+  .chat-conversation {
+    flex: 0 1 auto;
+    min-height: 0;
+    padding: 12px 20px 0;
+
+    &::after {
+      display: none;
+    }
+
+    &__new-chat-avatar,
+    &__chat-label {
+      display: none;
+    }
+  }
+
+  .chat-input {
+    align-items: center;
+    background: none;
+    column-gap: 10px;
+    display: grid;
+    grid-template-columns: 56px 146px minmax(0, 530px);
+    padding: 14px 20px 20px;
+    position: static;
+    width: auto;
+
+    &__label {
+      color: hsl(var(--hsl-b1));
+      font-size: 14px;
+      grid-column: 1 / 3;
+      justify-self: end;
+      max-width: 100%;
+    }
+
+    &__box-container {
+      grid-column: 3;
+    }
+
+    &__box {
+      background-color: hsl(var(--hsl-b5));
+      border-radius: 5px;
+      box-shadow: none;
+      font-family: inherit;
+      font-size: 14px;
+      min-height: 40px;
+      padding: 11px 10px;
+
+      &::placeholder {
+        color: hsl(var(--hsl-b1));
+      }
+    }
+
+    .btn-osu-big--chat-send {
+      display: none;
+    }
   }
 }
 

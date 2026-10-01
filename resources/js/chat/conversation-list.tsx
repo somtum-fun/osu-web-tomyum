@@ -1,7 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
 // See the LICENCE file in the repository root for full licence text.
 
-import { SupportedChannelType, supportedChannelTypes } from 'interfaces/chat/channel-json';
+import { SupportedChannelType } from 'interfaces/chat/channel-json';
 import { chunk } from 'lodash';
 import { observer } from 'mobx-react';
 import core from 'osu-core-singleton';
@@ -52,20 +52,30 @@ function renderChannels(type: SupportedChannelType) {
   return null;
 }
 
-// TomYum: the channel types each of the chat design's tabs shows.
+// TomYum: the channel types each of the chat design's tabs shows, in the design's order (channels,
+// then direct messages and groups).
 const filterTypes: Record<ChatListFilter, readonly SupportedChannelType[]> = {
-  all: supportedChannelTypes,
-  channels: ['PUBLIC', 'ANNOUNCE', 'TEAM'],
+  all: ['PUBLIC', 'TEAM', 'PM', 'GROUP', 'ANNOUNCE'],
+  channels: ['PUBLIC', 'TEAM', 'ANNOUNCE'],
   groups: ['GROUP'],
   pms: ['PM'],
 };
 
+const emptyText: Partial<Record<ChatListFilter, string>> = {
+  groups: 'No groups yet.',
+  pms: 'No direct messages yet. Message someone from their profile.',
+};
+
 export default observer(() => {
-  const types = filterTypes[core.dataStore.chatState.listFilter];
+  const filter = core.dataStore.chatState.listFilter;
+  const groups = filterTypes[filter].map(renderChannels).filter((group) => group != null);
 
   return (
     <div className='chat-conversation-list'>
-      {supportedChannelTypes.filter((type) => types.includes(type)).map(renderChannels)}
+      {groups}
+      {groups.length === 0 && (
+        <div className='chat-conversation-list__empty'>{emptyText[filter]}</div>
+      )}
     </div>
   );
 });

@@ -5,17 +5,20 @@
 // the sender's name right-aligned in their colour, then the message. A bot's name sits on a pill
 // and its messages take its colour.
 .chat-message-group {
-  @_bot: #66ccff;
+  @_bot: hsl(200, 100%, 70%);
+  @_bot-text: hsl(200, 40%, 30%);
 
   color: #fff;
-  font-size: @font-size--normal;
-  padding: 0 10px;
+  font-size: 14px;
 
+  // the design's columns: the time (56px), the name (right-aligned, 146px), the message; the
+  // message box below lines up with them (chat-v2)
   &__line {
     align-items: baseline;
+    column-gap: 10px;
     display: grid;
-    gap: 8px;
-    grid-template-columns: 52px 160px minmax(0, 1fr);
+    grid-template-columns: 56px 146px minmax(0, 1fr);
+    line-height: 1.15;
     padding: 1px 0;
 
     @media @mobile {
@@ -24,10 +27,10 @@
   }
 
   &__timestamp {
-    color: hsl(var(--hsl-c2));
-    font-size: @font-size--small;
+    color: hsl(var(--hsl-b1));
+    font-size: 12px;
     font-variant-numeric: tabular-nums;
-    opacity: 0.6;
+    font-weight: 600;
   }
 
   &__sender {
@@ -49,11 +52,11 @@
     .chat-message-group--bot & {
       background-color: @_bot;
       border-radius: 3px;
-      color: hsl(var(--hsl-b6));
+      color: @_bot-text;
       padding: 0 4px;
 
       .link-hover({
-        color: hsl(var(--hsl-b6));
+        color: @_bot-text;
       });
     }
   }
@@ -70,8 +73,14 @@
       margin: 0;
     }
 
-    .osu-md--chat p {
-      margin: 0;
+    // the site's font at the names' size, as in the design
+    .osu-md--chat {
+      font-family: inherit;
+      font-size: inherit;
+
+      p {
+        margin: 0;
+      }
     }
   }
 }
