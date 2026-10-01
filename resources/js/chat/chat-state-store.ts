@@ -127,6 +127,17 @@ export default class ChatStateStore implements DispatchListener {
       }
     });
 
+    // TomYum: once connected, the unread conversations' recent messages, for their counts in the list.
+    autorun(() => {
+      if (this.isReady && this.isChatMounted) {
+        this.channelStore.channels.forEach((channel) => {
+          if (channel.isUnread && channel.needsRefresh && !channel.loadingMessages) {
+            channel.loadForUnreadCount();
+          }
+        });
+      }
+    });
+
     autorun(() => {
       if (this.selected === 'join' && this.publicChannels.channels == null && !this.publicChannels.error) {
         this.publicChannels.load();
