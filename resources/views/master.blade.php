@@ -83,8 +83,11 @@
         @endphp
         @if ($tomyumMaintenance['enabled'] ?? false)
             @include('objects._notification_banner', [
-                'type' => ($tomyumMaintenance['locked'] ?? false) ? 'alert' : 'info',
-                'title' => ($tomyumMaintenance['locked'] ?? false) ? 'Maintenance' : 'Maintenance soon',
+                'type' => 'warning',
+                'label' => 'Maintenance',
+                'title' => ($tomyumMaintenance['locked'] ?? false)
+                    ? 'In progress'
+                    : 'Starts '.(isset($tomyumMaintenance['startsAt']) ? Carbon\Carbon::parse($tomyumMaintenance['startsAt'])->diffForHumans() : 'soon'),
                 'message' => e($tomyumMaintenance['notice'] ?? ''),
             ])
         @endif
