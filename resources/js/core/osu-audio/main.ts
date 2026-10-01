@@ -19,7 +19,7 @@ const createMainPlayer = () => {
       type="button"
       class="audio-player__button audio-player__button--prev js-audio--nav"
       data-audio-nav="prev"
-    ><span class="fas fa-fw fa-step-backward"></span></button>
+    ><span class="fas fa-fw fa-backward"></span></button>
 
     <button
       type="button"
@@ -30,7 +30,7 @@ const createMainPlayer = () => {
       type="button"
       class="audio-player__button audio-player__button--next js-audio--nav"
       data-audio-nav="next"
-    ><span class="fas fa-fw fa-step-forward"></span></button>
+    ><span class="fas fa-fw fa-forward"></span></button>
 
     <div class="audio-player__bar audio-player__bar--progress js-audio--seek">
       <div class="audio-player__bar-current"></div>
