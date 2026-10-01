@@ -31,7 +31,7 @@ function renderChannels(type: SupportedChannelType) {
 
     return (
       <React.Fragment key={type}>
-        <div className='chat-conversation-list__group'>
+        <div className={`chat-conversation-list__group chat-conversation-list__group--${type}`}>
           <div className='chat-conversation-list__header'>
             <span className='chat-conversation-list__header-text'>{title}</span>
             <span className='chat-conversation-list__header-icon' title={title}><i className={icons[type]} /></span>
