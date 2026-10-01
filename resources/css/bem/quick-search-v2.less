@@ -2,14 +2,54 @@
 // See the LICENCE file in the repository root for full licence text.
 
 // TomYum: the quick search after osu!'s search design proposal (quick-search/main.tsx): the input
-// with a mint Cancel, how many of each over the results, then Player / Beatmap / Team / Other, each
-// under a title with a mint line, the players as list player cards, the beatmaps as rows with their
-// status and buttons, and the "more" rows with their counts.
+// with its × and a mint Cancel, how many of each over the results, then Player / Beatmap / Team /
+// Other, each under a title with a mint line (or "No results"), the players as list player cards,
+// the beatmaps as rows with their status and buttons, and the "more" rows with their counts.
 .quick-search {
   @_mint: #46b38b;
 
   .quick-search-input__field {
     border-bottom: 1px solid hsla(var(--hsl-c2), 0.4);
+  }
+
+  // our own × instead of the browser's
+  .quick-search-input__input::-webkit-search-cancel-button {
+    display: none;
+  }
+
+  // the × that clears the search, at the input's end
+  .quick-search-input__clear {
+    .reset-input();
+    align-self: center;
+    color: hsl(var(--hsl-c2));
+    cursor: pointer;
+    flex: none;
+    font-size: 0.8em;
+    padding: 0 4px;
+
+    &:hover {
+      color: #fff;
+    }
+
+    // phones: a white circle with the × in it
+    @media @mobile {
+      align-items: center;
+      background-color: #fff;
+      border-radius: 50%;
+      color: hsl(var(--hsl-b4));
+      display: flex;
+      font-size: 12px;
+      height: 20px;
+      justify-content: center;
+      padding: 0;
+      width: 20px;
+    }
+  }
+
+  // "No results for Players" in a section that found nothing
+  .quick-search-result__none {
+    font-size: @font-size--title-small;
+    padding: 2px 0 6px;
   }
 
   .btn-osu-big--quick-search-close {
@@ -84,6 +124,38 @@
     font-weight: 700;
     margin-left: 10px;
     padding: 1px 10px;
+  }
+
+  // Phones (the design's mobile search): no counts row, the "more" rows as plain lines (the
+  // selected one a rounded bar), and the beatmap rows without their buttons and artist.
+  @media @mobile {
+    .quick-search-result__counts {
+      display: none;
+    }
+
+    .search-result-more {
+      background-color: transparent;
+      border-radius: 10000px;
+      font-weight: 400;
+      min-height: 30px;
+
+      &--active {
+        background-color: hsl(var(--hsl-b2));
+      }
+    }
+
+    .search-result-more__count {
+      display: none;
+    }
+
+    .beatmapset-search-card__actions,
+    .beatmapset-search-card__title-artist {
+      display: none;
+    }
+
+    .beatmapset-search-card__details {
+      padding-right: 10px;
+    }
   }
 }
 

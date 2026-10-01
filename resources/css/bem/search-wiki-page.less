@@ -1,40 +1,69 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
 // See the LICENCE file in the repository root for full licence text.
 
+// TomYum: a wiki result as in osu!'s search design proposal (home/_search_result_wiki_page), like
+// the forum results: a line down its side, the title, the page's text with the words searched for
+// marked in yellow, then the link. The whole result is a link.
 .search-wiki-page {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  border-left: 2px solid #66ffcc;
+  color: #fff;
+  line-height: 1.35;
+  padding-left: 12px;
+  pointer-events: none;
+  position: relative;
+  word-wrap: break-word;
 
-  &__content {
+  &__link {
+    // make link element take the full size of the element.
+    .full-size();
+    pointer-events: auto;
+  }
+
+  &__title {
+    font-size: @font-size--title-small-2;
+    font-weight: 600;
+  }
+
+  &__excerpt {
+    .content-font();
+    color: hsl(var(--hsl-c2));
+    display: -webkit-box;
+    font-size: @font-size--normal;
+    margin-top: 2px;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .search-highlight em {
+    background-color: #ffcc22;
+    border-radius: 3px;
+    color: hsl(var(--hsl-b6));
+    font-style: normal;
+    font-weight: 600;
+    padding: 0 2px;
+  }
+
+  &__footer {
+    display: flex;
+    font-size: @font-size--normal;
+    font-weight: 600;
+    margin-top: 8px;
     min-width: 0;
   }
 
-  &__row {
-    margin: 5px 0;
-    padding: 0;
-    line-height: 1.5;
-    word-wrap: break-word;
-    color: white;
+  &__url {
+    .link-plain();
+    color: hsl(var(--hsl-l1));
+    overflow: hidden;
+    pointer-events: auto;
+    position: relative;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 
-    &--title {
-      margin-top: 0;
-      font-size: @font-size--title-small-2;
-    }
-
-    &--excerpt {
-      .content-font();
-      font-size: @font-size--small-2;
-    }
-
-    &--footer {
-      color: @osu-colour-f1;
-      font-size: @font-size--small;
-    }
-  }
-
-  &__more {
-    color: @osu-colour-f1;
-    .link-hover({ color: @osu-colour-f1 });
+    .link-hover({
+      color: hsl(var(--hsl-l1));
+      text-decoration: underline;
+    });
   }
 }

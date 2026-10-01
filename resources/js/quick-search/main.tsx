@@ -58,6 +58,18 @@ interface Props {
               type='search'
               value={this.props.worker.query}
             />
+
+            {/* TomYum: clears the search (the search design's ×) */}
+            {this.props.worker.query !== '' && (
+              <button
+                aria-label={trans('common.buttons.clear')}
+                className='quick-search-input__clear'
+                onClick={this.clearQuery}
+                type='button'
+              >
+                <span className='fas fa-times' />
+              </button>
+            )}
           </div>
 
           {this.props.onClose != null && (
@@ -80,6 +92,11 @@ interface Props {
     const worker = this.props.worker;
     return worker.currentSection === section && worker.selected?.index === idx;
   }
+
+  private readonly clearQuery = () => {
+    this.props.worker.updateQuery('');
+    this.inputRef.current?.focus();
+  };
 
   private count(mode: ResultMode) {
     if (this.props.worker.searchResult === null) {
@@ -125,6 +142,10 @@ interface Props {
       return null;
     }
 
+    if (this.count('beatmapset') === 0) {
+      return this.renderNoResults('beatmapset');
+    }
+
     return (
       <div className='quick-search-items'>
         {this.props.worker.searchResult.beatmapset.items.map((beatmapset, idx) => (
@@ -155,10 +176,36 @@ interface Props {
     );
   }
 
+  // TomYum: "No results" in a section that found nothing (the search design), instead of a link to
+  // an empty search.
+  private renderNoResults(mode: string) {
+    return (
+      <div className='quick-search-result__none'>
+        {trans('quick_search.result.no_results._', { mode: trans(`quick_search.result.no_results.${mode}`) })}
+      </div>
+    );
+  }
+
+  // The other searches that found something; "No results for Featured Artist Tracks, Forums and
+  // Wiki" when none did.
   private renderOthers() {
+    const modes = this.props.worker.otherModesWithResults;
+
+    if (modes.length === 0) {
+      const names = otherModes.map((mode) => trans(`quick_search.result.no_results.${mode}`));
+
+      return (
+        <div className='quick-search-result__none'>
+          {trans('quick_search.result.no_results._', {
+            mode: `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`,
+          })}
+        </div>
+      );
+    }
+
     return (
       <div className='quick-search-items'>
-        {otherModes.map((mode, idx) => (
+        {modes.map((mode, idx) => (
           <div
             key={mode}
             className='quick-search-items__item'
@@ -263,6 +310,10 @@ interface Props {
       return null;
     }
 
+    if (this.count('team') === 0) {
+      return this.renderNoResults('team');
+    }
+
     return (
       <div className='quick-search-items'>
         {this.props.worker.searchResult.team.items.map((team, idx) => (
@@ -307,6 +358,10 @@ interface Props {
   private renderUsers() {
     if (this.props.worker.searchResult == null) {
       return null;
+    }
+
+    if (this.count('user') === 0) {
+      return this.renderNoResults('user');
     }
 
     return (

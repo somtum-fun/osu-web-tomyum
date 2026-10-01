@@ -8,11 +8,12 @@ import { route } from 'laroute';
 import { debounce } from 'lodash';
 import { action, computed, makeObservable, observable } from 'mobx';
 
+// TomYum: in the order they're shown (players first, the search design).
 const SECTIONS = [
-  'beatmapset',
-  'beatmapset_others',
   'user',
   'user_others',
+  'beatmapset',
+  'beatmapset_others',
   'team',
   'team_others',
   'others',
@@ -126,12 +127,18 @@ export default class Worker {
       case 'beatmapset_others':
         return route('search', { mode: 'beatmapset', query: this.query });
       case 'others': {
-        const others = otherModes.filter((mode) => searchResult[mode].total > 0);
-        const selectedMode = others[this.selected.index];
+        const selectedMode = this.otherModesWithResults[this.selected.index];
 
-        return route('search', { mode: selectedMode, query: this.query });
+        return selectedMode == null ? undefined : route('search', { mode: selectedMode, query: this.query });
       }
     }
+  }
+
+  // The other searches (featured artists, forum, wiki) that found something: the ones listed.
+  @computed get otherModesWithResults(): ResultMode[] {
+    const searchResult = this.searchResult;
+
+    return searchResult == null ? [] : otherModes.filter((mode) => searchResult[mode].total > 0);
   }
 
   @action search() {
@@ -182,21 +189,22 @@ export default class Worker {
     if (!searchResult) {
       return 0;
     }
+    // TomYum: a section without results shows "No results" (the search design), with nothing to select.
     switch (section) {
       case 'team':
         return searchResult.team.items.length;
       case 'team_others':
-        return 1;
+        return searchResult.team.total > 0 ? 1 : 0;
       case 'user':
         return searchResult.user.items.length;
       case 'user_others':
-        return 1;
+        return searchResult.user.total > 0 ? 1 : 0;
       case 'beatmapset':
         return searchResult.beatmapset.items.length;
       case 'beatmapset_others':
-        return 1;
+        return searchResult.beatmapset.total > 0 ? 1 : 0;
       case 'others':
-        return otherModes.length;
+        return this.otherModesWithResults.length;
     }
 
     return 0;
