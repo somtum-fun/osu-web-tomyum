@@ -8,6 +8,7 @@ import supporterRequiredImgUrl2x from '@images/layout/beatmaps/supporter-require
 import BeatmapsetCardSizeSelector from 'beatmaps/beatmapset-card-size-selector';
 import VirtualListMeta from 'beatmaps/virtual-list-meta';
 import BeatmapsetPanel, { beatmapsetCardSizes } from 'beatmapset-panel';
+import BeatmapsetCard, { DesignCardSize } from 'beatmapset-panel/beatmapset-card';
 import Img2x from 'components/img2x';
 import StringWithComponent from 'components/string-with-component';
 import { route } from 'laroute';
@@ -32,22 +33,31 @@ interface Props {
 // Rendered as a vertical list of flexbox rows instead of css grid as it repaints faster.
 // With CSS grid, every item has to be re-layout and re-painted when the virtual window is updated.
 // The current method only has to paint new rows and shift the layout of the other rows.
-const BeatmapList = ({ items }: RenderProps<number[]>) => (
-  <div className='beatmapsets__items'>
-    {items.map((row) => (
-      <div key={row.join('-')} className='beatmapsets__items-row'>
-        {row.map((beatmapsetId) => {
-          const beatmapset = core.dataStore.beatmapsetStore.get(beatmapsetId);
-          return (
-            <div key={beatmapsetId} className='beatmapsets__item'>
-              {beatmapset != null && <BeatmapsetPanel beatmapset={beatmapset} />}
-            </div>
-          );
-        })}
-      </div>
-    ))}
-  </div>
-);
+// TomYum: "extra" is osu-web's panel, the other views the search design proposal's cards.
+// (called inside VirtualList's render, which MobX tracks)
+const BeatmapList = ({ items }: RenderProps<number[]>) => {
+  const size = core.userPreferences.get('beatmapset_card_size');
+
+  return (
+    <div className={classWithModifiers('beatmapsets__items', size)}>
+      {items.map((row) => (
+        <div key={row.join('-')} className='beatmapsets__items-row'>
+          {row.map((beatmapsetId) => {
+            const beatmapset = core.dataStore.beatmapsetStore.get(beatmapsetId);
+            return (
+              <div key={beatmapsetId} className='beatmapsets__item'>
+                {beatmapset != null && (size === 'extra'
+                  ? <BeatmapsetPanel beatmapset={beatmapset} />
+                  : <BeatmapsetCard beatmapset={beatmapset} size={size as DesignCardSize} />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+};
 
 const EmptyList = () => (
   <div className='beatmapsets__empty'>
@@ -99,16 +109,15 @@ export class SearchContent extends React.Component<Props> {
             {this.controller.advancedSearch && (
               <div className='beatmapsets__toolbar'>
                 <div className='beatmapsets__toolbar-item'>
-                  <SearchSort />
+                  <div className='beatmapsets__views'>
+                    <span className='beatmapsets__views-title'>View</span>
+                    {beatmapsetCardSizes.map((size) => (
+                      <BeatmapsetCardSizeSelector key={size} classElement='beatmapsets__view' size={size} />
+                    ))}
+                  </div>
                 </div>
                 <div className='beatmapsets__toolbar-item'>
-                  <div className='sort hidden-xs'>
-                    <div className='sort__items'>
-                      {beatmapsetCardSizes.map((size) => (
-                        <BeatmapsetCardSizeSelector key={size} classElement='sort__item' size={size} />
-                      ))}
-                    </div>
-                  </div>
+                  <SearchSort />
                 </div>
               </div>
             )}

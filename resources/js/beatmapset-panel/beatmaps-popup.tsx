@@ -80,7 +80,7 @@ export default class BeatmapsPopup extends React.Component<Props> {
       <Portal>
         <div
           ref={this.contentRef}
-          className={classWithModifiers('beatmaps-popup', [`size-${core.userPreferences.get('beatmapset_card_size')}`])}
+          className={classWithModifiers('beatmaps-popup', [`size-${core.userPreferences.get('beatmapset_card_size') === 'extra' ? 'extra' : 'normal'}`])}
           onMouseEnter={this.props.onMouseEnter}
           onMouseLeave={this.props.onMouseLeave}
           style={style}

@@ -8,7 +8,13 @@
 .beatmapset-tickets {
   @_top: beatmapset-tickets;
   @_accent: #66ffcc;
-  @_gutter: 50px;
+  // the page edge on desktop, narrower on phones
+  @_gutter: var(--tickets-gutter);
+  --tickets-gutter: 12px;
+
+  @media @desktop {
+    --tickets-gutter: 50px;
+  }
 
   background-color: hsl(var(--hsl-b5));
 
@@ -201,8 +207,12 @@
 .beatmapset-events__day {
   background-color: hsl(var(--hsl-b4));
   border-radius: 10px;
-  margin: 10px 50px;
+  margin: 10px var(--tickets-gutter, 50px);
   padding: 10px 20px 12px;
+
+  @media @mobile {
+    padding: 10px 12px 12px;
+  }
 
   .beatmapset-events__title {
     font-size: @font-size--normal;
@@ -225,5 +235,5 @@
 
 .beatmapset-tickets .beatmapset-events__empty {
   color: hsl(var(--hsl-c2));
-  padding: 20px 50px;
+  padding: 20px var(--tickets-gutter, 50px);
 }

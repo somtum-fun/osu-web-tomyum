@@ -6,16 +6,18 @@ import { action, computed, makeObservable } from 'mobx';
 import { observer } from 'mobx-react';
 import core from 'osu-core-singleton';
 import * as React from 'react';
-import { classWithModifiers, Modifiers } from 'utils/css';
+import { classWithModifiers, ModifiersExtended } from 'utils/css';
 import { formatNumber } from 'utils/html';
 import { FilterOption } from './available-filters';
 
 interface Props {
-  modifiers?: Modifiers;
+  modifiers?: ModifiersExtended;
   multiselect: boolean;
   name: FilterKey;
   options: FilterOption[];
   title?: string;
+  // TomYum: statuses as coloured pills, ranks as grade badges (the search design proposal)
+  variant?: 'grade' | 'pill';
 }
 
 @observer
@@ -81,7 +83,7 @@ export class SearchFilter extends React.Component<Props> {
   }
 
   private readonly renderOption = (option: { id: string | null; name: string }) => {
-    const cssClasses = classWithModifiers('beatmapsets-search-filter__item', {
+    const cssClasses = classWithModifiers('beatmapsets-search-filter__item', this.props.variant, {
       active: this.isSelected(option.id),
       'featured-artists': option.id === 'featured_artists',
     });
@@ -98,8 +100,16 @@ export class SearchFilter extends React.Component<Props> {
         data-filter-value={option.id}
         href={this.href(option.id)}
         onClick={this.select}
+        style={this.props.variant === 'pill' ? {
+          // statuses without their own colours (any, leaderboard, favourites, mine) are mint
+          '--bg': `hsl(var(--beatmapset-${option.id}-bg-hsl, var(--hsl-c2)))`,
+          '--colour': `var(--beatmapset-${option.id}-colour, hsl(var(--hsl-b4)))`,
+        } as React.CSSProperties : undefined}
+        title={this.props.variant === 'grade' ? text : undefined}
       >
-        {text}
+        {this.props.variant === 'grade'
+          ? <span className={`score-rank score-rank--${option.id ?? ''}`} />
+          : text}
       </a>
     );
   };

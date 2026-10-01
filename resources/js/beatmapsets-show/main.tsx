@@ -62,6 +62,11 @@ export default class Main extends React.Component<Props> {
     );
   }
 
+  // TomYum: opened from the Comments tab (#comments): scrolled to them once the page is up (the
+  // hash is the difficulty's afterwards).
+  private readonly openComments = window.location.hash === '#comments';
+  private readonly commentsRef = React.createRef<HTMLDivElement>();
+
   constructor(props: Props) {
     super(props);
 
@@ -71,6 +76,13 @@ export default class Main extends React.Component<Props> {
   }
 
   componentDidMount() {
+    if (this.openComments) {
+      // again once the scoreboard and images above them have loaded and moved them down
+      core.reactTurbolinks.runAfterPageLoad(() => {
+        window.setTimeout(this.scrollToComments, 100);
+        window.setTimeout(this.scrollToComments, 1200);
+      });
+    }
     this.setHashDisposer = autorun(this.setHash);
     $(document).one('turbo:before-cache', () => this.setHashDisposer?.());
   }
@@ -188,7 +200,7 @@ export default class Main extends React.Component<Props> {
               </div>
             }
 
-            <div className='page-extra page-extra--compact'>
+            <div ref={this.commentsRef} className='page-extra page-extra--compact' id='comments'>
               <Comments
                 baseCommentableMeta={{
                   id: this.controller.beatmapset.id,
@@ -204,15 +216,28 @@ export default class Main extends React.Component<Props> {
     );
   }
 
+  // The Comments tab on this page just scrolls down to them.
+  private readonly handleHeaderLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!e.currentTarget.href.endsWith('#comments')) return;
+
+    e.preventDefault();
+    this.scrollToComments();
+  };
+
   private renderPageHeader() {
     return (
       <HeaderV4
         links={headerLinks('show', this.controller.beatmapset)}
         linksAppend={this.headerLinksAppend}
+        onLinkClick={this.handleHeaderLinkClick}
         theme='beatmapset'
       />
     );
   }
+
+  private readonly scrollToComments = () => {
+    this.commentsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   private readonly setHash = () => {
     setHash(generate({ beatmap: this.controller.currentBeatmap }));

@@ -45,7 +45,8 @@ class QuickSearch extends MultiSearch
             'size' => 5,
             'transformer' => [
                 'class' => UserCompactTransformer::class,
-                'includes' => [...UserCompactTransformer::CARD_INCLUDES, 'support_level'],
+                // TomYum: the list player cards (their level too)
+                'includes' => UserCompactTransformer::LIST_INCLUDES,
             ],
             'type' => UserSearch::class,
         ],

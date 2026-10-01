@@ -20,6 +20,7 @@ use App\Models\NewsPost;
 use App\Models\UserDonation;
 use App\Transformers\MenuImageTransformer;
 use App\Transformers\NewsPostTransformer;
+use App\Transformers\UserCompactTransformer;
 use Auth;
 use Carbon\CarbonImmutable;
 use DeviceDetector\DeviceDetector;
@@ -178,9 +179,16 @@ class HomeController extends Controller
                 $result[$mode]['total'] = $search->count();
                 if (QuickSearch::MODES[$mode]['size'] !== 0) {
                     $transformer = QuickSearch::MODES[$mode]['transformer'];
+                    $transformerInstance = new $transformer['class']();
+                    $data = $search->data();
+                    // TomYum: players come with their osu! statistics (the list player cards' level)
+                    if ($transformerInstance instanceof UserCompactTransformer) {
+                        $transformerInstance->setMode('osu');
+                        $data->loadMissing(UserCompactTransformer::listIncludesPreload('osu'));
+                    }
                     $result[$mode]['items'] = json_collection(
-                        $search->data(),
-                        new $transformer['class'](),
+                        $data,
+                        $transformerInstance,
                         $transformer['includes'],
                     );
                 }

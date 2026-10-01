@@ -23,6 +23,10 @@
     transition: opacity 150ms;
     width: 55px;
 
+    @media @mobile {
+      width: 30px;
+    }
+
     &:hover {
       color: hsl(var(--hsl-c1));
       text-shadow: 0 0 6px hsla(0, 0%, 100%, 0.4);

@@ -77,7 +77,10 @@ export default class Info extends React.Component<Props> {
           <div
             className='beatmapset-info__description'
             dangerouslySetInnerHTML={{
-              __html: this.controller.beatmapset.description.description ?? '',
+              // without the blank lines a post starts or ends with, so the card's spacing stays even
+              __html: (this.controller.beatmapset.description.description ?? '')
+                .replace(/^((?:<div[^>]*>\s*)*)(?:\s|<br\s*\/?>)+/, '$1')
+                .replace(/(?:\s|<br\s*\/?>)+((?:<\/div>\s*)*)$/, '$1'),
             }}
           />
           <div className='beatmapset-info__edit-buttons'>

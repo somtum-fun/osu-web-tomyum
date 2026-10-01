@@ -29,22 +29,25 @@ interface Props {
 }
 
 interface FilterProps {
+  column?: boolean;
   grid?: boolean;
   multiselect?: boolean;
   name: FilterKey;
   options: FilterOption[];
+  variant?: 'grade' | 'pill';
 }
 
-const Filter = observer(({ multiselect = false, name, options, grid = false }: FilterProps) => {
-  const title = grid ? trans(`beatmaps.listing.search.filters.${name}`) : undefined;
+const Filter = observer(({ column = false, multiselect = false, name, options, grid = false, variant }: FilterProps) => {
+  const title = grid || column ? trans(`beatmaps.listing.search.filters.${name}`) : undefined;
 
   return (
     <SearchFilter
-      modifiers={grid ? 'grid' : null}
+      modifiers={column ? ['column', variant ?? null] : grid ? 'grid' : null}
       multiselect={multiselect}
       name={name}
       options={options}
       title={title}
+      variant={variant}
     />
   );
 });
@@ -103,12 +106,6 @@ export class SearchPanel extends React.Component<Props> {
       </>
     );
   }
-
-  @action
-  private readonly expand = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    this.controller.isExpanded = true;
-  };
 
   @action
   private readonly onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -237,21 +234,30 @@ export class SearchPanel extends React.Component<Props> {
             <i className='fas fa-question-circle' />
           </a>
         </div>
-        <div className='beatmapsets-search__filter-grid'>
-          <Filter grid multiselect name='general' options={filters.general} />
-          <Filter grid name='mode' options={filters.modes} />
-          <Filter grid name='status' options={filters.statuses} />
-          <Filter grid name='nsfw' options={filters.nsfw} />
-          <a className='beatmapsets-search__expand-link' href='#' onClick={this.expand}>
-            <div>{trans('beatmaps.listing.search.options')}</div>
-            <div><i className='fas fa-angle-down' /></div>
-          </a>
-          <div className='beatmapsets-search__advanced'>
-            <Filter grid name='genre' options={filters.genres} />
-            <Filter grid name='language' options={filters.languages} />
-            <Filter grid multiselect name='extra' options={filters.extras} />
-            <Filter grid multiselect name='rank' options={filters.ranks} />
-            <Filter grid name='played' options={filters.played} />
+        {/* TomYum: the filters as columns, as in osu!'s search design proposal */}
+        <div className='beatmapsets-search__columns'>
+          <div className='beatmapsets-search__column'>
+            <Filter column name='mode' options={filters.modes} />
+          </div>
+          <div className='beatmapsets-search__column beatmapsets-search__column--wide'>
+            <Filter column multiselect name='general' options={filters.general} />
+            <Filter column multiselect name='rank' options={filters.ranks} variant='grade' />
+          </div>
+          <div className='beatmapsets-search__column'>
+            <Filter column name='status' options={filters.statuses} variant='pill' />
+          </div>
+          <div className='beatmapsets-search__column'>
+            <Filter column name='language' options={filters.languages} />
+          </div>
+          <div className='beatmapsets-search__column'>
+            <Filter column name='genre' options={filters.genres} />
+          </div>
+          <div className='beatmapsets-search__column'>
+            <Filter column multiselect name='extra' options={filters.extras} />
+          </div>
+          <div className='beatmapsets-search__column'>
+            <Filter column name='played' options={filters.played} />
+            <Filter column name='nsfw' options={filters.nsfw} />
           </div>
         </div>
       </div>
