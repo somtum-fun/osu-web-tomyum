@@ -63,6 +63,24 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('users/{user}/scores/{score}/remove', 'GmtController@removeScore')->name('users.scores.remove');
         });
 
+        // The Tournament Committee: live matches, and the admin's banners and badges pages.
+        Route::group(['as' => 'tc.', 'prefix' => 'tc'], function () {
+            Route::get('/', 'TcController@index')->name('index');
+            Route::post('matches/{match}/abort', 'TcController@abort')->name('matches.abort');
+            Route::post('matches/{match}/close', 'TcController@close')->name('matches.close');
+            Route::post('matches/{match}/message', 'TcController@message')->name('matches.message');
+            Route::get('badges', 'BadgesController@index')->name('badges.index');
+            Route::post('badges/{user}', 'BadgesController@store')->name('badges.store');
+            Route::post('badges/{user}/remove', 'BadgesController@destroy')->name('badges.destroy');
+            Route::get('tournament-banners', 'TournamentBannersController@index')->name('tournament-banners.index');
+            Route::post('tournament-banners', 'TournamentBannersController@store')->name('tournament-banners.store');
+            Route::post('tournament-banners/{banner}/toggle', 'TournamentBannersController@toggle')->name('tournament-banners.toggle');
+            Route::post('tournament-banners/{banner}/remove', 'TournamentBannersController@destroy')->name('tournament-banners.destroy');
+            Route::post('tournament-banners/{banner}/image', 'TournamentBannersController@replace')->name('tournament-banners.replace');
+            Route::post('tournament-banners/{banner}/give', 'TournamentBannersController@give')->name('tournament-banners.give');
+            Route::post('tournament-banners/{banner}/take/{user}', 'TournamentBannersController@take')->name('tournament-banners.take');
+        });
+
         Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
             Route::get('/', 'AdminController@index')->name('index');
             Route::post('recalculate', 'AdminController@recalculate')->name('recalculate');

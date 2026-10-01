@@ -5,14 +5,18 @@
 @extends('master', ['titlePrepend' => 'Badges'])
 
 @section('content')
+    @php
+        // TomYum: shared by the admin and TC panels; links stay in the one it was opened from.
+        $panelPrefix = App\Http\Controllers\Panel\Controller::sharedPanelPrefix();
+    @endphp
     @include('panel._header', ['crumbs' => [
-        ['url' => route('panel.admin.index'), 'title' => 'Admin panel'],
+        ['url' => route($panelPrefix.'index'), 'title' => $panelPrefix === 'panel.tc.' ? 'TC panel' : 'Admin panel'],
         ['title' => 'Badges'],
     ]])
     <div class="osu-page osu-page--admin tomyum-panel">
         <div class="tomyum-panel__card">
             <h2><i class="fas fa-search"></i>Player</h2>
-            <form method="GET" action="{{ route('panel.admin.badges.index') }}" class="tomyum-panel__row">
+            <form method="GET" action="{{ route($panelPrefix.'badges.index') }}" class="tomyum-panel__row">
                 <label class="input-container tomyum-panel__field">
                     <span class="input-container__label">Name or id</span>
                     <input class="input-text" type="text" name="user" value="{{ $query }}" required>
@@ -23,7 +27,7 @@
                 <p class="tomyum-panel__hint" style="margin-top: 12px">
                     With badges:
                     @foreach ($holders as $holder)
-                        <a href="{{ route('panel.admin.badges.index', ['user' => $holder['name']]) }}">{{ $holder['name'] }}</a> ({{ $holder['count'] }})@if (!$loop->last), @endif
+                        <a href="{{ route($panelPrefix.'badges.index', ['user' => $holder['name']]) }}">{{ $holder['name'] }}</a> ({{ $holder['count'] }})@if (!$loop->last), @endif
                     @endforeach
                 </p>
             @endif
@@ -46,7 +50,7 @@
                                 <td>@if (present($badge->url))<a href="{{ $badge->url }}" rel="nofollow noopener" target="_blank">link</a>@else – @endif</td>
                                 <td>{{ $badge->awarded?->toDateString() ?? '–' }}</td>
                                 <td>
-                                    <form method="POST" action="{{ route('panel.admin.badges.destroy', ['user' => $user->getKey()]) }}"
+                                    <form method="POST" action="{{ route($panelPrefix.'badges.destroy', ['user' => $user->getKey()]) }}"
                                         onsubmit="return confirm('Take this badge away?')">
                                         @csrf
                                         <input type="hidden" name="image" value="{{ $badge->image }}">
@@ -61,7 +65,7 @@
 
             <div class="tomyum-panel__card">
                 <h2><i class="fas fa-plus"></i>Give a badge</h2>
-                <form method="POST" action="{{ route('panel.admin.badges.store', ['user' => $user->getKey()]) }}" class="tomyum-panel">
+                <form method="POST" action="{{ route($panelPrefix.'badges.store', ['user' => $user->getKey()]) }}" class="tomyum-panel">
                     @csrf
                     <div class="tomyum-panel__row">
                         <label class="input-container tomyum-panel__field">

@@ -35,7 +35,7 @@ class TournamentBannersController extends Controller
         parent::__construct();
 
         $this->middleware(function ($request, $next) {
-            $this->ensure(static::canUseAdmin(Auth::user()));
+            $this->ensure(static::canUseSharedPanel(Auth::user())); // TomYum: the admin's and the TC's
 
             return $next($request);
         });
@@ -278,7 +278,7 @@ class TournamentBannersController extends Controller
 
     private function back(string $type, string $message)
     {
-        return redirect(route('panel.admin.tournament-banners.index'))
+        return redirect(route(static::sharedPanelPrefix().'tournament-banners.index'))
             ->with('panel_status', ['type' => $type, 'message' => $message, 'link' => null]);
     }
 }

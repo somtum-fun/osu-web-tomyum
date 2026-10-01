@@ -21,7 +21,7 @@ class BadgesController extends Controller
         parent::__construct();
 
         $this->middleware(function ($request, $next) {
-            $this->ensure(static::canUseAdmin(Auth::user()));
+            $this->ensure(static::canUseSharedPanel(Auth::user())); // TomYum: the admin's and the TC's
 
             return $next($request);
         });
@@ -70,7 +70,7 @@ class BadgesController extends Controller
 
     private function back(User $user, string $type, string $message)
     {
-        return redirect(route('panel.admin.badges.index', ['user' => $user->username]))
+        return redirect(route(static::sharedPanelPrefix().'badges.index', ['user' => $user->username]))
             ->with('panel_status', ['type' => $type, 'message' => $message, 'link' => null]);
     }
 }

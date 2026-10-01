@@ -13,6 +13,7 @@ use App\Libraries\User\PasswordHelper;
 use App\Models\Beatmap;
 use App\Models\Country;
 use App\Models\Group;
+use App\Models\Rank;
 use App\Models\User;
 use App\Models\UserAccountHistory;
 use App\Models\UsernameChangeHistory;
@@ -32,6 +33,9 @@ class AdminController extends Controller
 {
     /** Groups that aren't assigned by hand. */
     private const UNASSIGNABLE_GROUPS = ['default', 'bot'];
+
+    // TomYum: groups that come with a title (see groupTitle): identifier => the title.
+    private const GROUP_TITLES = ['tc' => 'Tournament Committee'];
 
     private const PLAYMODES = ['osu' => 'osu!', 'taiko' => 'osu!taiko', 'fruits' => 'osu!catch', 'mania' => 'osu!mania'];
 
@@ -215,11 +219,13 @@ class AdminController extends Controller
                     $target->addToGroup($group, $playmodes, Auth::user());
                     if (!$has) {
                         $added[] = $group->short_name;
+                        $this->groupTitle($target, $group, true);
                     }
                 }
             } elseif ($has) {
                 $target->removeFromGroup($group, Auth::user());
                 $removed[] = $group->short_name;
+                $this->groupTitle($target, $group, false);
             }
         }
 
@@ -230,6 +236,30 @@ class AdminController extends Controller
         $summary = trim((count($added) > 0 ? 'added '.implode(', ', $added).' ' : '').(count($removed) > 0 ? 'removed '.implode(', ', $removed) : ''));
 
         return $this->done($target, 'admin.groups', "{$target->username}: {$summary}", 'Groups saved: '.$summary.'.');
+    }
+
+    /**
+     * TomYum: a group that comes with a title (the Tournament Committee's "Tournament Committee"):
+     * given with the group when they have no title, taken with it when it's still theirs.
+     */
+    private function groupTitle(User $target, Group $group, bool $added): void
+    {
+        $title = static::GROUP_TITLES[$group->identifier] ?? null;
+        if ($title === null) {
+            return;
+        }
+
+        $rank = Rank::where('rank_special', 1)->where('rank_title', $title)->first();
+        if ($rank === null) {
+            return;
+        }
+
+        $current = (int) User::whereKey($target->getKey())->value('user_rank');
+        if ($added && $current === 0) {
+            User::whereKey($target->getKey())->update(['user_rank' => $rank->getKey()]);
+        } elseif (!$added && $current === $rank->getKey()) {
+            User::whereKey($target->getKey())->update(['user_rank' => 0]);
+        }
     }
 
     public function supporter(string $user)

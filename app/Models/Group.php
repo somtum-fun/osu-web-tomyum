@@ -50,6 +50,7 @@ class Group extends Model implements AfterCommit
         'loved',
         'nat',
         'no_profile',
+        'tc', // TomYum: Tournament Committee (its migration makes it)
     ];
 
     public $timestamps = false;

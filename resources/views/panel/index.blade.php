@@ -24,6 +24,14 @@
                     <p class="tomyum-panel__hint">Restrictions, silences, reports, chat logs and score removal.</p>
                 </a>
             @endif
+            @if ($panels['tc'])
+                <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('panel.tc.index') }}">
+                    <span class="tomyum-panel__link-icon"><i class="fas fa-trophy"></i></span>
+                    <span class="tomyum-panel__kicker">Tournament Committee</span>
+                    <h2>TC panel</h2>
+                    <p class="tomyum-panel__hint">Live multiplayer matches (abort, close, talk to the room), tournament banners and badges.</p>
+                </a>
+            @endif
             @if ($panels['admin'])
                 <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('panel.admin.index') }}">
                     <span class="tomyum-panel__link-icon"><i class="fas fa-cog"></i></span>

@@ -37,9 +37,30 @@ abstract class Controller extends BaseController
         return $user !== null && $user->isAdmin();
     }
 
+    // The Tournament Committee panel: live matches, tournament banners and badges.
+    public static function canUseTc(?User $user): bool
+    {
+        return $user !== null && ($user->isTournamentCommittee() || $user->isAdmin());
+    }
+
+    /**
+     * The panel a page shared by the admin and TC panels (tournament banners, badges) was opened
+     * from, as its route name prefix: its links stay in that panel.
+     */
+    public static function sharedPanelPrefix(): string
+    {
+        return str_starts_with(\Route::currentRouteName() ?? '', 'panel.tc.') ? 'panel.tc.' : 'panel.admin.';
+    }
+
+    /** Who may open a shared page: the TC panel's for the TC (and admins), the admin panel's for admins. */
+    protected static function canUseSharedPanel(?User $user): bool
+    {
+        return static::sharedPanelPrefix() === 'panel.tc.' ? static::canUseTc($user) : static::canUseAdmin($user);
+    }
+
     public static function canUseAny(?User $user): bool
     {
-        return static::canUseBn($user) || static::canUseGmt($user) || static::canUseAdmin($user);
+        return static::canUseBn($user) || static::canUseGmt($user) || static::canUseTc($user) || static::canUseAdmin($user);
     }
 
     protected function ensure(bool $allowed): void

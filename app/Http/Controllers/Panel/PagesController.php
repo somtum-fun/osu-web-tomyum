@@ -18,6 +18,7 @@ class PagesController extends Controller
             'panels' => [
                 'bn' => static::canUseBn($user),
                 'gmt' => static::canUseGmt($user),
+                'tc' => static::canUseTc($user),
                 'admin' => static::canUseAdmin($user),
             ],
         ]);

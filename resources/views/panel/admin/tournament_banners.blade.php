@@ -5,8 +5,12 @@
 @extends('master', ['titlePrepend' => 'Tournament banners'])
 
 @section('content')
+    @php
+        // TomYum: shared by the admin and TC panels; links stay in the one it was opened from.
+        $panelPrefix = App\Http\Controllers\Panel\Controller::sharedPanelPrefix();
+    @endphp
     @include('panel._header', ['crumbs' => [
-        ['url' => route('panel.admin.index'), 'title' => 'Admin panel'],
+        ['url' => route($panelPrefix.'index'), 'title' => $panelPrefix === 'panel.tc.' ? 'TC panel' : 'Admin panel'],
         ['title' => 'Tournament banners'],
     ]])
     <div class="osu-page osu-page--admin tomyum-panel">
@@ -17,7 +21,7 @@
                 its tournament's page (listed with the previous tournaments). It shows 1000 × 60 wide: use an image 2000 × 120
                 (like osu!'s) so it's sharp everywhere. Given an address like osu!'s, the double-size one (…@2x.jpg) is taken when there is one.
             </p>
-            <form method="POST" action="{{ route('panel.admin.tournament-banners.store') }}" enctype="multipart/form-data" style="display: grid; gap: 12px">
+            <form method="POST" action="{{ route($panelPrefix.'tournament-banners.store') }}" enctype="multipart/form-data" style="display: grid; gap: 12px">
                 @csrf
                 <div class="tomyum-panel__row">
                     <label class="input-container tomyum-panel__field">
@@ -77,13 +81,13 @@
                         @endif
                     </h2>
                     <div style="display: flex; gap: 8px">
-                        <form method="POST" action="{{ route('panel.admin.tournament-banners.toggle', ['banner' => $banner->getKey()]) }}">
+                        <form method="POST" action="{{ route($panelPrefix.'tournament-banners.toggle', ['banner' => $banner->getKey()]) }}">
                             @csrf
                             <button class="btn-osu-big btn-osu-big--rounded-small btn-osu-big--panel-secondary" type="submit">
                                 <i class="fas {{ $banner->is_active ? 'fa-eye-slash' : 'fa-eye' }}"></i>{{ $banner->is_active ? 'Hide' : 'Show' }}
                             </button>
                         </form>
-                        <form method="POST" action="{{ route('panel.admin.tournament-banners.destroy', ['banner' => $banner->getKey()]) }}"
+                        <form method="POST" action="{{ route($panelPrefix.'tournament-banners.destroy', ['banner' => $banner->getKey()]) }}"
                             onsubmit="return confirm('Remove this banner (and take it from everyone who has it)?')">
                             @csrf
                             <button class="btn-osu-big btn-osu-big--rounded-small btn-osu-big--danger" type="submit"><i class="fas fa-trash"></i>Remove</button>
@@ -96,7 +100,7 @@
 
                 <details style="margin-bottom: 14px">
                     <summary class="tomyum-panel__muted" style="cursor: pointer; font-size: 12px">New image</summary>
-                    <form method="POST" action="{{ route('panel.admin.tournament-banners.replace', ['banner' => $banner->getKey()]) }}" enctype="multipart/form-data" class="tomyum-panel__row" style="margin-top: 8px">
+                    <form method="POST" action="{{ route($panelPrefix.'tournament-banners.replace', ['banner' => $banner->getKey()]) }}" enctype="multipart/form-data" class="tomyum-panel__row" style="margin-top: 8px">
                         @csrf
                         <label class="tomyum-panel__field">
                             Image
@@ -110,7 +114,7 @@
                     </form>
                 </details>
 
-                <form method="POST" action="{{ route('panel.admin.tournament-banners.give', ['banner' => $banner->getKey()]) }}" class="tomyum-panel__row">
+                <form method="POST" action="{{ route($panelPrefix.'tournament-banners.give', ['banner' => $banner->getKey()]) }}" class="tomyum-panel__row">
                     @csrf
                     <label class="input-container tomyum-panel__field">
                         <span class="input-container__label">Give it to (name or id)</span>
@@ -124,7 +128,7 @@
                         @if ($holder->user !== null)
                             <span class="tomyum-panel__pill tomyum-panel__pill--pink" style="align-items: center; display: inline-flex; gap: 6px">
                                 <a href="{{ route('users.show', ['user' => $holder->user_id]) }}" style="color: inherit">{{ $holder->user->username }}</a>
-                                <form method="POST" action="{{ route('panel.admin.tournament-banners.take', ['banner' => $banner->getKey(), 'user' => $holder->user_id]) }}" style="display: inline">
+                                <form method="POST" action="{{ route($panelPrefix.'tournament-banners.take', ['banner' => $banner->getKey(), 'user' => $holder->user_id]) }}" style="display: inline">
                                     @csrf
                                     <button type="submit" title="Take it away" style="background: none; border: 0; color: inherit; cursor: pointer; padding: 0"><i class="fas fa-times"></i></button>
                                 </form>

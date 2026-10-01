@@ -23,6 +23,12 @@
             ['Overview', 'panel.gmt.index', ['panel.gmt.index', 'panel.gmt.users.']],
             ['Chat log', 'panel.gmt.chat', ['panel.gmt.chat']],
         ]],
+        // The Tournament Committee: live matches, and the banners and badges pages (also the admin's).
+        'tc' => ['TC', 'panel.tc.index', PanelController::canUseTc($user), [
+            ['Matches', 'panel.tc.index', ['panel.tc.index', 'panel.tc.matches.']],
+            ['Banners', 'panel.tc.tournament-banners.index', ['panel.tc.tournament-banners.']],
+            ['Badges', 'panel.tc.badges.index', ['panel.tc.badges.']],
+        ]],
         'admin' => ['Admin', 'panel.admin.index', PanelController::canUseAdmin($user), [
             ['Overview', 'panel.admin.index', ['panel.admin.index', 'panel.admin.recalculate']],
             ['Accounts', 'panel.admin.users.index', ['panel.admin.users.']],
