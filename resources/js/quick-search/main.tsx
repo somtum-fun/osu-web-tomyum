@@ -3,6 +3,7 @@
 
 import { Spinner } from 'components/spinner';
 import StringWithComponent from 'components/string-with-component';
+import { UserCard } from 'components/user-card';
 import { route } from 'laroute';
 import { observer } from 'mobx-react';
 import * as React from 'react';
@@ -12,7 +13,6 @@ import { trans } from 'utils/lang';
 import { navigate } from 'utils/turbolinks';
 import Beatmapset from './beatmapset';
 import Team from './team';
-import User from './user';
 import { otherModes, ResultMode, Section } from './worker';
 import Worker from './worker';
 
@@ -66,7 +66,7 @@ interface Props {
               onClick={this.props.onClose}
               type='button'
             >
-              {trans('common.buttons.close')}
+              {trans('common.buttons.cancel')}
             </button>
           )}
         </div>
@@ -181,14 +181,16 @@ interface Props {
 
     return (
       <div className='quick-search-result'>
-        <div className='quick-search-result__item'>
-          {this.renderTitle('beatmapset')}
-          {this.renderBeatmapsets()}
-        </div>
+        {this.renderCounts()}
 
         <div className='quick-search-result__item'>
           {this.renderTitle('user')}
           {this.renderUsers()}
+        </div>
+
+        <div className='quick-search-result__item'>
+          {this.renderTitle('beatmapset')}
+          {this.renderBeatmapsets()}
         </div>
 
         <div className='quick-search-result__item'>
@@ -229,9 +231,30 @@ interface Props {
           </span>
         </div>
         <div className='search-result-more__arrow'>
-          <span className='fas fa-angle-right' />
+          <span className='fas fa-angle-double-right' />
         </div>
       </a>
+    );
+  }
+
+  // TomYum: how many of each there are, over the results (the search design), each to its page.
+  private renderCounts() {
+    const modes: ResultMode[] = ['user', 'beatmapset', 'team', ...otherModes];
+
+    return (
+      <div className='quick-search-result__counts'>
+        {modes.map((mode) => (
+          <a
+            key={mode}
+            className='quick-search-result__count'
+            href={route('search', { mode, query: this.props.worker.query })}
+          >
+            <strong>{trans(`quick_search.mode.${mode}`)}</strong>
+            {' '}
+            {formatNumber(this.count(mode))}
+          </a>
+        ))}
+      </div>
     );
   }
 
@@ -297,10 +320,8 @@ interface Props {
             onMouseEnter={this.onMouseEnter}
             onMouseLeave={this.onMouseLeave}
           >
-            <User
-              modifiers={this.boxIsActive('user', idx) ? 'active' : null}
-              user={user}
-            />
+            {/* TomYum: the search design's player list (the list player cards) */}
+            <UserCard activated={this.boxIsActive('user', idx)} mode='list' user={user} />
           </div>
         ))}
 

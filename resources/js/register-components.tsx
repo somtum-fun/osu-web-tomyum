@@ -152,7 +152,7 @@ core.reactTurbolinks.register('user-cards', (container) => (
   <UserCards
     modifiers={container.dataset.modifiers}
     users={reqJson(container.dataset.users ?? '[]')}
-    viewMode='card'
+    viewMode={container.dataset.viewMode === 'list' ? 'list' : 'card'} // TomYum: search shows the list
   />
 ));
 

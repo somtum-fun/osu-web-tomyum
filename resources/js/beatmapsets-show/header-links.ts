@@ -7,13 +7,17 @@ import { route } from 'laroute';
 import { trans } from 'utils/lang';
 import { switchNever } from 'utils/switch-never';
 
-const linkModes = ['show', 'discussions', 'versions'] as const;
+// TomYum: comments between them (the design proposal's Info | Comments | Modding).
+const linkModes = ['show', 'comments', 'discussions', 'versions'] as const;
 type LinkMode = typeof linkModes[number];
 
 type BeatmapsetJsonForHeaderLinks = BeatmapsetJson & Required<Pick<BeatmapsetJson, 'version_count'>>;
 
 function generateUrl(mode: LinkMode, beatmapset: BeatmapsetJsonForHeaderLinks) {
   switch (mode) {
+    case 'comments':
+      // the beatmap page scrolls to its comments (beatmapsets-show/main.tsx)
+      return `${route('beatmapsets.show', { beatmapset: beatmapset.id })}#comments`;
     case 'discussions':
       return route('beatmapsets.discussion', { beatmapset: beatmapset.id });
     case 'show':
@@ -48,7 +52,7 @@ export default function headerLinks(active: LinkMode, beatmapset: BeatmapsetJson
       ret.push({
         active: mode === active,
         count,
-        title: trans(`layout.header.beatmapsets.${mode}`),
+        title: mode === 'comments' ? trans('comments.title').toLowerCase() : trans(`layout.header.beatmapsets.${mode}`),
         url,
       });
     }

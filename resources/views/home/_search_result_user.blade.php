@@ -5,12 +5,14 @@
 @php
     use App\Transformers\UserCompactTransformer;
 @endphp
+{{-- TomYum: the search design's player list (list player cards, with their level). --}}
 <div class="js-react"
     data-modifiers="search"
     data-react="user-cards"
+    data-view-mode="list"
     data-users="{{ json_encode(json_collection(
-        $search->data(),
-        new UserCompactTransformer(),
-        UserCompactTransformer::CARD_INCLUDES,
+        $search->data()->loadMissing(UserCompactTransformer::listIncludesPreload('osu')),
+        (new UserCompactTransformer())->setMode('osu'),
+        UserCompactTransformer::LIST_INCLUDES,
     )) }}"
 ></div>

@@ -1,35 +1,16 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
 // See the LICENCE file in the repository root for full licence text.
 
+// TomYum: a forum result as in osu!'s search design proposal (objects/search/_forum_post): a line
+// down its side, the topic and the post's text with the words searched for marked in yellow, then
+// the forum as a black pill, who posted it, when and the link. The whole result is a link.
 .search-forum-post {
-  @avatar-size: 50px;
-  @margin: 5px;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  word-wrap: break-word;
-  line-height: 1.5;
+  border-left: 2px solid #66ffcc;
+  line-height: 1.35;
+  padding-left: 12px;
   pointer-events: none;
-
-  &__avatar {
-    flex: none;
-    width: @avatar-size;
-    height: @avatar-size;
-    margin: @margin;
-    pointer-events: auto;
-    position: relative;
-  }
-
-  &__avatar-image {
-    .full-size();
-    border-radius: 50%;
-  }
-
-  &__content {
-    flex: 1;
-    margin-left: @margin;
-    min-width: 0;
-  }
+  position: relative;
+  word-wrap: break-word;
 
   &__link {
     // make link element take the full size of the element.
@@ -37,59 +18,106 @@
     pointer-events: auto;
   }
 
-  &__more {
-    display: flex;
-  }
-
-  &__poster {
-    display: inline-block;
-    margin-right: 1em;
-
-    color: @osu-colour-f1;
-
-    @media @mobile {
-      display: block;
-    }
-  }
-
-  &__sub-link {
-    font-weight: bold;
-    pointer-events: auto;
-    position: relative;
+  &__content {
+    min-width: 0;
   }
 
   &__text {
-    color: white;
-
-    &--excerpt {
-      .content-font();
-      font-size: @font-size--small-2;
-    }
-
-    &--footer {
-      color: @osu-colour-f1;
-      font-size: @font-size--small;
-    }
+    color: #fff;
+    font-size: @font-size--normal;
 
     &--title {
-      font-size: @font-size--title-small-2;
-      margin-bottom: @margin;
+      font-weight: 600;
+    }
+
+    &--excerpt {
+      color: hsl(var(--hsl-c2));
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      overflow: hidden;
+    }
+
+    .search-highlight em {
+      background-color: #ffcc22;
+      border-radius: 3px;
+      color: hsl(var(--hsl-b6));
+      font-weight: 600;
+      padding: 0 2px;
     }
   }
 
-  &__time {
-    display: inline-block;
+  &__footer {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    font-size: @font-size--normal;
+    font-weight: 600;
+    gap: 6px 20px;
+    margin-top: 8px;
+  }
+
+  // the forum: a black pill, "Forum" and its name
+  &__forum {
+    .link-plain();
+    background-color: hsl(0, 0%, 0%);
+    border-radius: 10000px;
+    color: hsl(var(--hsl-l1));
+    padding: 3px 12px;
     pointer-events: auto;
     position: relative;
 
-    @media @mobile {
-      display: block;
+    .link-hover({
+      color: hsl(var(--hsl-l1));
+      text-decoration: underline;
+    });
+  }
+
+  &__forum-label {
+    color: #fff;
+    font-weight: 700;
+    margin-right: 4px;
+  }
+
+  &__poster {
+    .link-plain();
+    align-items: center;
+    color: #fff;
+    display: inline-flex;
+    gap: 6px;
+    pointer-events: auto;
+    position: relative;
+
+    strong {
+      color: hsl(var(--hsl-l1));
+    }
+  }
+
+  &__avatar-image {
+    border-radius: 5px;
+    height: 24px;
+    object-fit: cover;
+    width: 24px;
+  }
+
+  &__time {
+    color: #fff;
+    pointer-events: auto;
+    position: relative;
+
+    &::before {
+      content: "Last updated ";
     }
   }
 
   &__url {
-    display: inline-block;
-    margin-right: 1em;
+    .link-plain();
+    color: hsl(var(--hsl-l1));
+    overflow: hidden;
+    pointer-events: auto;
+    position: relative;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 
     @media @mobile {
       display: none;
