@@ -63,6 +63,46 @@ class Chat
         return $channel;
     }
 
+    // TomYum: a group chat (the chat design's Groups) with the given players, for those the sender
+    // could message directly (blocks and friends-only settings hold), and the sender. An optional
+    // first message.
+    public static function createGroup(User $sender, array $rawParams)
+    {
+        priv_check_user($sender, 'ChatGroupCreate')->ensureCan();
+
+        $params = get_params($rawParams, null, [
+            'channel:array',
+            'message:string',
+            'target_ids:int[]',
+            'uuid',
+        ], ['null_missing' => true]);
+
+        if (!isset($params['channel'])) {
+            throw new InvariantException('missing channel parameter');
+        }
+
+        $targetIds = array_slice(array_unique($params['target_ids'] ?? []), 0, Channel::GROUP_MAX_MEMBERS - 1);
+        $users = User::whereIn('user_id', $targetIds)->default()->get()->filter(
+            fn (User $user) => !$user->is($sender)
+                && !$user->isBot()
+                && priv_check_user($sender, 'ChatPmStart', $user)->can()
+        );
+        if ($users->isEmpty()) {
+            throw new InvariantException('Nobody to add to the group!');
+        }
+
+        $users = $users->push($sender)->uniqueStrict('user_id');
+
+        return (new Channel())->getConnection()->transaction(function () use ($sender, $params, $users) {
+            $channel = Channel::createGroup($users, $params['channel'], $params['uuid']);
+            if (present($params['message'])) {
+                static::sendMessage($sender, $channel, $params['message'], false);
+            }
+
+            return $channel;
+        });
+    }
+
     // Do the restricted user lookup before calling this.
     public static function sendPrivateMessage(User $sender, User $target, ?string $message, ?bool $isAction, ?string $uuid = null, bool $privCheck = true)
     {

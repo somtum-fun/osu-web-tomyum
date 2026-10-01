@@ -33,7 +33,7 @@ interface NewAnnouncementRequestJson {
   };
   message: string;
   target_ids: number[];
-  type: 'ANNOUNCE';
+  type: 'ANNOUNCE' | 'GROUP'; // TomYum: and group chats
   uuid: string;
 }
 

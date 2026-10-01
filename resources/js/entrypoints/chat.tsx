@@ -80,7 +80,7 @@ core.reactTurbolinks.register('chat', action(() => {
 
   const channelId = currentUrl().hash.slice(1);
 
-  if (channelId === 'create' || channelId === 'join') {
+  if (channelId === 'create' || channelId === 'create-group' || channelId === 'join') {
     core.dataStore.chatState.selectChannel(channelId, 'replace');
   } else {
     const channel = getInitialChannel(initial?.send_to);

@@ -73,7 +73,10 @@ export default class ConversationListItem extends React.Component<Props> {
 
         <button className={`${baseClassName}__tile`} onClick={this.switch}>
           <div className={`${baseClassName}__avatar`}>
-            <UserAvatar modifiers='full-circle' user={{ avatar_url: this.props.channel.icon }} />
+            {/* TomYum: a group chat shows the chat design's people icon */}
+            {this.props.channel.type === 'GROUP'
+              ? <span className={`${baseClassName}__group-icon fas fa-users`} />
+              : <UserAvatar modifiers='full-circle' user={{ avatar_url: this.props.channel.icon }} />}
           </div>
           <div className={`${baseClassName}__name u-ellipsis-overflow`}>{this.displayName}</div>
           {/* TomYum: the chat design's unread count */}
@@ -100,6 +103,11 @@ export default class ConversationListItem extends React.Component<Props> {
 
   private readonly part = () => {
     if (this.props.channel.type === 'ANNOUNCE' && !confirm(trans('chat.channels.confirm_part'))){
+      return;
+    }
+
+    // TomYum: leaving a group chat is for good (someone in it has to add you again)
+    if (this.props.channel.type === 'GROUP' && !confirm(trans('chat.channels.confirm_part_group'))) {
       return;
     }
 

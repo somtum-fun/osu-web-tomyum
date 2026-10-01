@@ -71,7 +71,12 @@ export default class ConversationPanel extends React.Component<Record<string, ne
     const selected = core.dataStore.chatState.selectedChannelOrType;
 
     if (selected === 'create') {
-      return <CreateAnnouncement />;
+      return <CreateAnnouncement key='announcement' kind='announcement' />;
+    }
+
+    // TomYum: group chats
+    if (selected === 'create-group') {
+      return <CreateAnnouncement key='group' kind='group' />;
     }
 
     if (selected === 'join' || core.dataStore.channelStore.channels.size === 0) {

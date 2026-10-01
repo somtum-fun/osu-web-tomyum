@@ -21,7 +21,8 @@ const icons: Record<SupportedChannelType, string> = {
 
 function renderChannels(type: SupportedChannelType) {
   const channels = core.dataStore.channelStore.groupedChannels[type];
-  if (channels.length > 0 || type === 'PUBLIC' || type === 'ANNOUNCE' && core.dataStore.chatState.canChatAnnounce) {
+  // TomYum: Groups always, for Create New Group
+  if (channels.length > 0 || type === 'PUBLIC' || type === 'GROUP' || type === 'ANNOUNCE' && core.dataStore.chatState.canChatAnnounce) {
     const title = trans(`chat.channels.list.title.${type}`);
 
     // Optimization so that the channel list can be rendered as several smaller layers.
@@ -43,6 +44,7 @@ function renderChannels(type: SupportedChannelType) {
           ))}
           {type === 'ANNOUNCE' && <AddChannelButton type='create' />}
           {type === 'PUBLIC' && <AddChannelButton type='join' />}
+          {type === 'GROUP' && <AddChannelButton type='create-group' />}
         </div>
         <div className='chat-conversation-list-separator' />
       </React.Fragment>
@@ -62,7 +64,6 @@ const filterTypes: Record<ChatListFilter, readonly SupportedChannelType[]> = {
 };
 
 const emptyText: Partial<Record<ChatListFilter, string>> = {
-  groups: 'No groups yet.',
   pms: 'No direct messages yet. Message someone from their profile.',
 };
 

@@ -49,6 +49,7 @@ class Channel extends Model
 
     const ANNOUNCE_MESSAGE_LENGTH_LIMIT = 1024; // limited by column length
     const CHAT_ACTIVITY_TIMEOUT = 60; // in seconds.
+    const GROUP_MAX_MEMBERS = 50; // TomYum: group chats, the creator included
 
     const MAX_FIELD_LENGTHS = [
         'description' => 255,
@@ -101,13 +102,31 @@ class Channel extends Model
      */
     public static function createAnnouncement(Collection $users, array $rawParams, ?string $uuid = null): static
     {
+        return static::createWithUsers(static::TYPES['announce'], true, $users, $rawParams, $uuid);
+    }
+
+    /**
+     * TomYum: a group chat (the chat design's Groups): its members talk freely; nobody else can join.
+     *
+     * @param Collection<User> $users
+     */
+    public static function createGroup(Collection $users, array $rawParams, ?string $uuid = null): static
+    {
+        return static::createWithUsers(static::TYPES['group'], false, $users, $rawParams, $uuid);
+    }
+
+    /**
+     * @param Collection<User> $users
+     */
+    private static function createWithUsers(string $type, bool $moderated, Collection $users, array $rawParams, ?string $uuid): static
+    {
         $params = get_params($rawParams, null, [
             'description:string',
             'name:string',
         ], ['null_missing' => true]);
 
-        $params['moderated'] = true;
-        $params['type'] = static::TYPES['announce'];
+        $params['moderated'] = $moderated;
+        $params['type'] = $type;
 
         $channel = new static($params);
         $connection = $channel->getConnection();

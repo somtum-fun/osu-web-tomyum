@@ -955,7 +955,30 @@ class OsuAuthorize
             return 'ok';
         }
 
+        // TomYum: a group chat's members see who's in it.
+        if ($user !== null && $channel->isGroup() && $channel->hasUser($user)) {
+            return 'ok';
+        }
+
         return null;
+    }
+
+    /**
+     * TomYum: starting a group chat takes what starting a direct message does (the players added are
+     * checked one by one, see Chat::createGroup).
+     */
+    public function checkChatGroupCreate(?User $user): string
+    {
+        $prefix = 'chat.';
+
+        $this->ensureLoggedIn($user);
+        $this->ensureCleanRecord($user, $prefix);
+
+        if (!$GLOBALS['cfg']['osu']['user']['min_plays_allow_verified_bypass']) {
+            $this->ensureHasPlayed($user);
+        }
+
+        return 'ok';
     }
 
     /**

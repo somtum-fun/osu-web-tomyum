@@ -301,6 +301,9 @@ class ChannelsController extends Controller
             }
         } else if ($params['type'] === Channel::TYPES['announce']) {
             $channel = Chat::createAnnouncement($sender, $params);
+        } else if ($params['type'] === Channel::TYPES['group']) {
+            // TomYum: group chats (the chat design's Groups)
+            $channel = Chat::createGroup($sender, $params);
         }
 
         if (isset($channel)) {

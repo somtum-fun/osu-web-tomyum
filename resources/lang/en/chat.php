@@ -18,7 +18,9 @@ return [
 
     'channels' => [
         'confirm_part' => 'Do you want to hide this channel? You will still receive messages from this channel.',
+        'confirm_part_group' => 'Leave this group? You will need to be added again to come back.',
         'create' => 'create announcement',
+        'create-group' => 'Create New Group',
         'join' => 'join channel',
         'none' => 'no channel',
 
@@ -36,11 +38,14 @@ return [
     'form' => [
         'title' => [
             'announcement' => 'Create New Announcement',
+            'group' => 'Create New Group',
         ],
 
         'labels' => [
             'description' => 'description',
+            'description_optional' => 'description (optional)',
             'message' => 'message',
+            'message_optional' => 'first message (optional)',
             'name' => 'room name',
             'users' => 'players to add',
         ],

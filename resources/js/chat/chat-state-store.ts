@@ -12,7 +12,7 @@ import ChannelJson, { supportedChannelTypes } from 'interfaces/chat/channel-json
 import { clamp, maxBy } from 'lodash';
 import { action, autorun, computed, makeObservable, observable, observe, runInAction } from 'mobx';
 import Channel from 'models/chat/channel';
-import CreateAnnouncement from 'models/chat/create-announcement';
+import CreateAnnouncement, { CreateChannelKind } from 'models/chat/create-announcement';
 import core from 'osu-core-singleton';
 import ChannelStore from 'stores/channel-store';
 import { isJqXHR, onError } from 'utils/ajax';
@@ -36,6 +36,7 @@ export type ChatListFilter = 'all' | 'channels' | 'pms' | 'groups';
 export default class ChatStateStore implements DispatchListener {
   @observable canChatAnnounce = false;
   @observable createAnnouncement = new CreateAnnouncement();
+  @observable createGroup = new CreateAnnouncement('group'); // TomYum: group chats
   @observable isReady = false;
   // TomYum: which conversations the list shows (the chat design's tabs).
   @observable listFilter: ChatListFilter = 'all';
@@ -149,7 +150,7 @@ export default class ChatStateStore implements DispatchListener {
   // For consistency, the operation is considered complete when the websocket message arrives, not when the request completes.
   // TODO: allow user cancelling operation from UI?
   @action
-  async addChannel(channelId?: number) {
+  async addChannel(channelId?: number, create: CreateChannelKind = 'announcement') {
     if (this.isAddingChannel) return;
 
     try {
@@ -162,9 +163,11 @@ export default class ChatStateStore implements DispatchListener {
         this.waitAddChannelId = channelId;
         await joinChannel(channelId, core.currentUserOrFail.id);
       } else {
-        if (!this.createAnnouncement.isValid) return;
+        // TomYum: or a group chat
+        const form = create === 'group' ? this.createGroup : this.createAnnouncement;
+        if (!form.isValid) return;
 
-        const json = this.createAnnouncement.toJson();
+        const json = form.toJson();
         this.waitAddChannelId = json.uuid;
         await createAnnouncement(json);
       }
@@ -278,6 +281,8 @@ export default class ChatStateStore implements DispatchListener {
       this.waitAddChannelId = null;
       if (json.type === 'ANNOUNCE') {
         this.createAnnouncement.clear();
+      } else if (json.type === 'GROUP') {
+        this.createGroup.clear();
       }
     } else {
       const offerJoinChannel = this.getOfferJoinChannel();

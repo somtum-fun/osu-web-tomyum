@@ -61,16 +61,13 @@ export default class MainView extends React.Component<Record<string, never>> {
   render() {
     const chatState = core.dataStore.chatState;
 
-    // TomYum: the chat design's tabs, which filter the conversation list (Groups only once there
-    // are any), and its Join Chat button.
+    // TomYum: the chat design's tabs, which filter the conversation list, and its Join Chat button.
     const filters: [ChatListFilter, string][] = [
       ['all', 'All Chats'],
       ['channels', 'Channels'],
       ['pms', 'Direct Messages'],
+      ['groups', 'Groups'],
     ];
-    if (core.dataStore.channelStore.groupedChannels.GROUP.length > 0) {
-      filters.push(['groups', 'Groups']);
-    }
 
     const links = filters.map(([filter, title]) => ({
       active: chatState.listFilter === filter,

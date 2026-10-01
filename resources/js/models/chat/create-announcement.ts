@@ -14,7 +14,14 @@ interface LocalStorageProps extends Record<InputKey, string> {
 const inputKeys = ['description', 'message', 'name', 'users'] as const;
 type InputKey = typeof inputKeys[number];
 
-const localStorageKey = 'createAnnouncement';
+// TomYum: the form also makes group chats (the chat design's Groups): only the name and the players
+// are needed there.
+export type CreateChannelKind = 'announcement' | 'group';
+
+const localStorageKeys: Record<CreateChannelKind, string> = {
+  announcement: 'createAnnouncement',
+  group: 'createGroup',
+};
 
 export const maxLengths = Object.freeze({
   description: 255,
@@ -40,7 +47,7 @@ export default class CreateAnnouncement {
   get errors() {
     return {
       description: !this.isValidLength('description', true),
-      message: !this.isValidLength('message'),
+      message: !this.isValidLength('message', this.kind === 'group'),
       name: !this.isValidLength('name'),
       users: this.validUsers.size === 0
         || present(this.inputs.users.trim()), // implies invalid ids left
@@ -59,7 +66,11 @@ export default class CreateAnnouncement {
     };
   }
 
-  constructor() {
+  private get localStorageKey() {
+    return localStorageKeys[this.kind];
+  }
+
+  constructor(readonly kind: CreateChannelKind = 'announcement') {
     this.inputs = this.resetInputs();
     this.showError = this.resetErrors();
 
@@ -78,7 +89,7 @@ export default class CreateAnnouncement {
   initialize() {
     if (this.initialized) return;
 
-    const saved = localStorage.getItem(localStorageKey);
+    const saved = localStorage.getItem(this.localStorageKey);
     if (saved != null) {
       try {
         // TODO: validate props
@@ -90,7 +101,7 @@ export default class CreateAnnouncement {
         this.inputs.users = [...json.validUsers, json.users].join(',');
       } catch (_error) {
         console.error('invalid json in localStorage');
-        localStorage.removeItem(localStorageKey);
+        localStorage.removeItem(this.localStorageKey);
       }
     }
 
@@ -101,7 +112,7 @@ export default class CreateAnnouncement {
       };
 
       // TODO: don't save if 'empty'?
-      localStorage.setItem(localStorageKey, JSON.stringify(props));
+      localStorage.setItem(this.localStorageKey, JSON.stringify(props));
     });
 
     this.initialized = true;
@@ -123,7 +134,7 @@ export default class CreateAnnouncement {
       channel: { description, name },
       message,
       target_ids: [...this.validUsers.keys()],
-      type: 'ANNOUNCE' as const,
+      type: this.kind === 'group' ? 'GROUP' as const : 'ANNOUNCE' as const,
       uuid: this.uuid,
     };
   }

@@ -8,15 +8,20 @@ import UsernameInput from 'components/username-input';
 import UserJson from 'interfaces/user-json';
 import { action, computed, makeObservable, runInAction } from 'mobx';
 import { observer } from 'mobx-react';
-import { isInputKey } from 'models/chat/create-announcement';
+import { CreateChannelKind, isInputKey } from 'models/chat/create-announcement';
 import core from 'osu-core-singleton';
 import * as React from 'react';
 import { trans } from 'utils/lang';
 
-type Props = Record<string, never>;
+interface Props {
+  // TomYum: 'group' makes a group chat: no announcer rights needed, only the name and players.
+  kind: CreateChannelKind;
+}
 
 @observer
 export default class CreateAnnouncement extends React.Component<Props> {
+  static readonly defaultProps = { kind: 'announcement' };
+
   private readonly usernameInputInitialProps;
 
   @computed
@@ -24,9 +29,13 @@ export default class CreateAnnouncement extends React.Component<Props> {
     return core.dataStore.chatState.isReady && !core.dataStore.chatState.isAddingChannel && this.model.isValid;
   }
 
+  private get isGroup() {
+    return this.props.kind === 'group';
+  }
+
   @computed
   private get model() {
-    return core.dataStore.chatState.createAnnouncement;
+    return this.isGroup ? core.dataStore.chatState.createGroup : core.dataStore.chatState.createAnnouncement;
   }
 
   constructor(props: Props) {
@@ -42,12 +51,12 @@ export default class CreateAnnouncement extends React.Component<Props> {
   }
 
   render() {
-    if (!core.dataStore.chatState.canChatAnnounce) return null;
+    if (!this.isGroup && !core.dataStore.chatState.canChatAnnounce) return null;
 
     return (
       <div className='chat-form'>
         <div className='chat-form__fields'>
-          <div className='chat-form__title'>{trans('chat.form.title.announcement')}</div>
+          <div className='chat-form__title'>{trans(`chat.form.title.${this.props.kind}`)}</div>
           <InputContainer
             labelKey='chat.form.labels.name'
             {...this.model.inputContainerPropsFor('name')}
@@ -61,7 +70,7 @@ export default class CreateAnnouncement extends React.Component<Props> {
             />
           </InputContainer>
           <InputContainer
-            labelKey='chat.form.labels.description'
+            labelKey={this.isGroup ? 'chat.form.labels.description_optional' : 'chat.form.labels.description'}
             {...this.model.inputContainerPropsFor('description')}
           >
             <input
@@ -94,7 +103,7 @@ export default class CreateAnnouncement extends React.Component<Props> {
             </div>
           </InputContainer>
           <InputContainer
-            labelKey='chat.form.labels.message'
+            labelKey={this.isGroup ? 'chat.form.labels.message_optional' : 'chat.form.labels.message'}
             modifiers='fill'
             {...this.model.inputContainerPropsFor('message')}
           >
@@ -111,7 +120,7 @@ export default class CreateAnnouncement extends React.Component<Props> {
           <div className='chat-form__button-bar'>
             <BigButton
               disabled={!this.canSend}
-              icon='fas fa-bullhorn'
+              icon={this.isGroup ? 'fas fa-users' : 'fas fa-bullhorn'}
               isBusy={core.dataStore.chatState.isAddingChannel}
               modifiers='chat-send'
               props={{ onClick: this.handleButtonClick }}
@@ -134,7 +143,7 @@ export default class CreateAnnouncement extends React.Component<Props> {
 
   @action
   private readonly handleButtonClick = () => {
-    core.dataStore.chatState.addChannel();
+    void core.dataStore.chatState.addChannel(undefined, this.props.kind);
   };
 
   @action
