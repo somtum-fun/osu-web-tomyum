@@ -12,7 +12,7 @@
 
   height: @_height;
   width: 100%;
-  max-width: 520px;
+  max-width: 540px; // TomYum: the Web Player design's 540px
   background-color: @osu-colour-b2;
   display: flex;
   align-items: center;
@@ -66,7 +66,7 @@
     .center-content();
     color: @osu-colour-c1;
     padding: 5px;
-    font-size: 14px; // icon size
+    font-size: 16px; // icon size (TomYum: the design's 16px for all three)
 
     &:hover {
       color: @osu-colour-l1;
@@ -141,7 +141,7 @@
 
     &--volume {
       --bar: var(--volume);
-      width: 50px;
+      width: 60px; // TomYum: the design's
       flex: none;
 
       .@{_top}[data-audio-volume-bar-visible="0"] & {
