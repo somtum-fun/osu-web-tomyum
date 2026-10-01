@@ -1629,9 +1629,12 @@ class User extends Model implements AfterCommit, AuthenticatableContract, HasLoc
         return $count;
     }
 
+    // TomYum: counted every time. Friends added in game go straight into phpbb_zebra (the server), so
+    // the website's 12 hour cache (refreshed only by its own friend button) said 0 for players with
+    // followers. The count is one lookup on the zebra_friend index.
     public function followerCount()
     {
-        return get_int(Cache::get(self::CACHING['follower_count']['key'].':'.$this->user_id)) ?? $this->cacheFollowerCount();
+        return $this->uncachedFollowerCount();
     }
 
     public function mappingFollowerCount()
