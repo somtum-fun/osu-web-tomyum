@@ -1,19 +1,21 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
 // See the LICENCE file in the repository root for full licence text.
 
-import Bar from 'components/bar';
-import BeatmapBasicStats from 'components/beatmap-basic-stats';
 import { computed, makeObservable } from 'mobx';
 import { observer } from 'mobx-react';
 import * as React from 'react';
 import { formatNumber, formatStarRating } from 'utils/html';
-import { trans } from 'utils/lang';
+import { trans, transChoice } from 'utils/lang';
 import Controller from './controller';
 
 interface Props {
   controller: Controller;
+  part: 'numbers' | 'ratings';
 }
 
+// TomYum: the design proposal's middle and right columns: the difficulty's object counts and its
+// settings as bars (part 'numbers'), then how many plays pass, the user rating and its spread
+// (part 'ratings').
 @observer
 export default class Stats extends React.Component<Props> {
   // the one in beatmapset has invalid rating 0 data in it
@@ -39,100 +41,122 @@ export default class Stats extends React.Component<Props> {
   }
 
   render() {
+    if (this.props.part === 'ratings') {
+      return (
+        <div className='beatmapset-header-v2__ratings'>
+          {this.renderSuccessRate()}
+          {this.props.controller.beatmapset.is_scoreable && this.renderRating()}
+        </div>
+      );
+    }
+
+    const beatmap = this.props.controller.currentBeatmap;
+
     return (
-      <div className='beatmapset-stats'>
-        <button
-          className='beatmapset-stats__row beatmapset-stats__row--preview js-audio--play js-audio--player'
-          data-audio-url={this.props.controller.beatmapset.preview_url}
-          type='button'
-        >
-          <span className='play-button' />
-          <div className='beatmapset-stats__elapsed-bar' />
-        </button>
-
-        <div className='beatmapset-stats__row beatmapset-stats__row--basic'>
-          <BeatmapBasicStats
-            beatmap={this.props.controller.currentBeatmap}
-            beatmapset={this.props.controller.beatmapset}
-          />
+      <div className='beatmapset-header-v2__stats'>
+        <div className='beatmapset-header-v2__counts'>
+          {this.renderCount(trans('beatmapsets.show.stats.count_circles'), beatmap.count_circles)}
+          {this.renderCount(trans('beatmapsets.show.stats.count_sliders'), beatmap.count_sliders)}
+          {this.renderCount('Spinner Count', beatmap.count_spinners)}
         </div>
 
-        <div className='beatmapset-stats__row beatmapset-stats__row--advanced'>
-          <table className='beatmap-stats-table'>
-            <tbody>
-              {this.statKeys.map(this.renderStat)}
-            </tbody>
-          </table>
+        <div className='beatmapset-header-v2__stat-rows'>
+          {this.statKeys.map(this.renderStat)}
         </div>
-
-        {this.props.controller.beatmapset.is_scoreable &&
-          <div className='beatmapset-stats__row beatmapset-stats__row--rating'>
-            <div className='beatmapset-stats__rating-header'>
-              {trans('beatmapsets.show.stats.user-rating')}
-              {' '}
-              ({formatNumber(this.props.controller.beatmapset.rating, 2)})
-            </div>
-
-            {this.renderRatingBar()}
-
-            <div className='beatmapset-stats__rating-header'>{trans('beatmapsets.show.stats.rating-spread')}</div>
-
-            <div className='beatmapset-stats__rating-chart'>
-              {this.renderRatingChart()}
-            </div>
-          </div>
-        }
       </div>
     );
   }
 
-  private renderRatingBar() {
-    const summary = {
-      negative: 0,
-      positive: 0,
-    };
+  private renderBar(value: number, modifier?: string) {
+    return (
+      <div className={`beatmapset-header-v2__bar ${modifier == null ? '' : `beatmapset-header-v2__bar--${modifier}`}`}>
+        <div className='beatmapset-header-v2__bar-fill' style={{ width: `${Math.max(0, Math.min(1, value)) * 100}%` }} />
+      </div>
+    );
+  }
 
-    this.ratings.forEach((count, i) => {
-      const key = i < 5 ? 'negative' : 'positive';
-      summary[key] += count;
+  private renderRating() {
+    const ratings = this.ratings;
+    let negative = 0;
+    let positive = 0;
+    ratings.forEach((count, i) => {
+      if (i < 5) {
+        negative += count;
+      } else {
+        positive += count;
+      }
     });
-
-    const total = Math.max(1, summary.positive + summary.negative);
+    const total = negative + positive;
+    const maxValue = Math.max(1, ...ratings);
 
     return (
       <>
-        <Bar
-          current={summary.negative}
-          modifiers='beatmap-rating'
-          total={total}
-        />
+        <div className='beatmapset-header-v2__rating-block'>
+          <div className='beatmapset-header-v2__rating-label'>
+            {trans('beatmapsets.show.stats.user-rating')}
+            {total > 0 && ` (${formatNumber(this.props.controller.beatmapset.rating, 2)})`}
+          </div>
+          <div className='beatmapset-header-v2__rating-values'>
+            <span>{formatNumber(negative)}</span>
+            <span>{formatNumber(positive)}</span>
+          </div>
+          {this.renderBar(total === 0 ? 0 : positive / total, 'rating')}
+        </div>
 
-        <div className='beatmapset-stats__rating-values'>
-          <span>{formatNumber(summary.negative)}</span>
-          <span>{formatNumber(summary.positive)}</span>
+        <div className='beatmapset-header-v2__rating-block'>
+          <div className='beatmapset-header-v2__rating-label'>{trans('beatmapsets.show.stats.rating-spread')}</div>
+          <div className='beatmapset-header-v2__spread'>
+            {ratings.map((count, i) => (
+              <div
+                key={i}
+                className={`beatmapset-header-v2__spread-bar beatmapset-header-v2__spread-bar--${i + 1}`}
+                style={{ height: `${Math.max(6, 100 * count / maxValue)}%` }}
+                title={formatNumber(count)}
+              />
+            ))}
+          </div>
         </div>
       </>
     );
   }
 
-  private renderRatingChart() {
-    if (!this.props.controller.beatmapset.is_scoreable) return;
+  private renderSuccessRate() {
+    const beatmap = this.props.controller.currentBeatmap;
 
-    const ratings = this.ratings;
-    const maxValue = Math.max(1, Math.max(...ratings));
+    if (beatmap.playcount === 0) {
+      return (
+        <div className='beatmapset-header-v2__rating-block'>
+          <div className='beatmapset-header-v2__rating-label'>{trans('beatmapsets.show.info.success-rate')}</div>
+          <div className='beatmapset-header-v2__rating-empty'>{trans('beatmapsets.show.info.no_scores')}</div>
+        </div>
+      );
+    }
+
+    const successPercent = beatmap.passcount / Math.max(1, beatmap.playcount);
 
     return (
-      <div className='stacked-bar-chart stacked-bar-chart--beatmap-fail-rate'>
-        {ratings.map((count, i) => (
-          <div key={i} className='stacked-bar-chart__col'>
-            <div
-              className='stacked-bar-chart__entry'
-              style={{
-                height: `${100 * count / maxValue}%`,
-              }}
-            />
-          </div>
-        ))}
+      <div className='beatmapset-header-v2__rating-block'>
+        <div className='beatmapset-header-v2__rating-label'>{trans('beatmapsets.show.info.success-rate')}</div>
+        <div
+          className='beatmapset-header-v2__rating-values'
+          title={transChoice('beatmapsets.show.info.success_rate_plays', beatmap.playcount, {
+            passes: formatNumber(beatmap.passcount),
+          })}
+        >
+          <span>{formatNumber(beatmap.passcount)}/{formatNumber(beatmap.playcount)}</span>
+          <span>{formatNumber(successPercent, 2, { style: 'percent' })}</span>
+        </div>
+        {this.renderBar(successPercent, 'rating')}
+      </div>
+    );
+  }
+
+  // A count as the design's number block: its label over the number (three fit side by side).
+  private renderCount(label: string, count: number) {
+    return (
+      <div className='beatmapset-header-v2__count'>
+        <div className='beatmapset-header-v2__count-label'>{label}</div>
+        <div className='beatmapset-header-v2__count-value'>{formatNumber(count)}</div>
       </div>
     );
   }
@@ -157,19 +181,11 @@ export default class Stats extends React.Component<Props> {
     value ??= formatNumber(rawValue);
 
     return (
-      <tr key={key}>
-        <th className='beatmap-stats-table__label'>{trans(`beatmapsets.show.stats.${label}`)}</th>
-
-        <td className='beatmap-stats-table__bar'>
-          <Bar
-            current={rawValue}
-            modifiers={`beatmap-stats beatmap-stats-${label}`}
-            total={10}
-          />
-        </td>
-
-        <td className='beatmap-stats-table__value'>{value}</td>
-      </tr>
+      <div key={key} className='beatmapset-header-v2__stat'>
+        <span className='beatmapset-header-v2__stat-label'>{trans(`beatmapsets.show.stats.${label}`)}</span>
+        <span className='beatmapset-header-v2__stat-value'>{value}</span>
+        {this.renderBar(rawValue / 10, key === 'difficulty_rating' ? 'stars' : undefined)}
+      </div>
     );
   };
 }

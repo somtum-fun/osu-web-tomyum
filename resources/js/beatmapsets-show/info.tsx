@@ -1,22 +1,14 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
 // See the LICENCE file in the repository root for full licence text.
 
-import Bar from 'components/bar';
 import BbcodeEditor, { OnChangeProps } from 'components/bbcode-editor';
 import Modal from 'components/modal';
-import UserLink from 'components/user-link';
 import { BeatmapsetJsonForShow } from 'interfaces/beatmapset-extended-json';
-import UserJson from 'interfaces/user-json';
 import { route } from 'laroute';
-import { sum } from 'lodash';
-import { action, computed, makeObservable, observable, runInAction } from 'mobx';
+import { action, makeObservable, observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react';
 import * as React from 'react';
 import { onErrorWithClick } from 'utils/ajax';
-import { makeSearchQueryOption } from 'utils/beatmapset-helper';
-import { formatNumber } from 'utils/html';
-import { trans, transChoice } from 'utils/lang';
-import { present } from 'utils/string';
 import Controller from './controller';
 import MetadataEditor from './metadata-editor';
 
@@ -35,41 +27,6 @@ export default class Info extends React.Component<Props> {
     return this.props.controller;
   }
 
-  @computed
-  private get failData() {
-    if (this.controller.currentBeatmap.failtimes.exit.length !== this.controller.currentBeatmap.failtimes.fail.length) {
-      throw new Error('invalid failtimes data (different length)');
-    }
-
-    const fails = this.controller.currentBeatmap.failtimes.exit.map((exitValue, i) => [
-      exitValue,
-      this.controller.currentBeatmap.failtimes.fail[i],
-    ]);
-
-    return {
-      fails,
-      maxValue: Math.max(1, Math.max(...fails.map(sum))),
-    };
-  }
-
-  // TomYum: nominators known only from osu!, linked to their osu! profiles.
-  private get osuNominators() {
-    return this.nominators.length > 0 ? [] : (this.controller.beatmapset.tomyum_nominators ?? []);
-  }
-
-  @computed
-  private get nominators() {
-    const ret: UserJson[] = [];
-    const usersById = this.controller.usersById;
-    for (const nomination of this.controller.beatmapset.current_nominations) {
-      const user = usersById[nomination.user_id];
-      if (user != null) {
-        ret.push(user);
-      }
-    }
-
-    return ret;
-  }
 
   private get withEditDescription() {
     return this.controller.beatmapset.description.bbcode != null;
@@ -114,172 +71,19 @@ export default class Info extends React.Component<Props> {
           </Modal>
         }
 
-        <div className='beatmapset-info__box'>
-          <div className='beatmapset-info__scrollable'>
-            <div className='beatmapset-info__row'>
-              <h3 className='beatmapset-info__header beatmapset-info__header--sticky'>
-                {trans('beatmapsets.show.info.description')}
-              </h3>
-
-              <div
-                dangerouslySetInnerHTML={{
-                  __html: this.controller.beatmapset.description.description ?? '',
-                }}
-              />
-            </div>
+        {/* TomYum: the design proposal's description card; the details, success rate and points of
+            failure are in the header now. */}
+        <div className='beatmapset-info__box beatmapset-info__box--description'>
+          <div
+            className='beatmapset-info__description'
+            dangerouslySetInnerHTML={{
+              __html: this.controller.beatmapset.description.description ?? '',
+            }}
+          />
+          <div className='beatmapset-info__edit-buttons'>
+            {this.withEditMetadata && this.renderEditMetadataButton()}
+            {this.withEditDescription && this.renderEditDescriptionButton()}
           </div>
-          {this.withEditDescription && this.renderEditDescriptionButton()}
-        </div>
-
-        <div className='beatmapset-info__box'>
-          <div className='beatmapset-info__scrollable'>
-            {this.osuNominators.length > 0 &&
-              <div className='beatmapset-info__row'>
-                <h3 className='beatmapset-info__header'>
-                  {trans('beatmapsets.show.info.nominators')}
-                </h3>
-                <div>
-                  {this.osuNominators.map((user, i) => (
-                    <React.Fragment key={user.id}>
-                      <UserLink
-                        className='beatmapset-info__link'
-                        fallbackHref={`https://osu.ppy.sh/users/${user.id}`}
-                        user={{ username: user.username }}
-                      />
-                      {i < this.osuNominators.length - 1 && ', '}
-                    </React.Fragment>
-                  ))}
-                </div>
-              </div>
-            }
-
-            {this.nominators.length > 0 &&
-              <div className='beatmapset-info__row'>
-                <h3 className='beatmapset-info__header'>
-                  {trans('beatmapsets.show.info.nominators')}
-                </h3>
-                <div>
-                  {this.nominators.map((user, i) => (
-                    <React.Fragment key={user.id}>
-                      <UserLink
-                        className='beatmapset-info__link'
-                        user={user}
-                      />
-                      {i < this.nominators.length - 1 && ', '}
-                    </React.Fragment>
-                  ))}
-                </div>
-              </div>
-            }
-
-            {present(this.controller.beatmapset.source) &&
-              <div className='beatmapset-info__row'>
-                <h3 className='beatmapset-info__header'>
-                  {trans('beatmapsets.show.info.source')}
-                </h3>
-                <a
-                  className='beatmapset-info__link'
-                  href={route('beatmapsets.index', { q: makeSearchQueryOption('source', this.controller.beatmapset.source) })}
-                >
-                  {this.controller.beatmapset.source}
-                </a>
-              </div>
-            }
-
-            <div className='beatmapset-info__row beatmapset-info__row--half'>
-              <div className='beatmapset-info__half-entry'>
-                <h3 className='beatmapset-info__header'>
-                  {trans('beatmapsets.show.info.genre')}
-                </h3>
-                <a
-                  className='beatmapset-info__link'
-                  href={route('beatmapsets.index', { g: this.controller.beatmapset.genre.id })}
-                >
-                  {this.controller.beatmapset.genre.name}
-                </a>
-              </div>
-
-              <div className='beatmapset-info__half-entry'>
-                <h3 className='beatmapset-info__header'>
-                  {trans('beatmapsets.show.info.language')}
-                </h3>
-                <a
-                  className='beatmapset-info__link'
-                  href={route('beatmapsets.index', { l: this.controller.beatmapset.language.id })}
-                >
-                  {this.controller.beatmapset.language.name}
-                </a>
-              </div>
-            </div>
-
-            {this.controller.tags.userTags.length > 0 &&
-              <div className='beatmapset-info__row'>
-                <h3 className='beatmapset-info__header beatmapset-info__header--sticky'>
-                  {trans('beatmapsets.show.info.user_tags')}
-                </h3>
-                <div>
-                  {this.controller.tags.userTags.map((tag) => (
-                    <React.Fragment key={tag.name}>
-                      <a
-                        className='beatmapset-info__link'
-                        href={route('beatmapsets.index', { q: makeSearchQueryOption('tag', tag.name) })}
-                      >
-                        {tag.name}
-                      </a>
-                      {' '}
-                    </React.Fragment>
-                  ))}
-                </div>
-              </div>
-            }
-
-            {this.controller.tags.mapperTags.length > 0 &&
-              <div className='beatmapset-info__row'>
-                <h3 className='beatmapset-info__header beatmapset-info__header--sticky'>
-                  {trans('beatmapsets.show.info.mapper_tags')}
-                </h3>
-                <div>
-                  {this.controller.tags.mapperTags.map((tag, i) => (
-                    <React.Fragment key={`${tag}-${i}`}>
-                      <a
-                        className='beatmapset-info__link'
-                        href={route('beatmapsets.index', { q: tag })}
-                      >
-                        {tag}
-                      </a>
-                      {' '}
-                    </React.Fragment>
-                  ))}
-                </div>
-              </div>
-            }
-
-            {this.controller.beatmapset.pack_tags.length > 0 &&
-              <div className='beatmapset-info__row'>
-                <h3 className='beatmapset-info__header beatmapset-info__header--sticky'>
-                  {trans('beatmapsets.show.info.pack_tags')}
-                </h3>
-                <div>
-                  {this.controller.beatmapset.pack_tags.map((pack, i) => (
-                    <React.Fragment key={`${pack}-${i}`}>
-                      {i !== 0 && ', '}
-                      <a
-                        className='beatmapset-info__link'
-                        href={route('packs.show', pack)}
-                      >
-                        {pack}
-                      </a>
-                    </React.Fragment>
-                  ))}
-                </div>
-              </div>
-            }
-          </div>
-          {this.withEditMetadata && this.renderEditMetadataButton()}
-        </div>
-
-        <div className='beatmapset-info__box'>
-          {this.renderPlaycountInfo()}
         </div>
       </div>
     );
@@ -353,67 +157,6 @@ export default class Info extends React.Component<Props> {
             <span className='fas fa-pencil-alt' />
           </span>
         </button>
-      </div>
-    );
-  }
-
-  private renderFailChart() {
-    const { fails, maxValue } = this.failData;
-
-    return (
-      <div className='stacked-bar-chart stacked-bar-chart--beatmap-fail-rate'>
-        {fails.map((f, i) => (
-          <div key={i} className='stacked-bar-chart__col'>
-            {f.map((value, j) => (
-              <div
-                key={j}
-                className={`stacked-bar-chart__entry stacked-bar-chart__entry--${j}`}
-                style={{
-                  height: `${100 * value / maxValue}%`,
-                }}
-              />
-            ))}
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  private renderPlaycountInfo() {
-    if (this.controller.currentBeatmap.playcount === 0) {
-      return (
-        <div className='beatmap-success-rate'>
-          <div className='beatmap-success-rate__empty'>
-            {trans('beatmapsets.show.info.no_scores')}
-          </div>
-        </div>
-      );
-    }
-
-    const successPercent = this.controller.currentBeatmap.passcount / Math.max(1, this.controller.currentBeatmap.playcount);
-
-    return (
-      <div className='beatmap-success-rate'>
-        <h3 className='beatmap-success-rate__header'>
-          {trans('beatmapsets.show.info.success-rate')}
-        </h3>
-
-        <Bar modifiers='beatmap-success-rate' value={successPercent} />
-        <div className='beatmap-success-rate__count-text'>
-          {formatNumber(successPercent, 1, { style: 'percent' })}
-          {' '}
-          ({transChoice('beatmapsets.show.info.success_rate_plays', this.controller.currentBeatmap.playcount, {
-            passes: formatNumber(this.controller.currentBeatmap.passcount),
-          })})
-        </div>
-
-        <h3 className='beatmap-success-rate__header'>
-          {trans('beatmapsets.show.info.points-of-failure')}
-        </h3>
-
-        <div className='beatmap-success-rate__chart'>
-          {this.renderFailChart()}
-        </div>
       </div>
     );
   }

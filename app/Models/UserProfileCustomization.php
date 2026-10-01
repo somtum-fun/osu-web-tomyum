@@ -30,8 +30,9 @@ class UserProfileCustomization extends Model
         'extras_order' => self::SECTIONS,
         'forum_posts_show_deleted' => true,
         'legacy_score_only' => false,
+        'level_colours' => self::LEVEL_COLOURS[0],
         'profile_cover_expanded' => true,
-        'profile_detail_v2' => false,
+        'profile_detail_v2' => true, // TomYum: the new profile cards (with Ranked Play) by default
         'scoring_mode' => self::SCORING_MODES[0],
         'user_list_filter' => self::USER_LIST['filters']['default'],
         'user_list_sort' => self::USER_LIST['sorts']['default'],
@@ -52,6 +53,10 @@ class UserProfileCustomization extends Model
     ];
 
     const BEATMAPSET_CARD_SIZES = ['normal', 'extra'];
+
+    // TomYum: the level hexagon's colours on player cards: a new metal or gem every 10 levels, or
+    // osu-web's level tiers (the profile's).
+    const LEVEL_COLOURS = ['gems', 'tiers'];
 
     const BEATMAPSET_DOWNLOAD = ['all', 'no_video', 'direct'];
 
@@ -127,6 +132,7 @@ class UserProfileCustomization extends Model
             'comments_show_deleted',
             'comments_sort',
             'forum_posts_show_deleted',
+            'level_colours',
             'profile_cover_expanded',
             'profile_detail_v2',
             'scoring_mode',
@@ -206,6 +212,15 @@ class UserProfileCustomization extends Model
     public function setLegacyScoreOnlyAttribute($value): void
     {
         $this->setOption('legacy_score_only', get_bool($value));
+    }
+
+    public function setLevelColoursAttribute($value): void
+    {
+        if ($value !== null && !in_array($value, static::LEVEL_COLOURS, true)) {
+            $value = null;
+        }
+
+        $this->setOption('level_colours', $value);
     }
 
     public function setScoringModeAttribute($value): void

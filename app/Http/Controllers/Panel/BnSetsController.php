@@ -7,7 +7,10 @@ namespace App\Http\Controllers\Panel;
 
 use App\Models\Beatmap;
 use App\Models\Beatmapset;
+use App\Models\Event;
+use App\Models\User;
 use Auth;
+use Carbon\Carbon;
 use Request;
 
 /**
@@ -140,8 +143,54 @@ class BnSetsController extends Controller
             $players = $response->json('scores.players') ?? 0;
             $message .= " Recalculated {$recalculated} score(s) of {$players} player(s).";
         }
+        if (in_array($status, ['ranked', 'approved', 'qualified', 'loved'], true) && count($changed) > 0) {
+            $this->announce($setId, $status);
+        }
 
         return $this->back($setId, 'success', $message);
+    }
+
+    /**
+     * The "… by mapper has just been ranked!" entry in the site's activity (Community → Activity, and
+     * the mapper's profile when they play here), as osu! writes it. Written here rather than with
+     * Event::generate, which needs the mapper to have an account: most imported sets' don't.
+     */
+    private function announce(int $setId, string $status): void
+    {
+        $set = Beatmapset::find($setId);
+        if ($set === null) {
+            return;
+        }
+
+        $mapper = User::find($set->user_id);
+        $name = $mapper?->username ?? $set->creator;
+        $setUrl = route('beatmapsets.show', ['beatmapset' => $setId], false);
+        // A mapper without an account here (an imported set's) links to their osu! profile.
+        $userUrl = match (true) {
+            $mapper !== null => route('users.show', ['user' => $mapper->getKey()], false),
+            $set->user_id > 0 => "https://osu.ppy.sh/users/{$set->user_id}",
+            default => 'https://osu.ppy.sh/users/'.rawurlencode($name),
+        };
+        $title = "{$set->artist} - {$set->title}";
+        $site = $GLOBALS['cfg']['app']['url'];
+
+        Event::create([
+            'text' => sprintf(
+                "<a href='%s'>%s</a> by <b><a href='%s'>%s</a></b> has just been %s!",
+                e($setUrl),
+                e($title),
+                e($userUrl),
+                e($name),
+                $status,
+            ),
+            'text_clean' => "[{$site}{$setUrl} {$title}] by [".(is_http($userUrl) ? $userUrl : $site.$userUrl)." {$name}] has just been {$status}!",
+            'beatmap_id' => 0,
+            'beatmapset_id' => $setId,
+            'user_id' => $mapper?->getKey(),
+            'private' => false,
+            'epicfactor' => 8,
+            'date' => Carbon::now(),
+        ]);
     }
 
     public function refresh(string $set)

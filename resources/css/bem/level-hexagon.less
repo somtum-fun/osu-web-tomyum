@@ -1,0 +1,48 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
+// See the LICENCE file in the repository root for full licence text.
+
+// TomYum: a player's level in osu!'s hexagon, its outline filling up with their progress
+// (components/level-hexagon.tsx). 50px on the card, 42px in lists and bricks.
+.level-hexagon {
+  .center-content();
+  flex: none;
+  height: 50px;
+  position: relative;
+  width: 50px;
+
+  &--small {
+    height: 42px;
+    width: 42px;
+  }
+
+  &__shape {
+    .full-size();
+    overflow: visible;
+  }
+
+  &__track,
+  &__progress {
+    fill: none;
+    stroke-linejoin: round;
+    stroke-width: 2.7px; // the profile's ring
+  }
+
+  &__track {
+    stroke: hsla(0, 0%, 100%, 0.15);
+  }
+
+  &__progress {
+    stroke-linecap: round;
+  }
+
+  &__level {
+    color: #fff;
+    font-size: 16px;
+    line-height: 1;
+    position: relative;
+
+    .level-hexagon--small & {
+      font-size: 14px;
+    }
+  }
+}

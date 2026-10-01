@@ -25,11 +25,11 @@
             @endif
             <form method="POST" action="{{ route('panel.admin.seasonal-backgrounds.settings') }}" class="tomyum-panel__row">
                 @csrf
-                <label class="tomyum-panel__field" style="flex: 0 1 220px">
-                    Season ends (UTC)
-                    <input type="date" name="ends_at" required value="{{ $endsAt?->toDateString() }}">
+                <label class="input-container tomyum-panel__field" style="flex: 0 1 220px">
+                    <span class="input-container__label">Season ends (UTC)</span>
+                    <input class="input-text" type="date" name="ends_at" required value="{{ $endsAt?->toDateString() }}">
                 </label>
-                <div style="align-self: flex-end"><button class="tomyum-panel__button" type="submit">Save</button></div>
+                <div style="align-self: flex-end"><button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Save</button></div>
             </form>
         </div>
 
@@ -52,12 +52,12 @@
                             </p>
                             <form method="POST" action="{{ route('panel.admin.seasonal-backgrounds.toggle', ['entry' => $entry->getKey()]) }}" style="display: inline">
                                 @csrf
-                                <button class="tomyum-panel__button" type="submit">{{ $entry->show_in_client ? 'Hide' : 'Show' }}</button>
+                                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">{{ $entry->show_in_client ? 'Hide' : 'Show' }}</button>
                             </form>
                             <form method="POST" action="{{ route('panel.admin.seasonal-backgrounds.destroy', ['entry' => $entry->getKey()]) }}" style="display: inline"
                                 onsubmit="return confirm('Remove this background for good?')">
                                 @csrf
-                                <button class="tomyum-panel__button tomyum-panel__button--danger" type="submit">Remove</button>
+                                <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit">Remove</button>
                             </form>
                         </div>
                     @endforeach
@@ -74,12 +74,12 @@
                         Image (JPEG, PNG or WebP, 16:9 looks best, up to 15 MB)
                         <input type="file" name="image" accept="image/jpeg,image/png,image/webp" required>
                     </label>
-                    <label class="tomyum-panel__field">
-                        Artist (a player's name; empty: you)
-                        <input type="text" name="artist" placeholder="{{ Auth::user()->username }}">
+                    <label class="input-container tomyum-panel__field">
+                        <span class="input-container__label">Artist (a player's name; empty: you)</span>
+                        <input class="input-text" type="text" name="artist" placeholder="{{ Auth::user()->username }}">
                     </label>
                 </div>
-                <div><button class="tomyum-panel__button" type="submit">Upload</button></div>
+                <div><button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Upload</button></div>
             </form>
         </div>
     </div>

@@ -4,9 +4,10 @@
 import UserJson from 'interfaces/user-json';
 import { route } from 'laroute';
 
-export function apiLookupUsers(idsOrUsernames: (string | null | undefined)[], excludeBots?: boolean) {
+// TomYum: card: the hover card's numbers too (card_statistics; looking up one player).
+export function apiLookupUsers(idsOrUsernames: (string | null | undefined)[], excludeBots?: boolean, card?: boolean) {
   return $.ajax(route('users.lookup'), {
-    data: { exclude_bots: excludeBots, ids: idsOrUsernames },
+    data: { card, exclude_bots: excludeBots, ids: idsOrUsernames },
     dataType: 'json',
   }) as JQuery.jqXHR<{ users: UserJson[] }>;
 }

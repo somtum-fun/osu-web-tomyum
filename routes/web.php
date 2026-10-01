@@ -99,6 +99,7 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('tournament-banners', 'TournamentBannersController@store')->name('tournament-banners.store');
             Route::post('tournament-banners/{banner}/toggle', 'TournamentBannersController@toggle')->name('tournament-banners.toggle');
             Route::post('tournament-banners/{banner}/remove', 'TournamentBannersController@destroy')->name('tournament-banners.destroy');
+            Route::post('tournament-banners/{banner}/image', 'TournamentBannersController@replace')->name('tournament-banners.replace');
             Route::post('tournament-banners/{banner}/give', 'TournamentBannersController@give')->name('tournament-banners.give');
             Route::post('tournament-banners/{banner}/take/{user}', 'TournamentBannersController@take')->name('tournament-banners.take');
             Route::get('titles', 'TitlesController@index')->name('titles.index');
@@ -246,6 +247,8 @@ Route::group(['middleware' => ['web']], function () {
 
         Route::put('contest-entries/{contest_entry}/vote', 'ContestEntriesController@vote')->name('contest-entries.vote');
         Route::resource('contest-entries', 'ContestEntriesController', ['only' => ['store', 'destroy']]);
+
+        Route::get('activity', 'ActivityController@index')->name('activity.index');
 
         Route::post('livestreams/promote', 'LivestreamsController@promote')->name('livestreams.promote');
         Route::resource('livestreams', 'LivestreamsController', ['only' => ['index']]);

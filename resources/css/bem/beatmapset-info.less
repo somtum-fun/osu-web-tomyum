@@ -21,6 +21,47 @@
     grid-template-columns: 1fr 175px @beatmapset-float-box-width;
   }
 
+  // TomYum: one card with the description now (the design proposal), on the page's darker colour.
+  background-color: hsl(var(--hsl-b5));
+  grid-template-columns: minmax(0, 1fr) !important;
+  padding: 20px @gutter-beatmapset 30px;
+
+  @media @desktop {
+    padding: 30px @gutter-beatmapset-desktop 40px;
+  }
+
+  &__box--description {
+    background-color: hsl(var(--hsl-b4));
+    border-radius: 10px;
+    box-shadow: 0 2px 6px hsla(0, 0%, 0%, 0.25);
+    max-height: none !important;
+    min-height: 0 !important;
+    padding: 25px 30px;
+  }
+
+  &__description {
+    font-size: @font-size--normal;
+    min-width: 0;
+
+    img {
+      max-width: 100%;
+    }
+  }
+
+  &__edit-buttons {
+    display: flex;
+    gap: 5px;
+    opacity: 0;
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    transition: opacity 120ms;
+
+    .beatmapset-info__box:hover & {
+      opacity: 1;
+    }
+  }
+
   &__box {
     min-width: 0;
     display: flex;

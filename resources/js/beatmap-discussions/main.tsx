@@ -92,8 +92,10 @@ export default class Main extends React.Component<Props> {
           discussionsState={this.discussionsState}
           store={this.store}
         />
-        <div className='osu-page osu-page--small osu-page--full'>
-          <Toolbar discussionsState={this.discussionsState} store={this.store} />
+        {/* TomYum: the design proposal's tickets: the heading and tabs, the composer, then the
+            filters and the discussions. */}
+        <div className='osu-page osu-page--full beatmapset-tickets'>
+          <h2 className='beatmapset-tickets__title'>Tickets</h2>
           <div className='sticky-toolbar-before' />
           <div ref={this.stickyRef} className='sticky-toolbar'>
             <ModeSwitcher discussionsState={this.discussionsState} />
@@ -124,6 +126,7 @@ export default class Main extends React.Component<Props> {
 
                 />
               )}
+              <Toolbar discussionsState={this.discussionsState} store={this.store} />
               <Discussions
                 discussionsState={this.discussionsState}
                 store={this.store}

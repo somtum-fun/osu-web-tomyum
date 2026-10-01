@@ -27,6 +27,7 @@ class LookupController extends Controller
     {
         // TODO: referer check?
         $params = get_params(\Request::all(), null, [
+            'card:bool',
             'exclude_bots:bool',
             'ids:string[]',
             'ruleset_id:int',
@@ -58,6 +59,12 @@ class LookupController extends Controller
 
         $includes = UserCompactTransformer::CARD_INCLUDES;
         $transformer = new UserCompactTransformer();
+
+        // TomYum: the hover card (one player) shows their ranks, pp, medals, play time and grades.
+        if (($params['card'] ?? false) && count($ids) === 1) {
+            $includes[] = 'card_statistics';
+            $includes[] = 'support_level'; // the supporter pill's hearts
+        }
 
         if (isset($params['ruleset_id'])) {
             $rulesetName = Beatmap::modeStr($params['ruleset_id']);

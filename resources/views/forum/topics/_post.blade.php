@@ -42,7 +42,7 @@
             }
         }
         @endphp
-        @include('forum.topics._post_info', compact('user'))
+        @include('forum.topics._post_info', compact('post', 'user'))
 
         <div class="forum-post__body js-forum-post-edit--container">
             <div class="forum-post__content forum-post__content--header">

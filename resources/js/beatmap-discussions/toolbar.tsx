@@ -8,7 +8,6 @@ import * as React from 'react';
 import { canModeratePosts } from 'utils/beatmapset-discussion-helper';
 import { trans } from 'utils/lang';
 import DiscussionsState from './discussions-state';
-import TypeFilters from './type-filters';
 import { UserFilter } from './user-filter';
 
 interface Props {
@@ -62,9 +61,7 @@ export default class Toolbar extends React.Component<Props> {
             discussionsState={this.discussionsState}
             store={this.store}
           />
-          <div className='beatmapset-discussions-toolbar__type-filters'>
-            <TypeFilters discussionsState={this.discussionsState} />
-          </div>
+          {/* TomYum: the type filters (counters) are in the header now (the design proposal). */}
         </div>
         <div className='beatmapset-discussions-toolbar__group'>
           {this.renderUserFilterToggles()}

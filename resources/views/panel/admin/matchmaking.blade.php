@@ -46,24 +46,24 @@
                 </p>
                 <form method="POST" action="{{ route('panel.admin.matchmaking.update', ['pool' => $pool->id]) }}" class="tomyum-panel__row">
                     @csrf
-                    <label class="tomyum-panel__field">
-                        Name
-                        <input type="text" name="name" value="{{ $pool->name }}" maxlength="255">
+                    <label class="input-container tomyum-panel__field">
+                        <span class="input-container__label">Name</span>
+                        <input class="input-text" type="text" name="name" value="{{ $pool->name }}" maxlength="255">
                     </label>
                     @if ($pool->type !== 'ranked_play')
-                        <label class="tomyum-panel__field" style="flex: 0 1 140px">
-                            Lobby size
-                            <input type="number" name="lobby_size" min="2" max="16" value="{{ $pool->lobby_size }}">
+                        <label class="input-container tomyum-panel__field" style="flex: 0 1 140px">
+                            <span class="input-container__label">Lobby size</span>
+                            <input class="input-text" type="number" name="lobby_size" min="2" max="16" value="{{ $pool->lobby_size }}">
                         </label>
                     @endif
-                    <label class="tomyum-panel__field" style="flex: 0 1 140px">
-                        On
-                        <select name="active">
+                    <label class="input-container input-container--select tomyum-panel__field" style="flex: 0 1 140px">
+                        <span class="input-container__label">On</span>
+                        <select class="input-text" name="active">
                             <option value="1" @if ($pool->active) selected @endif>on</option>
                             <option value="0" @unless ($pool->active) selected @endunless>off</option>
                         </select>
                     </label>
-                    <div style="align-self: flex-end"><button class="tomyum-panel__button" type="submit">Save</button></div>
+                    <div style="align-self: flex-end"><button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Save</button></div>
                 </form>
 
                 @if (count($maps) > 0)
@@ -81,7 +81,7 @@
                                 <td>
                                     <form method="POST" action="{{ route('panel.admin.matchmaking.remove-beatmap', ['pool' => $pool->id, 'entry' => $map->id]) }}">
                                         @csrf
-                                        <button class="tomyum-panel__button tomyum-panel__button--danger" type="submit">Remove</button>
+                                        <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit">Remove</button>
                                     </form>
                                 </td>
                             </tr>
@@ -110,21 +110,21 @@
 
                 <form method="POST" action="{{ route('panel.admin.matchmaking.add-beatmap', ['pool' => $pool->id]) }}" class="tomyum-panel__row">
                     @csrf
-                    <label class="tomyum-panel__field">
-                        Add a map (link or id, ranked or loved, this pool's ruleset)
-                        <input type="text" name="beatmap" required placeholder="https://osu.ppy.sh/beatmaps/129891">
+                    <label class="input-container tomyum-panel__field">
+                        <span class="input-container__label">Add a map (link or id, ranked or loved, this pool's ruleset)</span>
+                        <input class="input-text" type="text" name="beatmap" required placeholder="https://osu.ppy.sh/beatmaps/129891">
                     </label>
-                    <label class="tomyum-panel__field" style="flex: 0 1 160px">
-                        Mods (optional)
-                        <input type="text" name="mods" placeholder="none">
+                    <label class="input-container tomyum-panel__field" style="flex: 0 1 160px">
+                        <span class="input-container__label">Mods (optional)</span>
+                        <input class="input-text" type="text" name="mods" placeholder="none">
                     </label>
-                    <div style="align-self: flex-end"><button class="tomyum-panel__button" type="submit">Add</button></div>
+                    <div style="align-self: flex-end"><button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Add</button></div>
                 </form>
 
                 <form method="POST" action="{{ route('panel.admin.matchmaking.destroy', ['pool' => $pool->id]) }}"
                     onsubmit="return confirm('Remove this pool? (Only possible before anyone played in it.)')">
                     @csrf
-                    <button class="tomyum-panel__button tomyum-panel__button--danger" type="submit">Remove pool</button>
+                    <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit">Remove pool</button>
                 </form>
             </div>
         @empty
@@ -137,35 +137,35 @@
             <form method="POST" action="{{ route('panel.admin.matchmaking.store') }}" class="tomyum-panel">
                 @csrf
                 <div class="tomyum-panel__row">
-                    <label class="tomyum-panel__field" style="flex: 0 1 180px">
-                        Type
-                        <select name="type">
+                    <label class="input-container input-container--select tomyum-panel__field" style="flex: 0 1 180px">
+                        <span class="input-container__label">Type</span>
+                        <select class="input-text" name="type">
                             <option value="ranked_play">Ranked Play (1v1)</option>
                             <option value="quick_play">Quick Play (not in lazer right now)</option>
                         </select>
                     </label>
-                    <label class="tomyum-panel__field" style="flex: 0 1 180px">
-                        Ruleset
-                        <select name="ruleset">
+                    <label class="input-container input-container--select tomyum-panel__field" style="flex: 0 1 180px">
+                        <span class="input-container__label">Ruleset</span>
+                        <select class="input-text" name="ruleset">
                             @foreach ($rulesets as $id => $name)
                                 <option value="{{ $id }}">{{ $name }} ({{ (int) ($automatic[$id] ?? 0) }} maps)</option>
                             @endforeach
                         </select>
                     </label>
-                    <label class="tomyum-panel__field" style="flex: 0 1 140px">
-                        Keys (mania only)
-                        <input type="number" name="keys" min="1" max="10" placeholder="4">
+                    <label class="input-container tomyum-panel__field" style="flex: 0 1 140px">
+                        <span class="input-container__label">Keys (mania only)</span>
+                        <input class="input-text" type="number" name="keys" min="1" max="10" placeholder="4">
                     </label>
-                    <label class="tomyum-panel__field" style="flex: 0 1 140px">
-                        Lobby size (Quick Play)
-                        <input type="number" name="lobby_size" min="2" max="16" value="4">
+                    <label class="input-container tomyum-panel__field" style="flex: 0 1 140px">
+                        <span class="input-container__label">Lobby size (Quick Play)</span>
+                        <input class="input-text" type="number" name="lobby_size" min="2" max="16" value="4">
                     </label>
-                    <label class="tomyum-panel__field">
-                        Name (shown in lazer)
-                        <input type="text" name="name" maxlength="255" placeholder="Quick Play / Ranked Play">
+                    <label class="input-container tomyum-panel__field">
+                        <span class="input-container__label">Name (shown in lazer)</span>
+                        <input class="input-text" type="text" name="name" maxlength="255" placeholder="Quick Play / Ranked Play">
                     </label>
                 </div>
-                <div><button class="tomyum-panel__button" type="submit">Make it</button></div>
+                <div><button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Make it</button></div>
             </form>
         </div>
     </div>

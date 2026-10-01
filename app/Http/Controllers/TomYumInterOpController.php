@@ -162,7 +162,11 @@ class TomYumInterOpController extends Controller
             }
         }
 
+        // Nominators are replaced only when sent (TomYum always sends them, an empty list too).
         \DB::transaction(function () use ($beatmapset) {
+            if (!request()->has('nominators')) {
+                return;
+            }
             \DB::table('tomyum_beatmapset_nominators')->where('beatmapset_id', $beatmapset->getKey())->delete();
             foreach ((array) request()->input('nominators', []) as $nominator) {
                 $userId = get_int($nominator['id'] ?? null);
@@ -178,6 +182,41 @@ class TomYumInterOpController extends Controller
                 ]);
             }
         });
+
+        // Who made the set (`creator`: {id, username}) and each difficulty (`mappers`: {beatmap id:
+        // [{id, username}]}), osu! users; left as they are when not sent.
+        if (request()->has('creator') || request()->has('mappers')) {
+            \DB::transaction(function () use ($beatmapset) {
+                \DB::table('tomyum_beatmap_mappers')->where('beatmapset_id', $beatmapset->getKey())->delete();
+                $rows = [];
+                $add = function (int $beatmapId, $user) use ($beatmapset, &$rows) {
+                    $userId = get_int($user['id'] ?? null);
+                    $username = get_string($user['username'] ?? null);
+                    if ($userId !== null && $userId > 0 && $username !== null) {
+                        $rows["{$beatmapId}-{$userId}"] = [
+                            'beatmapset_id' => $beatmapset->getKey(),
+                            'beatmap_id' => $beatmapId,
+                            'osu_user_id' => $userId,
+                            'username' => mb_substr($username, 0, 32),
+                        ];
+                    }
+                };
+                $creator = request()->input('creator');
+                if (is_array($creator)) {
+                    $add(0, $creator);
+                }
+                foreach ((array) request()->input('mappers', []) as $beatmapId => $users) {
+                    $beatmapId = get_int($beatmapId);
+                    if ($beatmapId === null || $beatmapId <= 0) {
+                        continue;
+                    }
+                    foreach ((array) $users as $user) {
+                        $add($beatmapId, $user);
+                    }
+                }
+                \DB::table('tomyum_beatmap_mappers')->insertOrIgnore(array_values($rows));
+            });
+        }
 
         return response()->noContent();
     }

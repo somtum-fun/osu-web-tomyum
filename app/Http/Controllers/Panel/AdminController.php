@@ -17,6 +17,7 @@ use App\Models\User;
 use App\Models\UserAccountHistory;
 use App\Models\UsernameChangeHistory;
 use App\Models\UserStatistics;
+use App\Transformers\UserCompactTransformer;
 use Auth;
 use Carbon\Carbon;
 use DB;
@@ -98,6 +99,9 @@ class AdminController extends Controller
         return ext_view('panel.admin.user', [
             'target' => $target,
             'isSelf' => $target->getKey() === Auth::user()->getKey(),
+            // The header: osu-web's user card, and their main mode's numbers.
+            'userCard' => json_item($target, new UserCompactTransformer(), UserCompactTransformer::CARD_INCLUDES),
+            'stats' => $target->statistics($target->playmode ?? 'osu'),
             // Moderation (TomYum): flags, standing, devices, logins, links, anti-cheat, names.
             'flags' => TomYumAccount::flags($target->getKey()),
             'silencedUntil' => GmtController::silencedUntil($target),

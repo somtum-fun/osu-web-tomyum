@@ -1,0 +1,159 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
+// See the LICENCE file in the repository root for full licence text.
+
+// TomYum: the admin panel's daily challenge week, a card per day like lazer's: the day's star range
+// on a tab in osu!'s star colour, the map's cover behind the day.
+
+.tomyum-daily-week {
+  display: grid;
+  gap: 20px 12px;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  padding-top: 20px;
+}
+
+.tomyum-daily-day {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  position: relative;
+
+  &__tier {
+    align-self: flex-start;
+    background: var(--tier);
+    border-radius: @border-radius-large @border-radius-large 0 0;
+    color: hsl(var(--hsl-b6));
+    font-size: @font-size--normal;
+    font-weight: 700;
+    margin-left: 12px;
+    padding: 3px 14px;
+
+    .fas {
+      font-size: 11px;
+      margin-right: 5px;
+    }
+  }
+
+  &__body {
+    background:
+      linear-gradient(hsla(var(--hsl-b5), 0.72), hsla(var(--hsl-b5), 0.94)),
+      var(--cover) center / cover,
+      hsl(var(--hsl-b5));
+    border-radius: @border-radius-large;
+    border-top: 3px solid var(--tier);
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 14px;
+  }
+
+  &__weekday {
+    font-size: @font-size--title-small;
+    font-weight: 600;
+
+    span {
+      color: hsl(var(--hsl-c2));
+      font-size: @font-size--normal;
+      font-weight: 400;
+      margin-left: 4px;
+    }
+  }
+
+  &__map {
+    color: hsl(var(--hsl-c1));
+    display: -webkit-box;
+    font-weight: 600;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+  }
+
+  &__meta,
+  &__mods {
+    align-items: center;
+    color: hsl(var(--hsl-c2));
+    display: flex;
+    flex-wrap: wrap;
+    font-size: @font-size--normal;
+    gap: 6px;
+  }
+
+  &__off {
+    color: hsl(var(--hsl-orange-1));
+    font-weight: 600;
+
+    .fas {
+      margin-right: 4px;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: 5px;
+    margin-top: auto;
+    padding-top: 6px;
+
+    form {
+      display: flex;
+      gap: 5px;
+    }
+  }
+}
+
+.tomyum-daily-today {
+  background:
+    linear-gradient(90deg, hsla(var(--hsl-b5), 0.95) 35%, hsla(var(--hsl-b5), 0.55)),
+    var(--cover) center / cover,
+    hsl(var(--hsl-b5));
+  border-radius: @border-radius-large;
+  color: hsl(var(--hsl-c1));
+  display: grid;
+  gap: 4px;
+  margin-bottom: 10px;
+  padding: 20px;
+
+  .link-hover({
+    color: hsl(var(--hsl-c1));
+    text-decoration: none;
+  });
+
+  &__name {
+    color: hsl(var(--hsl-c2));
+    font-size: @font-size--normal;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  &__map {
+    font-size: @font-size--title-small-3;
+    font-weight: 600;
+  }
+
+  &__meta {
+    align-items: center;
+    color: hsl(var(--hsl-c2));
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
+// A star rating in osu!'s colour for it (set --colour and --text).
+.tomyum-stars {
+  align-items: center;
+  background: var(--colour);
+  border-radius: 10000px;
+  color: var(--text);
+  display: inline-flex;
+  font-weight: 700;
+  gap: 3px;
+  line-height: 1.5;
+  padding: 0 8px;
+  vertical-align: middle;
+  white-space: nowrap;
+
+  .fas {
+    font-size: 9px;
+  }
+}

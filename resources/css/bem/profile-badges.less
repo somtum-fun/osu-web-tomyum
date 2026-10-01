@@ -1,13 +1,18 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
 // See the LICENCE file in the repository root for full licence text.
 
+// TomYum: the profile page proposal's badge row (profile-page/badges.tsx): the count fixed at the
+// start, the badges in one row scrolling sideways, arrows over the ends while there's more.
 .profile-badges {
+  @_top: profile-badges;
+
   .inner-shadow-top();
+  --bg: hsl(var(--hsl-b4));
   --gutter: @gutter-v2;
-  background-color: hsl(var(--hsl-b4));
+  align-items: center;
+  background-color: var(--bg);
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  gap: 6px;
   padding: 10px var(--gutter);
 
   @media @desktop {
@@ -18,13 +23,94 @@
   // badges from the profile info above it. It should not be necessary if the
   // multiplayer page gets a detail section like the other profile pages
   &--multiplayer {
+    --bg: hsl(var(--hsl-b5));
+  }
+
+  &__count {
     background-color: hsl(var(--hsl-b5));
+    border-radius: 6px;
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    height: 40px; // a badge's size
+    justify-content: center;
+    padding: 0 8px;
+    width: 86px;
+
+    .@{_top}--multiplayer & {
+      background-color: hsl(var(--hsl-b6));
+    }
+  }
+
+  &__count-label {
+    font-size: @font-size--normal; // 12px
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  &__count-value {
+    color: @yellow-light;
+    font-size: @font-size--title-small-3; // 16px
+    line-height: 1.1;
+  }
+
+  &__row {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+  }
+
+  &__scroller {
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  &__item {
+    display: flex;
+    flex: none;
   }
 
   &__badge {
     width: 86px;
     height: 40px;
     object-fit: contain;
+  }
+
+  // Over the row's end, fading the badges under it into the strip.
+  &__arrow {
+    .reset-input();
+    align-items: center;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    font-size: 18px;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    width: 40px;
+
+    &:hover {
+      color: hsl(var(--hsl-c1));
+      text-shadow: 0 0 6px hsla(0, 0%, 100%, 0.4);
+    }
+
+    &--left {
+      background: linear-gradient(90deg, var(--bg) 35%, transparent);
+      justify-content: flex-start;
+      left: 0;
+    }
+
+    &--right {
+      background: linear-gradient(270deg, var(--bg) 35%, transparent);
+      justify-content: flex-end;
+      right: 0;
+    }
   }
 
   &__date {

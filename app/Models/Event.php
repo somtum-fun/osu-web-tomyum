@@ -99,7 +99,7 @@ class Event extends Model
                     'text_clean' => sprintf($template, $beatmapsetLink['clean'], $userLink['clean'], $approval),
                     'beatmap_id' => 0,
                     'beatmapset_id' => $beatmapset->getKey(),
-                    'user_id' => $beatmapset->user_id, // TomYum: the mapper may have no account here (mapperLink)
+                    'user_id' => $beatmapset->user?->getKey(), // TomYum: an imported set's mapper may have no account here
                     'private' => false,
                     'epicfactor' => 8,
                 ];
@@ -130,7 +130,7 @@ class Event extends Model
                     'text' => sprintf($template, $beatmapsetLink['html'], tag('b', [], $userLink['html'])),
                     'text_clean' => sprintf($template, $beatmapsetLink['clean'], $userLink['clean']),
                     'beatmapset_id' => $beatmapset->getKey(),
-                    'user_id' => $beatmapset->user_id, // TomYum: the mapper may have no account here (mapperLink)
+                    'user_id' => $beatmapset->user?->getKey(), // TomYum: an imported set's mapper may have no account here
                     'private' => false,
                     'epicfactor' => 5,
                 ];
@@ -167,7 +167,7 @@ class Event extends Model
                     'text' => sprintf($template, tag('b', [], $userLink['html']), $beatmapsetLink['html']),
                     'text_clean' => sprintf($template, $userLink['clean'], $beatmapsetLink['clean']),
                     'beatmapset_id' => $beatmapset->getKey(),
-                    'user_id' => $beatmapset->user_id, // TomYum: the mapper may have no account here (mapperLink)
+                    'user_id' => $beatmapset->user?->getKey(), // TomYum: an imported set's mapper may have no account here
                     'private' => false,
                     'epicfactor' => 4,
                 ];
@@ -542,8 +542,9 @@ class Event extends Model
     }
 
     /**
-     * TomYum: sets imported from osu! keep their mapper's name (creator) but no account here
-     * (user_id 0 or someone who never signed up), so link the name to their osu! profile instead.
+     * TomYum: the mapper's link. Sets imported from osu! keep their mapper's name (creator) but they
+     * usually have no account here (user_id 0 or someone who never signed up), so the name links to
+     * their osu! profile instead.
      */
     private static function mapperLink($beatmapset)
     {
@@ -552,7 +553,7 @@ class Event extends Model
         }
 
         $username = $beatmapset->creator;
-        $url = 'https://osu.ppy.sh/users/'.rawurlencode($username);
+        $url = 'https://osu.ppy.sh/users/'.($beatmapset->user_id > 0 ? $beatmapset->user_id : rawurlencode($username));
 
         return [
             'html' => sprintf('<a href=\'%s\'>%s</a>', e($url), e($username)),

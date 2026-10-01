@@ -50,6 +50,7 @@ interface BeatmapsetJsonForShowOverrideIncludes {
 
 type BeatmapsetJsonForShowIncludes = Required<Pick<BeatmapsetExtendedJson,
 | 'current_nominations'
+| 'tomyum_mappers'
 | 'tomyum_nominators'
 | 'current_user_attributes'
 | 'description'

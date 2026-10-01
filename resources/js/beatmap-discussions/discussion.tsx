@@ -155,7 +155,12 @@ export class Discussion extends React.Component<Props> {
       user,
     });
 
+    // TomYum: on the discussion page, the design proposal's thread (not the read-only previews
+    // elsewhere): a header row that opens the first post and the replies.
+    const v2 = !this.readonly;
+
     const topClasses = classWithModifiers(bn, {
+      collapsed: v2 && this.collapsed,
       deleted: this.props.discussion.deleted_at != null,
       highlighted: this.highlighted,
       'horizontal-desktop': this.props.discussion.message_type !== 'review',
@@ -163,6 +168,7 @@ export class Discussion extends React.Component<Props> {
       review: this.props.discussion.message_type === 'review',
       timeline: this.props.discussion.timestamp != null,
       unread: !this.isRead(firstPost),
+      v2,
     });
 
     return (
@@ -178,19 +184,24 @@ export class Discussion extends React.Component<Props> {
         </div>
         {/* jump is here instead of the top to have the margin on the element so that Chrome will anchor properly when an image lazy loads. */}
         <div className={`${bn}__discussion js-beatmap-discussion-jump`} data-id={this.props.discussion.id}>
-          <div
-            className={`${bn}__top`}
-            style={groupColour(group)}
-          >
-            <div className={`${bn}__top-user`}>
-              <UserCard group={group} hideStripe user={user} />
-            </div>
-            <div className={`${bn}__top-message`}>
-              {this.renderPost(firstPost, 'discussion')}
-            </div>
-            {this.renderPostButtons()}
-          </div>
-          {this.renderReplies()}
+          {v2 && this.renderHead()}
+          {(!v2 || !this.collapsed) && (
+            <>
+              <div
+                className={`${bn}__top`}
+                style={groupColour(group)}
+              >
+                <div className={`${bn}__top-user`}>
+                  <UserCard group={group} hideStripe user={user} />
+                </div>
+                <div className={`${bn}__top-message`}>
+                  {this.renderPost(firstPost, 'discussion')}
+                </div>
+                {!v2 && this.renderPostButtons()}
+              </div>
+              {this.renderReplies()}
+            </>
+          )}
           <div className={lineClasses} />
         </div>
       </div>
@@ -206,6 +217,77 @@ export class Discussion extends React.Component<Props> {
   private readonly handleSetHighlight = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.defaultPrevented || this.props.discussionsState == null) return;
     this.props.discussionsState.highlightedDiscussionId = this.props.discussion.id;
+  };
+
+  // TomYum: open (nobody else replied), responded or resolved.
+  private get threadState(): 'open' | 'resolved' | 'responded' {
+    const discussion = this.props.discussion as BeatmapsetDiscussionJsonForShow;
+    if (discussion.resolved) return 'resolved';
+
+    return discussion.posts?.some((post, i) => i > 0 && !post.system && post.user_id !== discussion.user_id)
+      ? 'responded'
+      : 'open';
+  }
+
+  // TomYum: the thread's header row (the design proposal): its timestamp, a bar and its type and
+  // state in the state's colour, then the votes and the chevron. Clicking it opens and closes it.
+  private renderHead() {
+    // only on the discussion page, where discussions have their posts and votes
+    const discussion = this.props.discussion as BeatmapsetDiscussionJsonForShow;
+    const user = this.props.store.users.get(discussion.user_id);
+    const isIssue = discussion.message_type === 'problem' || discussion.message_type === 'suggestion';
+    const state = { open: 'Open', resolved: 'Resolved', responded: 'Responded' }[this.threadState];
+    const type = isIssue ? 'Issue' : trans(`beatmaps.discussions.message_type.${discussion.message_type}`);
+    // a review's own state is its issues' (shown on each of them)
+    const title = discussion.message_type === 'review' ? type : `${type}, ${state}`;
+    const score = discussion.votes.up - discussion.votes.down;
+
+    return (
+      <div
+        className={classWithModifiers(`${bn}__head`, { resolved: discussion.resolved })}
+        onClick={this.handleHeadClick}
+      >
+        {discussion.timestamp != null && (
+          <span className={`${bn}__head-timestamp`}>{formatTimestamp(discussion.timestamp)}</span>
+        )}
+        <span className={`${bn}__head-bar`} />
+        <span className={`${bn}__head-title`}>{title}</span>
+
+        <div className={`${bn}__head-actions`}>
+          {this.props.parentDiscussion != null && (
+            <a
+              className={`${bn}__link-to-parent js-beatmap-discussion--jump`}
+              href={makeUrl({ discussion: this.props.parentDiscussion })}
+              title={trans('beatmap_discussions.review.go_to_parent')}
+            >
+              <i className='fas fa-tasks' />
+            </a>
+          )}
+          {this.props.discussionsState != null && (
+            <DiscussionVoteButtons
+              cannotVote={this.isOwner(discussion) || (user?.is_bot ?? false) || !this.canBeRepliedTo}
+              discussion={discussion}
+              discussionsState={this.props.discussionsState}
+              users={this.users}
+            />
+          )}
+          <span className={`${bn}__head-score`} title='Score'>
+            <i className='fas fa-sort' />
+            {' '}
+            {score}
+          </span>
+          <button className={`${bn}__head-toggle`} onClick={this.handleCollapseClick} type='button'>
+            <i className={this.collapsed ? 'fas fa-chevron-down' : 'fas fa-chevron-up'} />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Clicking the header row anywhere but its buttons and links opens or closes the thread.
+  private readonly handleHeadClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if ((e.target as HTMLElement).closest('button, a') != null) return;
+    this.handleCollapseClick();
   };
 
   private isOwner(object: { user_id: number }) {
@@ -291,7 +373,7 @@ export class Discussion extends React.Component<Props> {
     if (this.props.discussionsState == null) return null;
 
     let cssClasses = `${bn}__expanded`;
-    if (this.collapsed) {
+    if (this.collapsed && this.props.discussion.message_type === 'review') {
       cssClasses += ' hidden';
     }
 
@@ -328,8 +410,14 @@ export class Discussion extends React.Component<Props> {
         <div className="beatmap-discussion-timestamp__icons-container">
           <div className="beatmap-discussion-timestamp__icons">
             <DiscussionTypeIcon type={this.props.discussion.message_type} />
-            {this.props.discussion.resolved && (
-              <DiscussionTypeIcon type='resolved' />
+            {this.readonly ? (
+              this.props.discussion.resolved && <DiscussionTypeIcon type='resolved' />
+            ) : (
+              // TomYum: the design proposal's state circle: open, responded, resolved
+              <span
+                className={`beatmap-discussion-timestamp__state ${{ open: 'far fa-circle', resolved: 'fas fa-circle', responded: 'far fa-dot-circle' }[this.threadState]}`}
+                title={{ open: 'Open', resolved: trans('beatmaps.discussions.resolved'), responded: 'Responded' }[this.threadState]}
+              />
             )}
           </div>
           {this.props.discussion.timestamp != null && (

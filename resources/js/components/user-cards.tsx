@@ -41,6 +41,7 @@ export class UserCards extends React.PureComponent<Props> {
                 <KeyContext.Provider key={user.id} value={user.id}>
                   <UserCard
                     activated={activated}
+                    dropdown
                     mode={this.props.viewMode}
                     modifiers={mergeModifiers('has-outline', this.props.modifiers)}
                     user={user}

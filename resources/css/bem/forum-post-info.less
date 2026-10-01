@@ -103,4 +103,181 @@
       });
     }
   }
+
+  // TomYum: the poster's card, as osu!'s player card design draws it ("Player Card, Forum Panel"):
+  // 180 × 240, their cover at half strength fading into the card, in their profile colour. Sizes and
+  // gaps are the design's.
+  &--card {
+    // The palette again in the poster's hue (osu-web works it out on <body> from the page's hue).
+    --card-hue: var(--profile-hue, var(--base-hue));
+    --hsl-b5: var(--card-hue), 10%, 15%;
+    --hsl-c1: var(--card-hue), 40%, 100%;
+    --hsl-l3: var(--card-hue), 40%, 70%;
+    background-color: hsl(var(--hsl-b5));
+    padding: 0;
+
+    @media @desktop {
+      padding: 0;
+    }
+  }
+
+  &__card {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+    width: 100%;
+
+    @media @desktop {
+      background:
+        linear-gradient(hsla(var(--hsl-b5), 0.5), hsl(var(--hsl-b5))),
+        var(--cover, none) center / cover;
+      height: 270px;
+      justify-content: space-between;
+      padding: 14px 0 4px;
+    }
+  }
+
+  &__top,
+  &__bottom {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  &--card &__row {
+    margin: 0;
+  }
+
+  &--card &__row--avatar {
+    padding: 0;
+    width: 70px; // the avatar's own size (avatar--forum-card), not the column's
+
+    @media @mobile {
+      width: 35px;
+    }
+  }
+
+  &--card &__row--username {
+    font-size: @font-size--title-small-3; // 16px
+    font-weight: 600;
+    line-height: 15px;
+    margin-top: 6px;
+    padding: 0 5px;
+  }
+
+  &--card &__row--title {
+    color: hsl(var(--hsl-c1));
+    font-size: @font-size--small;
+    margin-top: 3px;
+    opacity: 0.8;
+  }
+
+  // Group pills: black at half strength; the group's short name in its colour, then the other
+  // groups as dots in one more pill.
+  &--card &__row--groups {
+    align-items: center;
+    display: none;
+    gap: 2px;
+    justify-content: center;
+    margin-top: 8px;
+
+    @media @desktop {
+      display: flex;
+    }
+  }
+
+  &__group {
+    .link-plain();
+    align-items: center;
+    background-color: hsla(0, 0%, 0%, 0.5);
+    border-radius: 10000px;
+    color: var(--group-colour);
+    display: inline-flex;
+    font-size: @font-size--normal;
+    flex: none;
+    font-weight: 700;
+    gap: 3px;
+    height: 17px;
+    line-height: 17px;
+    padding: 0 8px;
+
+    .link-hover({
+      color: var(--group-colour);
+    });
+
+    &:has(.forum-post-info__group-dot) {
+      padding: 0 6px;
+    }
+  }
+
+  &__group-dot {
+    background-color: var(--group-colour);
+    border-radius: 50%;
+    height: 8px;
+    width: 8px;
+  }
+
+  // Supporter: osu!'s pink pill, the hearts side by side.
+  &--card &__row--supporter {
+    .link-plain();
+    background-color: #eb549c;
+    border-radius: 10000px;
+    color: #fff;
+    font-size: 9px;
+    height: 16px;
+    line-height: 15px;
+    padding: 0 5.5px;
+
+    .link-hover({
+      color: #fff;
+    });
+  }
+
+  &--card &__row--flag {
+    gap: 4px;
+    margin-top: 4px;
+  }
+
+  &--card &__row--posts {
+    color: hsl(var(--hsl-l3));
+    font-size: @font-size--normal;
+    font-weight: 400;
+    line-height: 12.5px;
+    margin-top: 8px;
+
+    .link-hover({
+      color: hsl(var(--hsl-c1));
+    });
+  }
+
+  &--card &__row--menu {
+    margin-top: 12px;
+  }
+
+  &__menu-button {
+    .reset-input();
+    color: #fff;
+    cursor: pointer;
+    display: block;
+    font-size: 14px;
+    line-height: 12px;
+    padding: 0 8px;
+    text-shadow: 0 2px 2px hsla(0, 0%, 0%, 0.25);
+
+    &:hover {
+      color: hsl(var(--hsl-l3));
+    }
+  }
+
+  // Floats under the ••• (more specific than simple-menu's own position, which comes later).
+  &__row--menu &__menu {
+    left: 50%;
+    position: absolute;
+    text-align: left;
+    top: 100%;
+    transform: translateX(-50%);
+    z-index: 10;
+  }
 }

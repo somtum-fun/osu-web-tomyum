@@ -6,16 +6,13 @@ import LoveBeatmapDialog from 'beatmap-discussions/love-beatmap-dialog';
 import { Nominator } from 'beatmap-discussions/nominator';
 import PlainTextPreview from 'beatmap-discussions/plain-text-preview';
 import BigButton from 'components/big-button';
-import DiscreteBar from 'components/discrete-bar';
 import Modal from 'components/modal';
 import StringWithComponent from 'components/string-with-component';
 import TimeWithTooltip from 'components/time-with-tooltip';
 import UserLink from 'components/user-link';
 import BeatmapsetDiscussionsStore from 'interfaces/beatmapset-discussions-store';
 import BeatmapsetEventJson from 'interfaces/beatmapset-event-json';
-import { BeatmapsetNominationsInterface, NominationsInterface } from 'interfaces/beatmapset-json';
 import BeatmapsetWithDiscussionsJson from 'interfaces/beatmapset-with-discussions-json';
-import Ruleset from 'interfaces/ruleset';
 import { route } from 'laroute';
 import { action, makeObservable, observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react';
@@ -35,12 +32,18 @@ import DiscussionsState from './discussions-state';
 const bn = 'beatmap-discussion-nominations';
 const flashClass = 'js-flash-border--on';
 export const hypeExplanationClass = 'js-hype--explanation';
-const nominatorsVisibleBeatmapStatuses = Object.freeze(new Set(['wip', 'pending', 'ranked', 'qualified']));
-
 interface Props {
   discussionsState: DiscussionsState;
+  // TomYum: more buttons at the end of the button bar (subscribe, the beatmap's info page).
+  endButtons?: React.ReactNode;
+  // TomYum: and at its start (the favourite).
+  startButtons?: React.ReactNode;
   store: BeatmapsetDiscussionsStore;
 }
+
+// TomYum: the statuses on the design proposal's path to ranking (hype train, nominations,
+// qualified, ranked); others (graveyard, loved) have no path.
+const pathStatuses = new Set(['wip', 'pending', 'qualified', 'approved', 'ranked']);
 
 type XhrType = 'delete' | 'discussionLock' | 'removeFromLoved';
 
@@ -102,39 +105,38 @@ export class Nominations extends React.Component<Props> {
     window.clearTimeout(this.hypeFocusTimeout);
   }
 
+  // TomYum: the design proposal's layout: the path to ranking (hype train, nominations, qualified,
+  // ranked, with who hyped and nominated), the status messages, then the button bar.
   render() {
     return (
-      <div className={bn}>
+      <div className={classWithModifiers(bn, 'v2')}>
         {this.renderBeatmapsOwnerEditor()}
         {this.renderLoveBeatmapDialog()}
+        {this.renderPathToRanking()}
         <div className={`${bn}__items ${bn}__items--messages`}>
           <div className={`${bn}__item`}>{this.renderStatusMessage()}</div>
-          <div className={`${bn}__item`}>{this.renderHypeBar()}</div>
-          <div className={`${bn}__item`}>{this.renderNominationBar()}</div>
           <div className={`${bn}__item`}>{this.renderDisqualificationMessage()}</div>
           <div className={`${bn}__item`}>{this.renderNominationResetMessage()}</div>
           <div className={`${bn}__item`}>{this.renderDiscussionLockMessage()}</div>
-          <div className={`${bn}__item ${bn}__item--nominators`}>{this.renderNominatorsList()}</div>
         </div>
-        <div className={`${bn}__items ${bn}__items--buttons`}>
-          <div className={`${bn}__items-grouping`}>
-            <div className={`${bn}__item`}>{this.renderFeedbackButton()}</div>
-            <div className={`${bn}__item`}>{this.renderHypeButton()}</div>
-            <div className={`${bn}__item`}>{this.renderDisqualifyButton()}</div>
-            <div className={`${bn}__item`}>
-              <Nominator
-                discussionsState={this.props.discussionsState}
-                store={this.props.store}
-              />
-            </div>
+        <div className={`${bn}__actions`}>
+          <div className={`${bn}__actions-group`}>
+            {this.props.startButtons}
+            {this.renderFeedbackButton()}
+            {this.renderDisqualifyButton()}
+            <Nominator
+              discussionsState={this.props.discussionsState}
+              store={this.props.store}
+            />
+            {this.renderDiscussionLockButton()}
+            {this.renderLoveButton()}
+            {this.renderRemoveFromLovedButton()}
+            {this.renderDeleteButton()}
+            {this.renderBeatmapsOwnerEditorButton()}
           </div>
-          <div className={`${bn}__items-grouping`}>
-            <div className={`${bn}__item`}>{this.renderDiscussionLockButton()}</div>
-            <div className={`${bn}__item`}>{this.renderLoveButton()}</div>
-            <div className={`${bn}__item`}>{this.renderRemoveFromLovedButton()}</div>
-            <div className={`${bn}__item`}>{this.renderDeleteButton()}</div>
-            <div className={`${bn}__item`}>{this.renderBeatmapsOwnerEditorButton()}</div>
-          </div>
+          {this.props.endButtons != null && (
+            <div className={`${bn}__actions-group ${bn}__actions-group--end`}>{this.props.endButtons}</div>
+          )}
         </div>
       </div>
     );
@@ -435,81 +437,6 @@ export class Nominations extends React.Component<Props> {
     );
   }
 
-  private renderHypeBar() {
-    if (!this.beatmapset.can_be_hyped || this.beatmapset.hype == null) return;
-
-    const requiredHype = this.beatmapset.hype.required;
-    const hype = this.props.discussionsState.totalHypeCount;
-
-    return (
-      <div>
-        <div className={`${bn}__header`}>
-          <span className={`${bn}__title`}>{trans('beatmaps.hype.section_title')}</span>
-          <span>{formatNumber(hype)} / {formatNumber(requiredHype)}</span>
-        </div>
-        <div className={`${bn}__discrete-bar-group`}>
-          <DiscreteBar current={hype} modifiers='contents' total={requiredHype} />
-        </div>
-      </div>
-    );
-  }
-
-  private renderHypeButton() {
-    if (!this.beatmapset.can_be_hyped || core.currentUser == null || this.userIsOwner) return;
-
-    return (
-      <BigButton
-        disabled={!this.beatmapset.current_user_attributes.can_hype}
-        icon='fas fa-bullhorn'
-        props={{
-          onClick: this.focusHypeInput,
-          title: this.beatmapset.current_user_attributes.can_hype_reason,
-        }}
-        text={this.props.discussionsState.hasCurrentUserHyped ? trans('beatmaps.hype.button_done') : trans('beatmaps.hype.button')}
-      />
-    );
-  }
-
-  private renderLightsForHybridNominations(nominations: NominationsInterface) {
-    const mainRuleset = this.props.discussionsState.calculatedMainRuleset;
-
-    return (
-      <>
-        {this.props.discussionsState.rulesetsWithoutDeletedBeatmaps.map((ruleset: Ruleset) => (
-          <DiscreteBar
-            key={ruleset}
-            current={nominations.current[ruleset] ?? 0}
-            label={<i className={`fal fa-extra-mode-${ruleset}`} />}
-            modifiers='contents'
-            total={mainRuleset === ruleset ? nominations.required_meta.main_ruleset : nominations.required_meta.non_main_ruleset}
-          />
-        ))}
-        {mainRuleset == null && (
-          <DiscreteBar
-            key='free'
-            current={0}
-            modifiers='contents'
-            total={nominations.required_meta.main_ruleset - nominations.required_meta.non_main_ruleset}
-          />
-        )}
-      </>
-    );
-  }
-
-  private renderLightsForNominations(nominations?: BeatmapsetNominationsInterface) {
-    if (nominations == null) return;
-
-    const hybrid = !nominations.legacy_mode;
-
-    return (
-      <div className={classWithModifiers(`${bn}__discrete-bar-group`, { hybrid })}>
-        {nominations.legacy_mode ? (
-          <DiscreteBar current={nominations.current} modifiers='contents' total={nominations.required} />
-        ) : this.renderLightsForHybridNominations(nominations)}
-      </div>
-    );
-  }
-
   private renderLoveBeatmapDialog() {
     if (!this.showLoveBeatmapDialog) return;
 
@@ -539,26 +466,6 @@ export class Nominations extends React.Component<Props> {
     );
   }
 
-  private renderNominationBar() {
-    const requiredHype = this.beatmapset.hype?.required ?? 0; // TODO: skip if null?
-    const hypeRaw = this.props.discussionsState.totalHypeCount;
-    const mapCanBeNominated = this.beatmapset.status === 'pending' && hypeRaw >= requiredHype;
-
-    if (!(mapCanBeNominated || this.isQualified)) return;
-
-    const nominations = this.beatmapset.nominations;
-
-    return (
-      <div>
-        <div className={`${bn}__header`}>
-          <span className={`${bn}__title`}>{trans('beatmaps.nominations.title')}</span>
-          <span>{formatNumber(this.props.discussionsState.nominationsCount('current'))} / {this.props.discussionsState.nominationsCount('required')}</span>
-        </div>
-        {this.renderLightsForNominations(nominations)}
-      </div>
-    );
-  }
-
   private renderNominationResetMessage() {
     const nominationReset = this.beatmapset.nominations.nomination_reset;
 
@@ -567,20 +474,96 @@ export class Nominations extends React.Component<Props> {
     return <div>{this.renderResetReason(nominationReset)}</div>;
   }
 
-  private renderNominatorsList() {
-    if (!nominatorsVisibleBeatmapStatuses.has(this.beatmapset.status)) return;
+  // TomYum: the design proposal's path to ranking: the Hype! button, then the hype train (its
+  // carriages fill with hypes), the nominations, qualified and ranked, each lit once reached, with
+  // who hyped and who nominated under them.
+  private renderPathToRanking() {
+    const beatmapset = this.beatmapset;
+    if (!pathStatuses.has(beatmapset.status)) return null;
 
-    if (this.props.discussionsState.nominators.length === 0) return;
+    const state = this.props.discussionsState;
+    const qualified = beatmapset.status === 'qualified' || beatmapset.status === 'ranked' || beatmapset.status === 'approved';
+    const ranked = beatmapset.status === 'ranked' || beatmapset.status === 'approved';
+
+    const hypeRequired = beatmapset.hype?.required ?? 0;
+    const hypeCount = state.totalHypeCount;
+    const hypeSegments = Math.max(1, Math.min(10, hypeRequired));
+    const hypeFilled = qualified || hypeRequired === 0
+      ? hypeSegments
+      : Math.min(hypeSegments, Math.floor(hypeSegments * hypeCount / hypeRequired));
+
+    const nominationsRequired = state.nominationsCount('required');
+    const nominationsCurrent = state.nominationsCount('current');
+    const nominationSegments = Math.max(1, nominationsRequired);
+    const nominationsFilled = qualified ? nominationSegments : Math.min(nominationSegments, nominationsCurrent);
+
+    const hypers = [...this.discussions.values()]
+      .filter((discussion) => discussion != null && discussion.message_type === 'hype' && discussion.deleted_at == null)
+      .map((discussion) => this.users.get(discussion?.user_id))
+      .filter((user) => user != null);
+    const nominators = state.nominators.length > 0
+      ? state.nominators.map((user) => <UserLink key={user.id} user={user} />)
+      // TomYum: nominators known only from osu!, linked to their osu! profiles.
+      : (beatmapset.tomyum_nominators ?? []).map((user) => (
+        <a key={user.id} href={`https://osu.ppy.sh/users/${user.id}`} rel='noreferrer' target='_blank'>{user.username}</a>
+      ));
+
+    const canHype = beatmapset.can_be_hyped && core.currentUser != null && !this.userIsOwner;
 
     return (
-      <span>
-        <StringWithComponent
-          mappings={{
-            users: joinComponents(this.props.discussionsState.nominators.map((user) => <UserLink key={user.id} user={user} />)),
-          }}
-          pattern={trans('beatmaps.nominations.nominated_by')}
-        />
-      </span>
+      <div className={`${bn}__path`}>
+        {canHype && (
+          <button
+            className={`${bn}__hype-button`}
+            disabled={!beatmapset.current_user_attributes.can_hype}
+            onClick={this.focusHypeInput}
+            title={beatmapset.current_user_attributes.can_hype_reason ?? undefined}
+            type='button'
+          >
+            {state.hasCurrentUserHyped ? trans('beatmaps.hype.button_done') : 'Hype!'}
+          </button>
+        )}
+
+        <div className={`${bn}__stages`}>
+          {beatmapset.hype != null && this.renderStage(
+            'hype',
+            trans('beatmaps.hype.section_title'),
+            // the count only while it's being hyped (osu!'s hypes aren't imported)
+            qualified ? null : `${formatNumber(hypeCount)}/${formatNumber(hypeRequired)}`,
+            hypeSegments,
+            hypeFilled,
+            hypers.length > 0 ? joinComponents(hypers.map((user) => <UserLink key={user?.id} user={user ?? deletedUserJson} />)) : null,
+          )}
+          {this.renderStage(
+            'nominations',
+            trans('beatmaps.nominations.title'),
+            // the count only while it's being nominated (osu! doesn't tell older nominations)
+            qualified ? null : `${formatNumber(nominationsCurrent)}/${formatNumber(nominationsRequired)}`,
+            nominationSegments,
+            nominationsFilled,
+            nominators.length > 0 ? joinComponents(nominators) : null,
+          )}
+          {this.renderStage('qualified', trans('beatmapsets.show.status.qualified'), null, 1, qualified ? 1 : 0, null)}
+          {this.renderStage('ranked', trans('beatmapsets.show.status.ranked'), null, 1, ranked ? 1 : 0, null)}
+        </div>
+      </div>
+    );
+  }
+
+  private renderStage(key: string, label: string, value: string | null, segments: number, filled: number, names: React.ReactNode) {
+    return (
+      <div className={classWithModifiers(`${bn}__stage`, key, { reached: filled >= segments })} style={{ '--segments': segments } as React.CSSProperties}>
+        <div className={`${bn}__stage-label`}>
+          {label}
+          {value != null && <span className={`${bn}__stage-value`}>{value}</span>}
+        </div>
+        <div className={`${bn}__stage-segments`}>
+          {Array.from({ length: segments }, (_, i) => (
+            <span key={i} className={classWithModifiers(`${bn}__segment`, { filled: i < filled })} />
+          ))}
+        </div>
+        {names != null && <div className={`${bn}__stage-names`}>{names}</div>}
+      </div>
     );
   }
 

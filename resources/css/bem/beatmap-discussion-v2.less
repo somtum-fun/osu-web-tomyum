@@ -1,0 +1,243 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
+// See the LICENCE file in the repository root for full licence text.
+
+// TomYum: the design proposal's threads on the discussion page (beatmap-discussions/discussion.tsx,
+// beatmap-discussion--v2): a rounded card pointing at the timeline, its header row (timestamp, a bar
+// and type / state in the state's colour, votes, score, chevron), and, when open, the first post
+// and the replies under thin lines.
+.beatmap-discussion--v2 {
+  @_top: beatmap-discussion;
+
+  .@{_top}__discussion {
+    background-color: hsl(var(--hsl-b3));
+    border-radius: 10px;
+    box-shadow: none;
+    margin: 4px 0;
+    overflow: visible;
+
+    // the pointer at the timeline
+    @media @desktop {
+      &::before {
+        border-bottom: 8px solid transparent;
+        border-right: 8px solid hsl(var(--hsl-b3));
+        border-top: 8px solid transparent;
+        content: "";
+        left: -8px;
+        position: absolute;
+        top: 17px;
+      }
+    }
+  }
+
+  // the timestamp is in the card now: only the type and state icons on the timeline
+  .beatmap-discussion-timestamp__text {
+    display: none;
+  }
+
+  .@{_top}__head {
+    align-items: center;
+    cursor: pointer;
+    display: flex;
+    gap: 14px;
+    min-height: 50px;
+    padding: 0 16px 0 22px;
+    user-select: none;
+
+    &--resolved {
+      --discussion-colour: #b2ff66;
+    }
+  }
+
+  .@{_top}__head-timestamp {
+    flex: none;
+    font-size: @font-size--title-small;
+    font-variant-numeric: tabular-nums;
+    min-width: 92px;
+  }
+
+  .@{_top}__head-bar {
+    background-color: var(--discussion-colour);
+    border-radius: 10px;
+    flex: none;
+    height: 30px;
+    width: 4px;
+  }
+
+  .@{_top}__head-title {
+    color: var(--discussion-colour);
+    font-size: @font-size--title-small;
+    font-weight: 600;
+    min-width: 0;
+  }
+
+  .@{_top}__head-actions {
+    align-items: center;
+    display: flex;
+    font-size: @font-size--title-small;
+    gap: 14px;
+    margin-left: auto;
+
+    .beatmap-discussion-vote {
+      background: none;
+      font-size: @font-size--title-small;
+    }
+
+    .beatmap-discussion-vote__count {
+      font-weight: 700;
+    }
+  }
+
+  .@{_top}__head-score {
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .@{_top}__head-toggle {
+    .reset-input();
+    color: #fff;
+    cursor: pointer;
+    font-size: @font-size--title-small;
+    padding: 0 4px;
+  }
+
+  // open: the first post and replies in the same card, under a thin line
+  .@{_top}__top {
+    background: none;
+    border-top: 1px solid hsla(var(--hsl-b6), 0.5);
+  }
+
+  .@{_top}__expanded {
+    border-top: 1px solid hsla(var(--hsl-b6), 0.5);
+
+    &:empty {
+      display: none;
+    }
+  }
+
+  .@{_top}__line {
+    display: none;
+  }
+}
+
+// The author, as in the design: a 60px rounded avatar with the name and group under it, centred.
+.beatmap-discussion--v2 .beatmap-discussion__top-user {
+  @media @desktop {
+    border-right: none;
+    margin-left: 20px;
+    width: 90px;
+  }
+
+  .beatmap-discussion-user-card {
+    align-items: center;
+    flex-direction: column;
+    gap: 4px;
+    text-align: center;
+  }
+
+  .beatmap-discussion-user-card__avatar {
+    border-radius: 20px;
+    height: 60px;
+    overflow: hidden;
+    width: 60px;
+
+    .avatar {
+      border-radius: 20px;
+    }
+  }
+
+  .beatmap-discussion-user-card__user {
+    align-items: center;
+    margin: 0;
+    padding: 0;
+  }
+
+  .beatmap-discussion-user-card__user-row {
+    justify-content: center;
+  }
+
+  .beatmap-discussion-user-card__user-link {
+    font-size: @font-size--title-small;
+    font-weight: 600;
+  }
+}
+
+// The reply box at the bottom of an open thread: a dark rounded box, the buttons as the design's
+// pills (Respond in blue).
+.beatmap-discussion--v2 .beatmap-discussion-post--new-reply {
+  background: none;
+  padding: 10px 16px 14px;
+
+  .beatmap-discussion-post__content {
+    background-color: hsl(var(--hsl-b5));
+    border-radius: 10px;
+    padding: 6px 12px;
+  }
+
+  .beatmap-discussion-post__avatar {
+    display: none;
+  }
+
+  .btn-osu-big {
+    border-radius: 10000px;
+    font-size: @font-size--normal;
+    min-height: 30px;
+    padding: 0 15px;
+  }
+}
+
+.beatmap-discussion--v2 .beatmap-discussion-post--new-reply-placeholder {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px 16px 14px;
+}
+
+// A review's issues (the design's Review): each a row tinted in its type's colour from the left
+// (lime once resolved), its type and timestamp first, the text beside them.
+.beatmap-discussion--v2 .beatmap-discussion-review-post-embed-preview {
+  --embed-colour: hsl(var(--hsl-b2));
+  background: linear-gradient(90deg, color-mix(in srgb, var(--embed-colour) 28%, hsl(var(--hsl-b4))), hsl(var(--hsl-b4)) 45%);
+  border-radius: 5px;
+  box-shadow: none;
+  margin: 4px 0;
+
+  &--praise {
+    --embed-colour: var(--beatmapset-discussion-colour--praise);
+  }
+
+  &--problem {
+    --embed-colour: var(--beatmapset-discussion-colour--problem);
+  }
+
+  &--suggestion {
+    --embed-colour: var(--beatmapset-discussion-colour--suggestion);
+  }
+
+  &--mapper-note {
+    --embed-colour: var(--beatmapset-discussion-colour--mapper_note);
+  }
+
+  &--resolved {
+    --embed-colour: #b2ff66;
+  }
+
+  .beatmap-discussion-review-post-embed-preview__stripe {
+    --stripe-colour: var(--embed-colour);
+  }
+}
+
+// The state circle beside the type on the timeline (open ○, responded ◎, resolved ●).
+.beatmap-discussion--v2 .beatmap-discussion-timestamp__state {
+  color: #fff;
+  font-size: 12px;
+}
+
+// A thread resolved: the "resolved by" line in lime, glowing up from the thread's bottom.
+.beatmap-discussion--v2 .beatmap-discussion-system-post--resolved {
+  background: linear-gradient(0deg, hsla(90, 100%, 70%, 0.22), transparent);
+  border-bottom: 2px solid #b2ff66;
+
+  .beatmap-discussion-system-post__content {
+    color: #b2ff66;
+    font-weight: 700;
+  }
+}

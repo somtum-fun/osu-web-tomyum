@@ -17,7 +17,6 @@ import { reloadPage } from 'utils/turbolinks';
 import Controller from './controller';
 import Header from './header';
 import headerLinks from './header-links';
-import Hype from './hype';
 import Info from './info';
 import NsfwWarning from './nsfw-warning';
 import ScoreboardMain from './scoreboard/main';
@@ -172,12 +171,8 @@ export default class Main extends React.Component<Props> {
           <Info controller={this.controller} />
 
           <div className='user-profile-pages user-profile-pages--no-tabs'>
-            {this.controller.beatmapset.can_be_hyped &&
-              <div className='page-extra page-extra--compact'>
-                <Hype beatmapset={this.controller.beatmapset} />
-              </div>
-            }
-
+            {/* TomYum: hyping and disqualifying are on the discussion page's path to ranking now
+                (the design proposal has no box for them here). */}
             {this.controller.currentBeatmap.lazer_only && (
               <div className='page-extra page-extra--compact'>
                 {this.renderLazerOnlyMessage()}

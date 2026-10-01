@@ -16,15 +16,15 @@
         <div class="tomyum-panel__card">
             <h2><i class="fas fa-comments"></i>In-game chat</h2>
             <form method="GET" action="{{ route('panel.gmt.chat') }}" class="tomyum-panel__row">
-                <label class="tomyum-panel__field">
-                    Player (sent or received privately)
-                    <input type="text" name="user" value="{{ $userQuery }}" placeholder="username or id">
+                <label class="input-container tomyum-panel__field">
+                    <span class="input-container__label">Player (sent or received privately)</span>
+                    <input class="input-text" type="text" name="user" value="{{ $userQuery }}" placeholder="username or id">
                 </label>
-                <label class="tomyum-panel__field">
-                    Channel or conversation
-                    <input type="text" name="target" value="{{ $target }}" placeholder="#osu, #lobby, or a username">
+                <label class="input-container tomyum-panel__field">
+                    <span class="input-container__label">Channel or conversation</span>
+                    <input class="input-text" type="text" name="target" value="{{ $target }}" placeholder="#osu, #lobby, or a username">
                 </label>
-                <button class="tomyum-panel__button" type="submit">Show</button>
+                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Show</button>
             </form>
             <p class="tomyum-panel__hint">
                 Newest first. Kept for 30 days. Channel messages from before this panel existed weren't recorded.

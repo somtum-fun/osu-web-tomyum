@@ -44,6 +44,20 @@
     box-shadow: none;
   }
 
+  // TomYum: the poster's avatar on their forum card (osu!'s player card design: 70px, rounded 20px).
+  &--forum-card {
+    border-radius: 20px;
+    display: block;
+    height: 70px;
+    width: 70px;
+
+    @media @mobile {
+      border-radius: 6px;
+      height: 35px;
+      width: 35px;
+    }
+  }
+
   &--forum-reply {
     @avatar: 60px;
 

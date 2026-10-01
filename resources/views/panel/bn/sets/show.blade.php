@@ -17,21 +17,25 @@
         ['title' => $title],
     ]])
     <div class="osu-page osu-page--admin tomyum-panel">
-        <div class="tomyum-panel__card tomyum-panel__row" style="align-items: center">
-            @if ($beatmapset !== null)
-                <img src="{{ $beatmapset->coverURL('card') }}" alt="" style="border-radius: 6px; height: 70px; object-fit: cover; width: 200px">
-            @endif
-            <div style="flex: 1">
-                <h2 style="margin: 0">{{ $title }}</h2>
+        @php
+            $statusValue = ['graveyard' => -2, 'wip' => -1, 'pending' => 0, 'ranked' => 1, 'approved' => 2, 'qualified' => 3, 'loved' => 4];
+            $starColour = [App\Http\Controllers\Panel\DailyChallengeController::class, 'starColour'];
+        @endphp
+        <div class="tomyum-panel-cover" style="--cover: url('{{ $beatmapset?->coverURL('cover') }}')">
+            <div class="tomyum-panel-cover__text">
+                <h1 class="tomyum-panel-cover__title">{{ $title }}</h1>
                 @if ($beatmapset !== null)
-                    <p class="tomyum-panel__hint" style="margin: 4px 0 0">
-                        mapped by {{ $beatmapset->creator }} &middot; #{{ $setId }} &middot;
-                        {{ BnSetsController::APPROVED_LABELS[$beatmapset->approved] ?? $beatmapset->approved }} on the website
-                    </p>
+                    <div class="tomyum-panel-cover__meta">
+                        @include('panel._status', ['approved' => $beatmapset->approved])
+                        <span>mapped by <strong>{{ $beatmapset->creator }}</strong></span>
+                        <span>#{{ $setId }}</span>
+                    </div>
                 @endif
             </div>
-            <a href="{{ route('beatmapsets.show', ['beatmapset' => $setId]) }}">Open on the site</a>
-            <a href="https://osu.ppy.sh/beatmapsets/{{ $setId }}" rel="noopener" target="_blank">Open on osu!</a>
+            <div class="tomyum-panel-cover__buttons">
+                <a class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--panel-secondary" href="{{ route('beatmapsets.show', ['beatmapset' => $setId]) }}"><i class="fas fa-external-link-alt"></i>On the site</a>
+                <a class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--panel-secondary" href="https://osu.ppy.sh/beatmapsets/{{ $setId }}" rel="noopener" target="_blank"><i class="fas fa-external-link-alt"></i>On osu!</a>
+            </div>
         </div>
 
         <div class="tomyum-panel__card">
@@ -53,9 +57,17 @@
                             <td style="width: 30px"><input type="checkbox" name="beatmaps[]" value="{{ $difficulty['id'] }}"></td>
                             <td>{{ $difficulty['version'] }}</td>
                             <td>{{ $modes[$difficulty['mode']] ?? $difficulty['mode'] }}</td>
-                            <td>{{ number_format($difficulty['starRating'], 2) }}★</td>
                             <td>
-                                {{ BnSetsController::SETTABLE_STATUSES[$difficulty['status']] ?? ucfirst($difficulty['status']) }}
+                                <span class="tomyum-stars" style="--colour: {{ $starColour($difficulty['starRating']) }}; --text: {{ $difficulty['starRating'] >= 6.5 ? '#fff' : 'hsl(var(--hsl-b6))' }}">
+                                    <i class="fas fa-star"></i>{{ number_format($difficulty['starRating'], 2) }}
+                                </span>
+                            </td>
+                            <td>
+                                @if (isset($statusValue[$difficulty['status']]))
+                                    @include('panel._status', ['approved' => $statusValue[$difficulty['status']]])
+                                @else
+                                    {{ ucfirst($difficulty['status']) }}
+                                @endif
                                 @if ($difficulty['staffSet'])
                                     <span class="tomyum-panel__badge tomyum-panel__badge--success">set by staff</span>
                                 @endif
@@ -70,15 +82,15 @@
                     @endforelse
                 </table>
                 <div class="tomyum-panel__row" style="margin-top: 12px">
-                    <label class="tomyum-panel__field" style="flex: 0 1 220px">
-                        New status
-                        <select name="status" required>
+                    <label class="input-container input-container--select tomyum-panel__field" style="flex: 0 1 220px">
+                        <span class="input-container__label">New status</span>
+                        <select class="input-text" name="status" required>
                             @foreach (BnSetsController::SETTABLE_STATUSES as $value => $label)
                                 <option value="{{ $value }}">{{ $label }}</option>
                             @endforeach
                         </select>
                     </label>
-                    <button class="tomyum-panel__button" type="submit">Change status</button>
+                    <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Change status</button>
                 </div>
             </form>
         </div>
@@ -90,7 +102,7 @@
             </p>
             <form method="POST" action="{{ route('panel.bn.sets.refresh', ['set' => $setId]) }}">
                 @csrf
-                <button class="tomyum-panel__button" type="submit">Refresh</button>
+                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Refresh</button>
             </form>
         </div>
 

@@ -157,3 +157,26 @@
 
     @include('forum.topics._nav')
 @endsection
+
+@section('script')
+    @parent
+    <script>
+        // TomYum: a reply arrives with its poster's new post count; their other posts on the page
+        // (rendered before it) take the same number, so one player doesn't show two counts.
+        (() => {
+            const posts = document.querySelector('.js-forum-topic-posts') ?? document.body;
+            new MutationObserver((changes) => {
+                for (const change of changes) {
+                    for (const node of change.addedNodes) {
+                        if (!(node instanceof Element)) continue;
+                        for (const count of node.querySelectorAll('[data-post-count-user]')) {
+                            document.querySelectorAll(`[data-post-count-user="${count.dataset.postCountUser}"]`).forEach((other) => {
+                                if (other !== count) other.innerHTML = count.innerHTML;
+                            });
+                        }
+                    }
+                }
+            }).observe(posts, { childList: true, subtree: true });
+        })();
+    </script>
+@endsection

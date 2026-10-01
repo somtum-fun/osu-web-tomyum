@@ -1,0 +1,634 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
+// See the LICENCE file in the repository root for full licence text.
+
+// TomYum: the staff panels (BN, GMT, admin). Built from osu-web's own parts (btn-osu-big,
+// input-container/input-text, osu-switch-v2, game-mode, the page header's tabs); this is the layout
+// around them: cards, rows, tables, pills and tiles.
+.tomyum-panel {
+  display: grid;
+  gap: 15px;
+  padding-top: 20px;
+  padding-bottom: 40px;
+
+  &--top {
+    gap: 10px;
+    padding-bottom: 0;
+  }
+
+  // Cards: osu-web's page-extra look (a flat panel on the page, a title with its icon).
+
+  &__card {
+    background: hsl(var(--hsl-b4));
+    border-radius: @border-radius-large;
+    min-width: 0;
+    padding: 20px 25px;
+    scroll-margin-top: 150px; // below the sticky navbar and section tabs
+
+    @media @mobile {
+      padding: 15px;
+    }
+
+    > h2 {
+      .tomyum-panel-card-title();
+    }
+
+    h3 {
+      color: hsl(var(--hsl-c2));
+      font-size: @font-size--normal;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      margin: 20px 0 8px;
+      text-transform: uppercase;
+    }
+
+    &--danger {
+      box-shadow: inset 0 0 0 2px hsla(var(--hsl-red-2), 0.5);
+    }
+  }
+
+  &__card-head {
+    align-items: baseline;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    justify-content: space-between;
+
+    h2 {
+      .tomyum-panel-card-title();
+    }
+  }
+
+  // Two cards side by side on wide screens.
+  &__columns {
+    display: grid;
+    gap: 15px;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+
+    @media @mobile {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__hint {
+    color: hsl(var(--hsl-c2));
+    font-size: @font-size--normal;
+    line-height: 1.5;
+    margin: 4px 0 12px;
+  }
+
+  &__empty {
+    color: hsl(var(--hsl-c2));
+    padding: 12px 0 4px;
+    text-align: center;
+  }
+
+  &__section-title {
+    color: hsl(var(--hsl-c2));
+    font-size: @font-size--normal;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    margin: 8px 0 -4px;
+    text-transform: uppercase;
+  }
+
+  // Where a deeper page is (Accounts › player).
+  &__crumbs {
+    align-items: center;
+    color: hsl(var(--hsl-c2));
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: @font-size--normal;
+
+    .fas {
+      font-size: 10px;
+    }
+
+    span {
+      color: hsl(var(--hsl-c1));
+      font-weight: 600;
+    }
+  }
+
+  // An account's header: osu-web's user card, and what staff want to know at a glance.
+
+  &__hero {
+    align-items: stretch;
+    display: grid;
+    gap: 15px;
+    grid-template-columns: minmax(280px, 380px) 1fr;
+
+    @media @mobile {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__facts {
+    align-content: start;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+
+  &__fact {
+    background: hsl(var(--hsl-b5));
+    border-radius: @border-radius-large;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 15px;
+  }
+
+  &__fact-value {
+    font-size: @font-size--title-small;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  // A long page's sections (the account page): osu-web's profile tabs in a sticky-toolbar, wrapping
+  // onto a second line rather than hiding the last ones off the edge.
+  &__sections {
+    .page-mode {
+      border-radius: @border-radius-large;
+      flex-wrap: wrap;
+      gap: 6px 22px;
+      justify-content: center;
+      overflow: visible;
+      padding: 12px 20px 8px;
+    }
+
+    // The underline under the word, not over it (the profile's bar is spaced for its own).
+    .page-mode-link--profile-page {
+      padding-bottom: 8px;
+    }
+
+    .page-mode-link__stripe {
+      bottom: 0;
+      height: 3px;
+    }
+  }
+
+  // Forms: osu-web's input-container fields laid out in rows.
+
+  &__row {
+    align-items: end;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  &__field {
+    flex: 1 1 200px;
+    width: auto;
+  }
+
+  // A file to upload (the only field osu-web has no input-text for): its button looks like one.
+  &__field:not(.input-container) {
+    color: hsl(var(--hsl-c2));
+    display: grid;
+    font-size: @font-size--normal;
+    gap: 6px;
+
+    input[type=file] {
+      color: hsl(var(--hsl-c2));
+      font-size: @font-size--normal;
+
+      &::file-selector-button {
+        .reset-input();
+        background: hsl(var(--hsl-b3));
+        border-radius: 10000px;
+        color: hsl(var(--hsl-c1));
+        cursor: pointer;
+        font-weight: 600;
+        margin-right: 10px;
+        padding: 8px 15px;
+      }
+
+      &:hover::file-selector-button {
+        background: hsl(var(--hsl-b2));
+      }
+    }
+  }
+
+  &__check {
+    align-items: center;
+    cursor: pointer;
+    display: inline-flex;
+    font-size: @font-size--normal;
+    gap: 6px;
+    min-height: 38px;
+    white-space: nowrap;
+  }
+
+  input[type=checkbox]:not(.osu-switch-v2__input) {
+    accent-color: hsl(var(--hsl-h1));
+    height: 16px;
+    width: 16px;
+  }
+
+  textarea.input-text {
+    min-height: 140px;
+    resize: vertical;
+  }
+
+  // osu-web's big buttons, with room for an icon.
+  .btn-osu-big {
+    .fas,
+    .fab {
+      margin-right: 6px;
+    }
+  }
+
+  // Messages
+
+  &__status {
+    align-items: center;
+    background: hsl(var(--hsl-b4));
+    border-left: 4px solid;
+    border-radius: @border-radius-large;
+    display: flex;
+    gap: 10px;
+    padding: 12px 16px;
+
+    &::before {
+      .fas();
+    }
+
+    &--success {
+      border-color: hsl(var(--hsl-lime-1));
+
+      &::before {
+        color: hsl(var(--hsl-lime-1));
+        content: @fa-var-check-circle;
+      }
+    }
+
+    &--error {
+      border-color: hsl(var(--hsl-red-2));
+
+      &::before {
+        color: hsl(var(--hsl-red-2));
+        content: @fa-var-exclamation-circle;
+      }
+    }
+  }
+
+  // Tables: the rankings' rows (a strip per row, lighter on hover).
+
+  &__table {
+    border-collapse: separate;
+    border-spacing: 0 3px;
+    width: 100%;
+
+    th {
+      color: hsl(var(--hsl-c2));
+      font-size: @font-size--normal;
+      font-weight: 600;
+      padding: 4px 10px;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    td {
+      --bg: hsl(var(--hsl-b5));
+      background: var(--bg);
+      padding: 7px 10px;
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    tr:hover td {
+      --bg: hsl(var(--hsl-b3));
+    }
+
+    td:first-child {
+      border-radius: @border-radius-large 0 0 @border-radius-large;
+    }
+
+    td:last-child {
+      border-radius: 0 @border-radius-large @border-radius-large 0;
+    }
+
+    td:only-child {
+      border-radius: @border-radius-large;
+    }
+
+    .timeago {
+      white-space: nowrap;
+    }
+
+    code {
+      background: hsl(var(--hsl-b6));
+      border-radius: 4px;
+      font-size: @font-size--normal;
+      padding: 1px 5px;
+    }
+  }
+
+  &__nowrap {
+    white-space: nowrap;
+  }
+
+  &__muted {
+    color: hsl(var(--hsl-c2));
+  }
+
+  &__scroll {
+    overflow-x: auto;
+  }
+
+  // Tiles: links to tools, and numbers
+
+  &__links {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+
+    &--stats {
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+  }
+
+  &__link {
+    background: hsl(var(--hsl-b4));
+    border-radius: @border-radius-large;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 18px 20px;
+    position: relative;
+    transition: background 150ms, transform 150ms;
+
+    h2 {
+      font-size: @font-size--title-small;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    p {
+      margin: 0;
+    }
+
+    &--big {
+      padding: 25px;
+
+      h2 {
+        font-size: @font-size--title;
+      }
+    }
+  }
+
+  a&__link {
+    .link-hover({
+      background: hsl(var(--hsl-b3));
+      color: inherit;
+      text-decoration: none;
+      transform: translateY(-2px);
+    });
+
+    &::after {
+      .fas();
+      color: hsl(var(--hsl-c2));
+      content: @fa-var-chevron-right;
+      font-size: 11px;
+      opacity: 0;
+      position: absolute;
+      right: 18px;
+      top: 20px;
+      transition: opacity 150ms;
+    }
+
+    &:hover::after {
+      opacity: 1;
+    }
+  }
+
+  &__link-icon {
+    align-items: center;
+    background: hsla(var(--hsl-h1), 0.15);
+    border-radius: @border-radius-large;
+    color: hsl(var(--hsl-h1));
+    display: flex;
+    font-size: 16px;
+    height: 38px;
+    justify-content: center;
+    margin-bottom: 8px;
+    width: 38px;
+
+    .tomyum-panel__link--big & {
+      font-size: 20px;
+      height: 46px;
+      width: 46px;
+    }
+  }
+
+  &__kicker {
+    color: hsl(var(--hsl-c2));
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  &__stat {
+    font-size: 30px;
+    font-weight: 300;
+    line-height: 1.15;
+  }
+
+  &__live-dot {
+    background: hsl(var(--hsl-lime-1));
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px hsla(var(--hsl-lime-1), 0.25);
+    display: inline-block;
+    height: 8px;
+    margin-right: 6px;
+    vertical-align: middle;
+    width: 8px;
+
+    &--off {
+      background: hsl(var(--hsl-red-2));
+      box-shadow: 0 0 0 3px hsla(var(--hsl-red-2), 0.25);
+    }
+  }
+
+  // Progress
+
+  &__progress {
+    background: hsl(var(--hsl-b5));
+    border-radius: 4px;
+    height: 8px;
+    overflow: hidden;
+
+    > div {
+      background: hsl(var(--hsl-h1));
+      height: 100%;
+      transition: width 300ms;
+    }
+  }
+
+  // Pills: results, actions, clients
+
+  &__badge,
+  &__pill {
+    background: hsla(var(--hsl-b3), 0.8);
+    border-radius: 10000px;
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.6;
+    padding: 1px 9px;
+    white-space: nowrap;
+  }
+
+  &__badge--success,
+  &__pill--good {
+    background: hsla(var(--hsl-lime-1), 0.2);
+    color: hsl(var(--hsl-lime-1));
+  }
+
+  &__badge--error,
+  &__pill--bad {
+    background: hsla(var(--hsl-red-2), 0.2);
+    color: hsl(var(--hsl-red-1));
+  }
+
+  &__pill--warn {
+    background: hsla(var(--hsl-orange-1), 0.2);
+    color: hsl(var(--hsl-orange-1));
+  }
+
+  &__pill--info {
+    background: hsla(var(--hsl-blue-1), 0.2);
+    color: hsl(var(--hsl-blue-1));
+  }
+
+  &__pill--pink {
+    background: hsla(var(--hsl-h1), 0.18);
+    color: hsl(var(--hsl-h1));
+  }
+
+  &__client {
+    color: hsl(var(--hsl-c2));
+    font-size: @font-size--normal;
+    white-space: nowrap;
+
+    .fas {
+      font-size: 11px;
+      margin-right: 4px;
+    }
+  }
+
+  // A switch with its words (osu-web's osu-switch-v2).
+  &__toggle {
+    align-items: center;
+    cursor: pointer;
+    display: inline-flex;
+    font-size: @font-size--normal;
+    gap: 8px;
+    color: hsl(var(--hsl-c2));
+  }
+}
+
+// The other panels, next to the header's title (the right side is the game mode icons' when a page has them).
+.tomyum-panel-switch {
+  display: flex;
+  gap: 5px;
+  margin-left: 20px;
+
+  &__item {
+    .link-plain();
+    border-radius: 10000px;
+    color: hsl(var(--hsl-c2));
+    font-size: @font-size--normal;
+    font-weight: 600;
+    padding: 4px 12px;
+
+    .link-hover({
+      background: hsl(var(--hsl-b3));
+      color: hsl(var(--hsl-c1));
+    });
+
+    &--active,
+    &--active:hover {
+      background: hsl(var(--hsl-h2));
+      color: hsl(var(--hsl-c1));
+    }
+  }
+}
+
+// A quieter btn-osu-big for secondary actions (Hide, Refresh, Profile, …).
+.btn-osu-big--panel-secondary {
+  --bg: hsl(var(--hsl-b3));
+  --hover-bg: hsl(var(--hsl-b2));
+}
+
+.tomyum-panel-card-title() {
+  align-items: center;
+  display: flex;
+  font-size: @font-size--title-small;
+  font-weight: 600;
+  gap: 10px;
+  margin: 0 0 12px;
+
+  .fas,
+  .fab,
+  .fal {
+    align-items: center;
+    background: hsla(var(--hsl-h1), 0.15);
+    border-radius: @border-radius-large;
+    color: hsl(var(--hsl-h1));
+    display: inline-flex;
+    font-size: 13px;
+    height: 28px;
+    justify-content: center;
+    width: 28px;
+  }
+}
+
+// A header with a cover behind it (a beatmap set's), like osu-web's beatmap page.
+.tomyum-panel-cover {
+  align-items: flex-end;
+  background:
+    linear-gradient(90deg, hsla(var(--hsl-b5), 0.95) 30%, hsla(var(--hsl-b5), 0.45)),
+    var(--cover) center / cover,
+    hsl(var(--hsl-b5));
+  border-radius: @border-radius-large;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: space-between;
+  min-height: 150px;
+  padding: 25px;
+
+  &__title {
+    font-size: @font-size--title;
+    font-weight: 600;
+    margin: 0 0 8px;
+  }
+
+  &__meta {
+    align-items: center;
+    color: hsl(var(--hsl-c2));
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+
+    strong {
+      color: hsl(var(--hsl-c1));
+    }
+  }
+
+  &__buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    .fas {
+      margin-right: 6px;
+    }
+  }
+}

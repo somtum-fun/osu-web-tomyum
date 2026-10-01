@@ -1,39 +1,77 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
 // See the LICENCE file in the repository root for full licence text.
 
+import BeatmapPicker, { PickerState } from 'beatmapsets-show/beatmap-picker';
 import headerLinks from 'beatmapsets-show/header-links';
-import BeatmapBasicStats from 'components/beatmap-basic-stats';
+import { beatmapMappers, localPerson, osuPerson, Person, PersonLink } from 'beatmapsets-show/people';
 import BeatmapsetBadge from 'components/beatmapset-badge';
-import BeatmapsetCover from 'components/beatmapset-cover';
-import BeatmapsetMapping from 'components/beatmapset-mapping';
-import BigButton from 'components/big-button';
+import DifficultyBadge from 'components/difficulty-badge';
 import HeaderV4 from 'components/header-v4';
 import NotificationBanner from 'components/notification-banner';
 import PlaymodeTabs from 'components/playmode-tabs';
 import StringWithComponent from 'components/string-with-component';
+import BeatmapExtendedJson from 'interfaces/beatmap-extended-json';
 import BeatmapsetDiscussionsStore from 'interfaces/beatmapset-discussions-store';
 import Ruleset, { rulesets } from 'interfaces/ruleset';
+import WithBeatmapOwners from 'interfaces/with-beatmap-owners';
 import { route } from 'laroute';
-import { action, computed, makeObservable } from 'mobx';
+import { action, computed, makeObservable, observable } from 'mobx';
 import { observer } from 'mobx-react';
+import * as moment from 'moment';
 import * as React from 'react';
-import { hasGuestOwners } from 'utils/beatmap-helper';
-import { getArtist, getTitle } from 'utils/beatmapset-helper';
+import { getDiffColour } from 'utils/beatmap-helper';
+import { getArtist, getTitle, toggleFavourite } from 'utils/beatmapset-helper';
+import { makeUrl } from 'utils/beatmapset-discussion-helper';
+import { classWithModifiers } from 'utils/css';
+import { formatDuration, formatNumber } from 'utils/html';
 import { trans, transChoice } from 'utils/lang';
-import BeatmapList from './beatmap-list';
-import Chart from './chart';
 import DiscussionsState from './discussions-state';
+import IssueTimeline from './issue-timeline';
+import ModdingPeople from './modding-people';
 import { Nominations } from './nominations';
 import { Subscribe } from './subscribe';
-import UserLinkList from './user-link-list';
+import TypeFilters from './type-filters';
 
 interface Props {
   discussionsState: DiscussionsState;
   store: BeatmapsetDiscussionsStore;
 }
 
+// What the difficulty picker shows and changes on this page.
+class DiscussionsPickerState implements PickerState {
+  @observable hoveredBeatmap: BeatmapExtendedJson | null = null;
+
+  get currentBeatmap() {
+    return this.discussionsState.currentBeatmap;
+  }
+
+  get currentBeatmaps() {
+    return this.discussionsState.groupedBeatmaps.get(this.discussionsState.currentBeatmap.mode) ?? [];
+  }
+
+  constructor(private readonly discussionsState: DiscussionsState) {
+    makeObservable(this);
+  }
+
+  beatmapUrl(beatmap: BeatmapExtendedJson) {
+    return makeUrl({ beatmap, filter: this.discussionsState.currentFilter });
+  }
+
+  @action
+  setCurrentBeatmap(beatmap: BeatmapExtendedJson) {
+    this.discussionsState.currentBeatmapId = beatmap.id;
+    this.discussionsState.changeDiscussionPage('timeline');
+  }
+}
+
+// TomYum: the discussion page's header after osu!'s "Beatmap Modding" design proposal (flyte), like
+// the beatmap page's: the title, the difficulty band in the difficulty's colour with the picker, the
+// issues on the map's timeline, who made it and when beside the discussion counters (they filter),
+// then the path to ranking and the buttons.
 @observer
 export class Header extends React.Component<Props> {
+  private readonly picker: DiscussionsPickerState;
+
   private get beatmapset() {
     return this.discussionsState.beatmapset;
   }
@@ -44,6 +82,16 @@ export class Header extends React.Component<Props> {
 
   private get discussionsState() {
     return this.props.discussionsState;
+  }
+
+  // The set's creator: their account here, else who made it on osu! (the import).
+  @computed
+  private get creator(): Person | null {
+    const user = this.users.get(this.beatmapset.user_id);
+    if (user != null && user.id > 0) return localPerson(user);
+
+    const osuCreator = this.beatmapset.tomyum_mappers?.creator;
+    return osuCreator == null ? null : osuPerson(osuCreator);
   }
 
   @computed
@@ -57,10 +105,13 @@ export class Header extends React.Component<Props> {
 
   constructor(props: Props) {
     super(props);
+    this.picker = new DiscussionsPickerState(props.discussionsState);
     makeObservable(this);
   }
 
   render() {
+    const beatmap = this.picker.hoveredBeatmap ?? this.currentBeatmap;
+
     return (
       <>
         {this.beatmapset.deleted_at != null && (
@@ -87,10 +138,83 @@ export class Header extends React.Component<Props> {
           )}
           theme='beatmapset'
         />
-        <div className='osu-page'>{this.renderHeaderTop()}</div>
-        <div className='osu-page osu-page--small'>{this.renderHeaderBottom()}</div>
+        <div className='osu-page'>
+          <div
+            className='beatmapset-header-v2 beatmapset-header-v2--modding'
+            style={{ '--diff': getDiffColour(beatmap.difficulty_rating) } as React.CSSProperties}
+          >
+            <div className='beatmapset-header-v2__head'>
+              <h1 className='beatmapset-header-v2__title'>
+                <a className='beatmapset-header-v2__title-link' href={route('beatmapsets.show', { beatmapset: this.beatmapset.id })}>
+                  {getTitle(this.beatmapset)}
+                </a>
+                {' '}
+                <span className='beatmapset-header-v2__artist'>
+                  {trans('beatmapsets.show.details.by_artist', { artist: getArtist(this.beatmapset) })}
+                </span>
+                <BeatmapsetBadge beatmapset={this.beatmapset} type='nsfw' />
+                <BeatmapsetBadge beatmapset={this.beatmapset} type='spotlight' />
+                <BeatmapsetBadge beatmapset={this.beatmapset} type='featured_artist' />
+              </h1>
+            </div>
+
+            <div className='beatmapset-header-v2__difficulty-band'>
+              {this.renderDifficulty(beatmap)}
+              <BeatmapPicker controller={this.picker} renderMappers={this.renderMappedBy} />
+            </div>
+
+            <div className='beatmapset-header-v2__body'>
+              <IssueTimeline discussions={this.timelineDiscussions} duration={this.currentBeatmap.total_length * 1000} />
+
+              <div className='beatmapset-header-v2__modding-row'>
+                {this.renderMapping()}
+                <div className='beatmapset-header-v2__counters'>
+                  <TypeFilters discussionsState={this.discussionsState} />
+                </div>
+              </div>
+            </div>
+
+            <Nominations
+              discussionsState={this.discussionsState}
+              startButtons={(
+                <button
+                  aria-label={trans(`beatmapsets.show.details.${this.beatmapset.has_favourited ? 'unfavourite' : 'favourite'}`)}
+                  className={classWithModifiers('beatmapset-header-v2__button', 'favourite', { active: this.beatmapset.has_favourited })}
+                  onClick={this.handleFavourite}
+                  type='button'
+                >
+                  <span className={this.beatmapset.has_favourited ? 'fas fa-heart' : 'far fa-heart'} />
+                  {` ${formatNumber(this.beatmapset.favourite_count)}`}
+                </button>
+              )}
+              endButtons={(
+                <>
+                  <Subscribe beatmapset={this.beatmapset} discussionsState={this.discussionsState} />
+                  <a className='beatmapset-header-v2__button beatmapset-header-v2__button--info' href={route('beatmapsets.show', { beatmapset: this.beatmapset.id })}>
+                    <span className='fas fa-info-circle' />
+                    {` ${trans('beatmaps.discussions.beatmap_information')}`}
+                  </a>
+                </>
+              )}
+              store={this.props.store}
+            />
+
+            <ModdingPeople discussionsState={this.discussionsState} store={this.props.store} />
+          </div>
+        </div>
       </>
     );
+  }
+
+  private readonly handleFavourite = () => {
+    toggleFavourite(this.beatmapset);
+  };
+
+  private mappers(beatmap: BeatmapExtendedJson) {
+    // The beatmaps here all have their owners.
+    const owners = this.discussionsState.beatmapOwners(beatmap as WithBeatmapOwners<BeatmapExtendedJson>);
+
+    return beatmapMappers(beatmap.id, owners, this.beatmapset);
   }
 
   @action
@@ -99,101 +223,86 @@ export class Header extends React.Component<Props> {
     this.discussionsState.changeGameMode(mode);
   };
 
-  private renderHeaderBottom() {
-    const bn = 'beatmap-discussions-header-bottom';
+  // The difficulty being looked at (or hovered in the picker): its stars, name and mappers, its
+  // length and BPM on the right.
+  private renderDifficulty(beatmap: BeatmapExtendedJson) {
+    const mappers = this.mappers(beatmap);
 
     return (
-      <div className={bn}>
-        <div className={`${bn}__content ${bn}__content--details`}>
-          <div className={`${bn}__details ${bn}__details--full`}>
-            <BeatmapsetMapping
-              beatmapset={this.beatmapset}
-              user={this.users.get(this.beatmapset.user_id)}
+      <div className='beatmapset-header-v2__difficulty'>
+        <DifficultyBadge modifiers='beatmapset' rating={beatmap.difficulty_rating} />
+        <span className='beatmapset-header-v2__version u-ellipsis-overflow'>{beatmap.version}</span>
+        {mappers.length > 0 && (
+          <span className='beatmapset-header-v2__mapped-by'>
+            <StringWithComponent
+              mappings={{
+                mapper: (
+                  <span className='beatmapset-header-v2__people'>
+                    {mappers.map((person) => (
+                      <PersonLink key={person.id} avatar className='beatmapset-header-v2__person' person={person} />
+                    ))}
+                  </span>
+                ),
+              }}
+              pattern={trans('beatmapsets.show.details.mapped_by')}
             />
-          </div>
-          <div className={`${bn}__details`}>
-            <Subscribe beatmapset={this.beatmapset} discussionsState={this.discussionsState} />
-          </div>
-          <div className={`${bn}__details`}>
-            <BigButton
-              href={route('beatmapsets.show', { beatmapset: this.beatmapset.id })}
-              icon='fas fa-info'
-              modifiers='full'
-              text={trans('beatmaps.discussions.beatmap_information')}
-            />
-          </div>
+          </span>
+        )}
+
+        <span className='beatmapset-header-v2__length'>
+          <span>
+            Length <span className='beatmapset-header-v2__length-value'>{formatDuration(beatmap.total_length)}</span>
+          </span>
+          <span>
+            {trans('beatmapsets.show.stats.bpm')}
+            {' '}
+            <span className='beatmapset-header-v2__length-value'>{formatNumber(beatmap.bpm)}</span>
+          </span>
+        </span>
+      </div>
+    );
+  }
+
+  // Who made the set and when it was submitted and ranked (the design's left column).
+  private renderMapping() {
+    const ranked = this.beatmapset.ranked > 0;
+    const date = (value: string | null | undefined) => value == null ? '-' : moment(value).format('ll');
+
+    return (
+      <div className='beatmapset-header-v2__details-group beatmapset-header-v2__details-group--mapping'>
+        <div className='beatmapset-header-v2__detail-label'>Mapped by</div>
+        <div className='beatmapset-header-v2__detail-value'>
+          {this.creator == null
+            ? this.beatmapset.creator
+            : <PersonLink avatar className='beatmapset-header-v2__person' person={this.creator} />}
         </div>
-        <div className={`${bn}__content ${bn}__content--nomination`}>
-          <Nominations
-            discussionsState={this.discussionsState}
-            store={this.props.store}
-          />
+        <div className='beatmapset-header-v2__detail-label'>Submitted on</div>
+        <div className='beatmapset-header-v2__detail-value beatmapset-header-v2__detail-value--plain'>{date(this.beatmapset.submitted_date)}</div>
+        <div className='beatmapset-header-v2__detail-label'>{ranked ? `${this.beatmapset.status.charAt(0).toUpperCase()}${this.beatmapset.status.slice(1)} on` : 'Updated on'}</div>
+        <div className='beatmapset-header-v2__detail-value beatmapset-header-v2__detail-value--plain'>
+          {date(ranked ? this.beatmapset.ranked_date : this.beatmapset.last_updated)}
         </div>
       </div>
     );
   }
 
-
-  private renderHeaderTop() {
-    const bn = 'beatmap-discussions-header-top';
+  // "mapped by" a difficulty's mappers (names only), for the difficulty list.
+  private readonly renderMappedBy = (beatmap: BeatmapExtendedJson) => {
+    const mappers = this.mappers(beatmap);
+    if (mappers.length === 0) return null;
 
     return (
-      <div className={bn}>
-        <div className={`${bn}__content`}>
-          <div className={`${bn}__cover`}>
-            <BeatmapsetCover
-              beatmapset={this.beatmapset}
-              modifiers='full'
-              size='cover'
-            />
-          </div>
-          <div className={`${bn}__title-container`}>
-            <h1 className={`${bn}__title`}>
-              <a
-                className='link link--white link--no-underline'
-                href={route('beatmapsets.show', { beatmapset: this.beatmapset.id })}
-              >
-                {getTitle(this.beatmapset)}
-              </a>
-              <BeatmapsetBadge beatmapset={this.beatmapset} type='nsfw' />
-              <BeatmapsetBadge beatmapset={this.beatmapset} type='spotlight' />
-            </h1>
-            <h2 className={`${bn}__title ${bn}__title--artist`}>
-              {getArtist(this.beatmapset)}
-              <BeatmapsetBadge beatmapset={this.beatmapset} type='featured_artist' />
-            </h2>
-          </div>
-          <div className={`${bn}__filters`}>
-            <div className={`${bn}__filter-group`}>
-              <BeatmapList
-                discussionsState={this.discussionsState}
-                users={this.users}
-              />
-            </div>
-          </div>
-          <div className={`${bn}__beatmap-stats`}>
-            <div className={`${bn}__owners`}>
-              {hasGuestOwners(this.currentBeatmap, this.beatmapset) && (
-                <StringWithComponent
-                  mappings={{
-                    user: <UserLinkList users={this.currentBeatmap.owners ?? []} />,
-                  }}
-                  pattern={trans('beatmaps.discussions.guest')}
-                />
-              )}
-            </div>
-            <div className={`${bn}__basic-stats`}>
-              <BeatmapBasicStats beatmap={this.currentBeatmap} beatmapset={this.beatmapset} />
-            </div>
-            <div className={`${bn}__chart`}>
-              <Chart
-                discussions={this.timelineDiscussions}
-                duration={this.currentBeatmap.total_length * 1000}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+      <StringWithComponent
+        mappings={{
+          mapper: mappers.map((person, i) => (
+            <React.Fragment key={person.id}>
+              {i > 0 && ', '}
+              <PersonLink className='beatmapset-header-v2__link' person={person} />
+            </React.Fragment>
+          )),
+        }}
+        pattern={trans('beatmapsets.show.details.mapped_by')}
+      />
     );
-  }
+  };
 }

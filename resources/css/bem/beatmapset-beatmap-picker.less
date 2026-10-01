@@ -1,54 +1,148 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
 // See the LICENCE file in the repository root for full licence text.
 
+// TomYum: the design proposal's difficulty picker: the grid button for the full list, then each
+// difficulty's 20px icon with a line under it in its colour (thick for the one shown).
 .beatmapset-beatmap-picker {
-  @padding: 5px;
-  @gutter: 2px;
+  @_top: beatmapset-beatmap-picker;
+
+  align-items: flex-start;
   display: flex;
   flex-wrap: wrap;
-  margin: 0 (-@padding + -@gutter) 10px;
-  background-color: hsla(var(--hsl-b3), 70%);
-  border-radius: @border-radius--large;
-  width: fit-content;
+  gap: 5px;
   max-width: 100%;
+  padding-bottom: 8px; // down to the band's bottom line, which the marker sits on
+  position: relative; // the list pops up from here
 
-  &__beatmap {
-    .own-layer();
-    .link-plain();
-    .fade-element(100ms);
-    padding: (@padding + @gutter);
-    width: @beatmap-picker-size;
-    height: $width;
-    opacity: 0.7;
+  &__list-button {
+    .reset-input();
+    cursor: pointer;
+    display: flex;
+    height: 20px;
+    padding: 0;
+    width: 20px;
 
     &:hover {
-      opacity: 1;
+      opacity: 0.8;
     }
+  }
 
-    &::before {
-      .full-size();
-      border-radius: @border-radius--large;
-      content: "";
-      background-color: hsla(var(--hsl-b6), 0.5);
-      width: calc(100% - @gutter);
-      height: calc(100% - @gutter);
-      top: (@gutter / 2);
-      left: (@gutter / 2);
-      opacity: 0;
-      border: 2px solid;
-    }
+  // Four 9px dots.
+  &__list-dots {
+    background:
+      radial-gradient(circle at 4.5px 4.5px, #fff 4.5px, transparent 5px),
+      radial-gradient(circle at 15.5px 4.5px, #fff 4.5px, transparent 5px),
+      radial-gradient(circle at 4.5px 15.5px, #fff 4.5px, transparent 5px),
+      radial-gradient(circle at 15.5px 15.5px, #fff 4.5px, transparent 5px);
+    height: 20px;
+    width: 20px;
+  }
 
-    &:hover::before {
-      opacity: 1;
-    }
+  &__beatmap {
+    .link-plain();
+    display: flex;
+    font-size: 20px; // icon size
+    opacity: 0.85;
+    position: relative;
+    transition: opacity 150ms;
 
+    &:hover,
     &--active {
       opacity: 1;
-
-      &::before {
-        opacity: 1;
-        background-color: hsla(var(--hsl-b6), 0.5);
-      }
     }
+
+    // The selected one's marker (the "New Revision"): an 8px pill in its colour 5px under it, on
+    // the difficulty band's bottom line; it grows in as the selection moves.
+    &::after {
+      background-color: var(--diff);
+      border-radius: 10px;
+      content: "";
+      height: 8px;
+      left: 0;
+      opacity: 0;
+      position: absolute;
+      top: calc(100% + 5px);
+      transform: scaleX(0.3);
+      transition: opacity 250ms ease-out, transform 250ms ease-out;
+      width: 100%;
+      z-index: 1;
+    }
+
+    &--active::after {
+      opacity: 1;
+      transform: none;
+    }
+
+    .beatmap-icon {
+      font-size: 20px;
+    }
+  }
+
+  // The list (the four dots): the page dims and the list pops up over the picker.
+  &__dim {
+    background-color: hsla(0, 0%, 0%, 0.5);
+    inset: 0;
+    position: fixed;
+    z-index: @z-index--overlay;
+  }
+
+  &__list {
+    background-color: hsl(var(--hsl-b3));
+    border-radius: 5px;
+    box-shadow: 0 4px 4px hsla(0, 0%, 0%, 0.25);
+    display: flex;
+    flex-direction: column;
+    max-height: 70vh;
+    overflow-y: auto;
+    padding: 11px 0 9px;
+    position: absolute;
+    width: min(550px, calc(100vw - 40px));
+    z-index: @z-index--overlay;
+  }
+
+  &__list-item {
+    .link-plain();
+    .link-white();
+    align-items: center;
+    display: flex;
+    gap: 7px;
+    height: 25px;
+    padding: 0 20px;
+    transition: background-color 120ms;
+
+    &:hover {
+      background-color: hsla(var(--hsl-b5), 0.35);
+    }
+
+    // The same pill as on the difficulty band, not stretched to the 25px row.
+    .difficulty-badge {
+      flex: none;
+      font-size: 13px;
+      height: auto;
+      padding-bottom: 1px;
+      padding-top: 1px;
+    }
+  }
+
+  &__list-ruleset {
+    flex: none;
+    font-size: 20px;
+  }
+
+  &__list-name {
+    color: hsl(var(--hsl-c2));
+    font-size: 14px;
+    min-width: 0;
+
+    a {
+      color: hsl(var(--hsl-l1));
+      font-weight: 600;
+    }
+  }
+
+  &__list-version {
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
   }
 }

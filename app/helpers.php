@@ -1291,6 +1291,7 @@ function nav_links()
     $links['community'] = [
         'page_title.forum._' => route('forum.forums.index'),
         'page_title.main.chat_controller._' => route('chat.index'),
+        'page_title.main.activity_controller._' => route('activity.index'),
         'page_title.main.contests_controller._' => route('contests.index'),
         'page_title.main.tournaments_controller._' => route('tournaments.index'),
         'page_title.main.livestreams_controller._' => route('livestreams.index'),

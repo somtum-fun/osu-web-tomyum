@@ -22,6 +22,8 @@ class UserCompactTransformer extends TransformerAbstract
         'country',
         'cover',
         'groups',
+        'playmode', // TomYum: the player card shows their default ruleset
+        'profile_hue', // TomYum: and is tinted in their profile colour
         'team',
     ];
 
@@ -34,6 +36,7 @@ class UserCompactTransformer extends TransformerAbstract
     const DEFAULT_SELECT_FIELDS = [
         'country_acronym',
         'group_id',
+        'osu_playmode',
         'osu_subscriber',
         'user_allow_pm',
         'user_allow_viewonline',
@@ -41,6 +44,7 @@ class UserCompactTransformer extends TransformerAbstract
         'user_colour',
         'user_id',
         'user_lastvisit',
+        'user_style',
         'username',
     ];
 
@@ -72,6 +76,7 @@ class UserCompactTransformer extends TransformerAbstract
         'badges',
         'beatmap_playcounts_count',
         'blocks',
+        'card_statistics',
         'comments_count',
         'country',
         'cover',
@@ -103,7 +108,9 @@ class UserCompactTransformer extends TransformerAbstract
         'nominated_beatmapset_count',
         'page',
         'pending_beatmapset_count',
+        'playmode',
         'previous_usernames',
+        'profile_hue',
         'rank_highest',
         'ranked_beatmapset_count',
         'replays_watched_counts',
@@ -513,6 +520,34 @@ class UserCompactTransformer extends TransformerAbstract
         return $this->primitive($session === null || $session->isVerified()
             ? null
             : (new SessionVerification\State($session, $user))->getMethod());
+    }
+
+    /**
+     * TomYum: the hover card's numbers, in their default ruleset: their statistics with their country
+     * rank, and how many medals they have.
+     */
+    public function includeCardStatistics(User $user)
+    {
+        $stats = $user->statistics($user->playmode);
+
+        return $this->primitive([
+            ...(new UserStatisticsTransformer())->transform($stats),
+            'country_rank' => $stats?->countryRank(),
+            'medal_count' => $user->userAchievements()->count(),
+            'ruleset' => $user->playmode,
+        ]);
+    }
+
+    /** TomYum: their default ruleset (osu, taiko, fruits, mania), for the player card. */
+    public function includePlaymode(User $user)
+    {
+        return $this->primitive($user->playmode);
+    }
+
+    /** TomYum: their profile colour's hue (null: the site's), for the player card. */
+    public function includeProfileHue(User $user)
+    {
+        return $this->primitive($user->user_style);
     }
 
     public function includeStatistics(User $user)

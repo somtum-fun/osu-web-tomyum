@@ -44,7 +44,7 @@ export class ModeSwitcher extends React.Component<Props> {
 
   render() {
     return (
-      <ul ref={this.scrollerRef} className='page-mode page-mode--sticky-toolbar'>
+      <ul ref={this.scrollerRef} className='page-mode page-mode--sticky-toolbar page-mode--tickets'>
         {discussionPages.map(this.renderMode)}
       </ul>
     );
@@ -90,6 +90,9 @@ export class ModeSwitcher extends React.Component<Props> {
         />
       );
     }
+
+    // TomYum: the design proposal calls the timeline "Timecode".
+    if (mode === 'timeline') return 'Timecode';
 
     return trans(`beatmaps.discussions.mode.${snakeCase(mode)}`);
   }
