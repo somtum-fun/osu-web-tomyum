@@ -29,11 +29,16 @@ import MainView from './main-view';
 import PingService from './ping-service';
 import PublicChannels from './public-channels';
 
+// TomYum: the chat design's tabs over the conversation list.
+export type ChatListFilter = 'all' | 'channels' | 'pms' | 'groups';
+
 @dispatchListener
 export default class ChatStateStore implements DispatchListener {
   @observable canChatAnnounce = false;
   @observable createAnnouncement = new CreateAnnouncement();
   @observable isReady = false;
+  // TomYum: which conversations the list shows (the chat design's tabs).
+  @observable listFilter: ChatListFilter = 'all';
   @observable offerJoinChannel = new Map<number, ChannelJson>();
   readonly publicChannels = new PublicChannels();
   skipRefresh = false;

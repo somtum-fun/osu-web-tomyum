@@ -45,9 +45,15 @@ export default class ConversationListItem extends React.Component<Props> {
 
   render(): React.ReactNode {
     const baseClassName = 'chat-conversation-list-item';
+    // TomYum: its type and unread for the chat design's list (channels as "#name" without an
+    // avatar, unread ones in mint).
+    const className = classWithModifiers(baseClassName, this.props.channel.type, {
+      selected: this.selected,
+      unread: this.props.channel.isUnread && !this.selected,
+    });
 
     return (
-      <div ref={this.ref} className={classWithModifiers(baseClassName, { selected: this.selected })}>
+      <div ref={this.ref} className={className}>
         {this.props.channel.isUnread && !this.selected
           ? <div className={`${baseClassName}__unread-indicator`} />
           : null}

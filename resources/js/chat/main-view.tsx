@@ -7,6 +7,7 @@ import { disposeOnUnmount, observer } from 'mobx-react';
 import core from 'osu-core-singleton';
 import * as React from 'react';
 import { hideLoadingOverlay, showImmediateLoadingOverlay } from 'utils/loading-overlay';
+import { ChatListFilter } from './chat-state-store';
 import ConversationList from './conversation-list';
 import ConversationPanel from './conversation-panel';
 
@@ -58,9 +59,38 @@ export default class MainView extends React.Component<Record<string, never>> {
   }
 
   render() {
+    const chatState = core.dataStore.chatState;
+
+    // TomYum: the chat design's tabs, which filter the conversation list (Groups only once there
+    // are any), and its Join Chat button.
+    const filters: [ChatListFilter, string][] = [
+      ['all', 'All Chats'],
+      ['channels', 'Channels'],
+      ['pms', 'Direct Messages'],
+    ];
+    if (core.dataStore.channelStore.groupedChannels.GROUP.length > 0) {
+      filters.push(['groups', 'Groups']);
+    }
+
+    const links = filters.map(([filter, title]) => ({
+      active: chatState.listFilter === filter,
+      data: { 'data-filter': filter },
+      title,
+      url: '#',
+    }));
+
     return (
       <>
-        <HeaderV4 theme='chat' />
+        <HeaderV4
+          links={links}
+          linksAppend={(
+            <button className='chat-join-button' onClick={this.handleJoinClick} type='button'>
+              Join Chat
+            </button>
+          )}
+          onLinkClick={this.handleFilterClick}
+          theme='chat'
+        />
         <div className='chat osu-page osu-page--chat'>
           <ConversationList />
           <ConversationPanel />
@@ -68,4 +98,18 @@ export default class MainView extends React.Component<Record<string, never>> {
       </>
     );
   }
+
+  private readonly handleFilterClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    const filter = e.currentTarget.dataset.filter;
+    if (filter === 'all' || filter === 'channels' || filter === 'pms' || filter === 'groups') {
+      runInAction(() => {
+        core.dataStore.chatState.listFilter = filter;
+      });
+    }
+  };
+
+  private readonly handleJoinClick = () => {
+    core.dataStore.chatState.selectChannel('join');
+  };
 }

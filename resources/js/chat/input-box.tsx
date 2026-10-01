@@ -112,6 +112,12 @@ export default class InputBox extends React.Component<Props> {
 
     return (
       <div className='chat-input'>
+        {/* TomYum: the chat design's "chatting in #osu" beside the box */}
+        {channel != null && (
+          <div className='chat-input__label u-ellipsis-overflow'>
+            chatting in <span className='chat-input__label-channel'>{channel.name}</span>
+          </div>
+        )}
         <div className='chat-input__box-container'>
           <MentionCompletionBox state={this.mentionCompletionBoxState} />
           <TextareaAutosize

@@ -8,6 +8,7 @@ import core from 'osu-core-singleton';
 import * as React from 'react';
 import { trans } from 'utils/lang';
 import AddChannelButton from './add-channel-button';
+import { ChatListFilter } from './chat-state-store';
 import ConversationListItem from './conversation-list-item';
 
 const icons: Record<SupportedChannelType, string> = {
@@ -51,8 +52,20 @@ function renderChannels(type: SupportedChannelType) {
   return null;
 }
 
-export default observer(() => (
-  <div className='chat-conversation-list'>
-    {supportedChannelTypes.map(renderChannels)}
-  </div>
-));
+// TomYum: the channel types each of the chat design's tabs shows.
+const filterTypes: Record<ChatListFilter, readonly SupportedChannelType[]> = {
+  all: supportedChannelTypes,
+  channels: ['PUBLIC', 'ANNOUNCE', 'TEAM'],
+  groups: ['GROUP'],
+  pms: ['PM'],
+};
+
+export default observer(() => {
+  const types = filterTypes[core.dataStore.chatState.listFilter];
+
+  return (
+    <div className='chat-conversation-list'>
+      {supportedChannelTypes.filter((type) => types.includes(type)).map(renderChannels)}
+    </div>
+  );
+});

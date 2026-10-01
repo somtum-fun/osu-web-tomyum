@@ -17,7 +17,7 @@ export default class AddChannelButton extends React.Component<Props> {
   render() {
     if (this.props.type === 'create' && !core.dataStore.chatState.canChatAnnounce) return null;
 
-    const modifiers = { selected: core.dataStore.chatState.selectedChannelOrType === this.props.type };
+    const modifiers = { add: true, selected: core.dataStore.chatState.selectedChannelOrType === this.props.type };
 
     return (
       <div className={classWithModifiers('chat-conversation-list-item', modifiers)}>
@@ -27,7 +27,10 @@ export default class AddChannelButton extends React.Component<Props> {
               <span className='fas fa-plus' />
             </span>
           </span>
-          <span className='chat-conversation-list-item__name'>{trans(`chat.channels.${this.props.type}`)}</span>
+          {/* TomYum: the chat design's "Add More Channels" */}
+          <span className='chat-conversation-list-item__name'>
+            {this.props.type === 'join' ? 'Add More Channels' : trans(`chat.channels.${this.props.type}`)}
+          </span>
         </button>
       </div>
     );

@@ -1,0 +1,112 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
+// See the LICENCE file in the repository root for full licence text.
+
+// TomYum: the chat page after osu!'s chat design (chat/main-view.tsx and the conversation list):
+// the Join Chat button at the end of the tabs, a narrower list of plain lines under small capital
+// titles (channels as "#name", direct messages with a small round avatar, unread ones in mint,
+// "Add More Channels" as a mint line), and "chatting in #channel" beside the message box. Phones
+// keep osu-web's row of icons.
+
+.chat-join-button {
+  .reset-input();
+  align-self: center;
+  background-color: hsl(200, 55%, 42%);
+  border-radius: 10000px;
+  color: #fff;
+  cursor: pointer;
+  flex: none;
+  font-size: @font-size--small;
+  font-weight: 600;
+  margin-left: auto;
+  padding: 3px 24px;
+
+  &:hover {
+    background-color: hsl(200, 55%, 50%);
+  }
+}
+
+@media @desktop {
+  .chat-conversation-list {
+    background-color: hsl(var(--hsl-b5));
+    padding-top: 6px;
+    width: 220px;
+
+    &__header {
+      background-color: hsl(var(--hsl-b5));
+      font-size: @font-size--small;
+      font-weight: 700;
+      padding: 10px 20px 6px;
+    }
+
+    &__header-icon {
+      display: none;
+    }
+  }
+
+  .chat-conversation-list-item {
+    @_top: chat-conversation-list-item;
+
+    font-size: @font-size--normal;
+    height: 26px;
+    margin-left: 0;
+    padding-left: 10px;
+
+    &:hover,
+    &--selected {
+      background: hsl(var(--hsl-b4));
+    }
+
+    &--selected {
+      background: hsl(var(--hsl-b3));
+    }
+
+    &__tile {
+      margin-left: 10px;
+    }
+
+    // channels are "#name" with nothing before it
+    &--PUBLIC &__avatar,
+    &--ANNOUNCE &__avatar,
+    &--TEAM &__avatar,
+    &--add &__avatar {
+      display: none;
+    }
+
+    &__avatar {
+      height: 22px;
+      margin-right: 6px;
+      width: 22px;
+    }
+
+    &__chevron {
+      display: none;
+    }
+
+    &--unread,
+    &--add {
+      color: hsl(var(--hsl-l1));
+    }
+
+    // the mint line of the unread indicator is enough with the mint name
+    &__unread-indicator {
+      display: none;
+    }
+  }
+
+  .chat-input__label {
+    color: hsl(var(--hsl-c2));
+    flex: 0 1 auto;
+    font-size: @font-size--small;
+    max-width: 200px;
+  }
+
+  .chat-input__label-channel {
+    color: #fff;
+  }
+}
+
+@media @mobile {
+  .chat-input__label {
+    display: none;
+  }
+}
