@@ -241,3 +241,66 @@
     font-weight: 700;
   }
 }
+
+// On phones: the cards off the screen edges, the author as one compact row (a 36px avatar, the
+// name and group beside it) instead of the 60px avatar over them, and a smaller header.
+@media @mobile {
+  .beatmap-discussion--v2 {
+    .beatmap-discussion__discussion {
+      margin: 4px 12px;
+    }
+
+    .beatmap-discussion__head {
+      gap: 10px;
+      padding: 0 10px 0 14px;
+    }
+
+    .beatmap-discussion__head-timestamp {
+      min-width: 0;
+    }
+
+    .beatmap-discussion__head-actions {
+      gap: 10px;
+    }
+
+    .beatmap-discussion__top-user {
+      padding: 10px 16px 0;
+    }
+
+    .beatmap-discussion__top-user .beatmap-discussion-user-card {
+      flex-direction: row;
+      gap: 10px;
+      text-align: left;
+    }
+
+    .beatmap-discussion__top-user .beatmap-discussion-user-card__avatar {
+      border-radius: 12px;
+      height: 36px;
+      width: 36px;
+
+      .avatar {
+        border-radius: 12px;
+      }
+    }
+
+    .beatmap-discussion__top-user .beatmap-discussion-user-card__user {
+      align-items: flex-start;
+    }
+
+    .beatmap-discussion__top-user .beatmap-discussion-user-card__user-row {
+      justify-content: flex-start;
+    }
+  }
+
+  .beatmapset-tickets {
+    // the timestamp hint wraps on phones: a rounded box, not a pill
+    .beatmap-discussion-new__footer-content:not(.beatmap-discussion-new__footer-content--right) {
+      border-radius: 15px;
+      padding: 6px 14px;
+    }
+
+    .beatmap-discussions__discussions--empty {
+      padding: 0 12px;
+    }
+  }
+}

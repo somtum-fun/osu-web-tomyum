@@ -5,7 +5,8 @@
 @extends('master', [
     'titlePrepend' => osu_trans('beatmaps.discussions.show.title', [
         'title' => $beatmapset->getDisplayTitle(auth()->user()),
-        'mapper' => $beatmapset->user->username ?? '?',
+        {{-- TomYum: an imported set's mapper isn't a user here; its creator is their osu! name --}}
+        'mapper' => $beatmapset->user->username ?? presence($beatmapset->creator) ?? '?',
     ]),
 ])
 
