@@ -344,13 +344,16 @@ class AdminController extends Controller
                     $target->removeFromGroup($membership->group, Auth::user());
                 }
             }
-            // osu-web treats DeletedUser_* as deleted; a banned account type keeps them out of the game.
+            // osu-web treats DeletedUser_* as deleted; a banned account type keeps them out of the game,
+            // and the restricted flag takes their scores out of leaderboards and rankings (ppy's score
+            // indexer only drops scores of restricted players, not of a banned account type).
             $name = "DeletedUser_{$target->getKey()}";
             $target->update([
                 'username' => $name,
                 'username_clean' => strtolower($name),
                 'user_email' => null,
                 'user_type' => 1,
+                'user_warnings' => 1,
                 'osu_subscriber' => false,
             ]);
         });
@@ -505,6 +508,19 @@ class AdminController extends Controller
     {
         $target = User::findOrFail((int) $user);
         $service = Request::input('service');
+        // Their osu! (osu.ppy.sh) account, linked in their settings: only kept on the website.
+        if ($service === 'osu') {
+            if (!\App\Libraries\TomYumConnections::status($target, false)['osu_bancho']['linked']) {
+                return $this->back($target, 'error', 'They have no osu! account linked.');
+            }
+            \App\Libraries\TomYumConnections::unlink($target, 'osu_bancho');
+
+            return $this->done($target, 'user.unlink_osu', "Unlinked {$target->username}'s osu! account.", 'osu! account unlinked.');
+        }
+        // A Discord link made in their settings is also kept on the website: forget it there too.
+        if ($service === 'discord') {
+            \Illuminate\Support\Facades\DB::table('tomyum_user_connections')->where('user_id', $target->getKey())->where('kind', 'discord')->delete();
+        }
         $response = match ($service) {
             'discord' => $this->tomyum()->post("/users/{$target->getKey()}/links/discord/unlink"),
             'lastfm' => $this->tomyum()->post("/lastfm/{$target->getKey()}/unlink"),

@@ -50,7 +50,7 @@
             @if ($tickets->isEmpty())
                 <p class="tomyum-panel__empty">No tickets here.</p>
             @else
-                <table class="tomyum-panel__table">
+                <table class="tomyum-panel__table" style="width: 100%">
                     <tr><th>#</th><th>Category</th><th>Subject</th><th>From</th><th>Opened</th><th>Last message</th><th>Handled by</th><th>Status</th></tr>
                     @foreach ($tickets as $ticket)
                         @php
@@ -58,17 +58,21 @@
                         @endphp
                         <tr>
                             <td><a href="{{ route('panel.tickets.show', ['ticket' => $ticket->id]) }}">#{{ $ticket->id }}</a></td>
-                            <td style="white-space: nowrap">{{ TomYumTickets::label($ticket->category) }}</td>
-                            <td><a href="{{ route('panel.tickets.show', ['ticket' => $ticket->id]) }}">{{ $ticket->subject }}</a></td>
-                            <td>
+                            <td>{{ TomYumTickets::label($ticket->category) }}</td>
+                            <td title="{{ $ticket->subject }}">
+                                <div style="max-width: 230px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">
+                                    <a href="{{ route('panel.tickets.show', ['ticket' => $ticket->id]) }}">{{ $ticket->subject }}</a>
+                                </div>
+                            </td>
+                            <td title="{{ $ticket->requester_email }}">
                                 @if ($account !== null)
                                     <a href="{{ route('users.show', ['user' => $account->getKey()]) }}">{{ $account->username }}</a><br>
                                 @endif
-                                <span class="tomyum-panel__hint">{{ $ticket->requester_email }}</span>
+                                <div class="tomyum-panel__hint" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ $ticket->requester_email }}</div>
                             </td>
-                            <td style="white-space: nowrap">{!! timeago(Carbon\Carbon::parse($ticket->created_at)) !!}</td>
-                            <td style="white-space: nowrap">{!! $ticket->last_message_at ? timeago(Carbon\Carbon::parse($ticket->last_message_at)) : '—' !!}</td>
-                            <td>{{ ($handlers[$ticket->id] ?? collect())->pluck('username')->join(', ') ?: '—' }}</td>
+                            <td class="tomyum-panel__hint">{!! timeago(Carbon\Carbon::parse($ticket->created_at)) !!}</td>
+                            <td class="tomyum-panel__hint">{!! $ticket->last_message_at ? timeago(Carbon\Carbon::parse($ticket->last_message_at)) : '—' !!}</td>
+                            <td style="overflow-wrap: anywhere">{{ ($handlers[$ticket->id] ?? collect())->pluck('username')->join(', ') ?: '—' }}</td>
                             <td>
                                 <span class="tomyum-panel__badge {{ $ticket->status === 'open' ? 'tomyum-panel__badge--success' : '' }}">{{ ucfirst($ticket->status) }}</span>
                             </td>

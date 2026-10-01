@@ -24,12 +24,13 @@
     ]])
     <div class="osu-page osu-page--admin tomyum-panel">
         <div class="tomyum-panel__card">
-            <h2 style="margin-bottom: 4px">
-                <i class="fas fa-ticket-alt"></i>#{{ $ticketId }} {{ $ticket->subject }}
-                <span class="tomyum-panel__badge {{ $ticket->status === 'open' ? 'tomyum-panel__badge--success' : '' }}">{{ ucfirst($ticket->status) }}</span>
+            <h2 style="margin-bottom: 4px; display: flex; gap: 8px; align-items: flex-start">
+                <i class="fas fa-ticket-alt" style="margin-top: 4px"></i>
+                <span style="flex: 1; min-width: 0; overflow-wrap: anywhere">#{{ $ticketId }} {{ $ticket->subject }}</span>
+                <span class="tomyum-panel__badge {{ $ticket->status === 'open' ? 'tomyum-panel__badge--success' : '' }}" style="flex: none">{{ ucfirst($ticket->status) }}</span>
             </h2>
-            <table class="tomyum-panel__table">
-                <tr><td style="width: 160px">Category</td><td>
+            <table class="tomyum-panel__table" style="table-layout: fixed; width: 100%">
+                <tr><td style="width: 160px">Category</td><td style="overflow-wrap: anywhere">
                     <form method="POST" action="{{ route('panel.tickets.category', ['ticket' => $ticketId]) }}" class="tomyum-panel__row" style="align-items: center">
                         @csrf
                         <select class="input-text" name="category" style="width: auto" onchange="this.form.submit()">
@@ -40,7 +41,7 @@
                         <span class="tomyum-panel__hint">sent to {{ $ticket->mailbox }}</span>
                     </form>
                 </td></tr>
-                <tr><td>From</td><td>
+                <tr><td>From</td><td style="overflow-wrap: anywhere">
                     {{ $ticket->requester_name ? $ticket->requester_name.' · ' : '' }}{{ $ticket->requester_email }}
                     @if ($account !== null)
                         · account <a href="{{ route('users.show', ['user' => $account->getKey()]) }}">{{ $account->username }}</a>
