@@ -7,8 +7,8 @@
 // - a 220px list of plain 14px lines under small titles (channels as "#name", direct messages with
 //   a small round avatar, unread ones and "Add More Channels" in mint);
 // - the messages straight away (no channel picture or "talking in" over them), and the message box
-//   right under the last one, "chatting in #channel" under the names, the box under the messages,
-//   sent with Enter (no Send button).
+//   at the bottom, "chatting in #channel" under the names, the box under the messages, sent with
+//   Enter (no Send button).
 // Phones keep osu-web's row of icons and box at the bottom.
 
 @_mint-text: hsl(var(--base-hue), 40%, 70%);
@@ -112,8 +112,9 @@
     background-color: hsl(var(--hsl-b4));
   }
 
+  // fills the panel, so the message box stays at the bottom
   .chat-conversation {
-    flex: 0 1 auto;
+    flex: 1 1 0;
     min-height: 0;
     padding: 12px 20px 0;
 
