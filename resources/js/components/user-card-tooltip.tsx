@@ -42,9 +42,7 @@ function createTooltipOptions(card: HTMLElement) {
     hide: {
       delay: 220,
       effect: hideEffect,
-      // TomYum: also on clicking elsewhere (see hideOnScroll for scrolling)
-      event: 'mouseleave unfocus',
-      fixed: true,
+      fixed: true, // TomYum: see hideOnScroll for names scrolled away
     },
     position: {
       ...qtipPosition(at),
@@ -188,12 +186,21 @@ function shouldShow(event: JQuery.Event, api: any) {
 }
 
 // TomYum: a scroll moves the name away under a still cursor, which never counts as leaving it (the
-// card stayed, e.g. in chat as messages came in): any scroll outside a card hides the cards.
-function hideOnScroll(event: Event) {
-  if (event.target instanceof Element && event.target.closest(`.${userCardTooltipClass}`) != null) return;
+// card stayed, e.g. in chat as messages came in): after a scroll, a card whose name and card are
+// both no longer under the cursor hides. (Pages scroll by themselves too, e.g. chat keeping to the
+// newest message, so not every scroll.)
+function hideOnScroll() {
   if (tooltipWithActiveMenu != null) return;
 
-  $(`.${userCardTooltipClass}`).qtip('hide');
+  for (const tooltip of document.querySelectorAll(`.${userCardTooltipClass}`)) {
+    // the card is #qtip-N, its name [data-hasqtip=N] (as in onRemoveUserCard)
+    const target = document.querySelector(`[data-hasqtip="${tooltip.id.replace(/^qtip-/, '')}"]`);
+    if (target == null) continue;
+
+    if (!target.matches(':hover') && !tooltip.matches(':hover')) {
+      $(tooltip).qtip('api')?.hide();
+    }
+  }
 }
 
 export function startListening() {
