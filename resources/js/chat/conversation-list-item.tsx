@@ -76,6 +76,12 @@ export default class ConversationListItem extends React.Component<Props> {
             <UserAvatar modifiers='full-circle' user={{ avatar_url: this.props.channel.icon }} />
           </div>
           <div className={`${baseClassName}__name u-ellipsis-overflow`}>{this.displayName}</div>
+          {/* TomYum: the chat design's unread count */}
+          {!this.selected && this.props.channel.unreadCount > 0 && (
+            <span className={`${baseClassName}__count`}>
+              {this.props.channel.unreadCount > 99 ? '99+' : this.props.channel.unreadCount}
+            </span>
+          )}
           <div className={`${baseClassName}__chevron`}>
             <i className='fas fa-chevron-right' />
           </div>

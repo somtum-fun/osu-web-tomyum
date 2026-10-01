@@ -124,6 +124,26 @@
     &__unread-indicator {
       display: none;
     }
+
+    // the name only as wide as it is, the count right after it
+    &__name {
+      flex: 0 1 auto;
+    }
+
+    // how many unread: a small yellow pill after the name
+    &__count {
+      background-color: hsl(45, 100%, 70%);
+      border-radius: 10000px;
+      color: hsl(var(--hsl-b6));
+      flex: none;
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 12px;
+      margin: 0 10px 0 6px;
+      min-width: 20px;
+      padding: 0 5px;
+      text-align: center;
+    }
   }
 
   .chat-conversation-panel {

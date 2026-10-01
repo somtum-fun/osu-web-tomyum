@@ -92,6 +92,24 @@ export default class Channel {
     }
   }
 
+  // TomYum: how many messages from others came after the last one read (of those loaded), for the
+  // chat design's count beside the name.
+  @computed
+  get unreadCount(): number {
+    if (!this.isUnread) return 0;
+
+    const lastReadId = this.lastReadId ?? -1;
+    const currentUserId = core.currentUser?.id;
+    let count = 0;
+    for (const message of this.messages) {
+      if (typeof message.messageId === 'number' && message.messageId > lastReadId && message.senderId !== currentUserId) {
+        count++;
+      }
+    }
+
+    return count;
+  }
+
   @computed
   get lastMessage(): Message | undefined {
     return this.messages[this.messages.length - 1];
