@@ -410,6 +410,28 @@
   }
 }
 
+// TomYum: the list on phones: name over pills (the row's still 40px), no flags or "last seen"
+// text (the ring says it), so the name has room.
+@media @mobile {
+  .player-card--list:not(.player-card--brick) {
+    .player-card__details {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .player-card__flags,
+    .player-card__status-text {
+      display: none;
+    }
+
+    .player-card__username {
+      font-size: @font-size--title-small; // 14px
+      max-width: 100%;
+    }
+  }
+}
+
 // TomYum: a card view card's place in the grid, as high as the card (60px info box, 30px status
 // strip), for the card to drop down from on hover (player-card--dropdown).
 .player-card-slot {

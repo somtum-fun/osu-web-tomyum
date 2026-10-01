@@ -33,6 +33,7 @@ export const viewModes: ViewMode[] = ['card', 'list', 'brick'];
 
 interface Props {
   activated: boolean;
+  dropdown?: boolean; // TomYum: card view in a grid (friends, user lists) drops down on hover
   expanded?: boolean; // TomYum: the hover card, with their ranks and numbers (osu!'s "Player Card" expansion)
   mode: ViewMode;
   modifiers?: Modifiers;
@@ -80,7 +81,7 @@ export class UserCard extends React.PureComponent<Props, State> {
   // TomYum: in card view the card drops down on hover into the hover card's expansion (ranks and
   // numbers), fetched the first time.
   private get dropdown() {
-    return this.props.mode === 'card' && !this.props.expanded && this.isUserVisible;
+    return this.props.dropdown === true && this.props.mode === 'card' && !this.props.expanded && this.isUserVisible;
   }
 
   private get cardStatistics() {
