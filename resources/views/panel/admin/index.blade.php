@@ -99,7 +99,7 @@
                     <label class="input-container input-container--select tomyum-panel__field" style="flex: 0 1 170px">
                         <span class="input-container__label">Lock</span>
                         <select class="input-text" name="delay">
-                            <option value="0">now</option>
+                            <option value="0">in 10 seconds (countdown)</option>
                             <option value="60">in 1 minute</option>
                             <option value="300" selected>in 5 minutes</option>
                             <option value="600">in 10 minutes</option>
