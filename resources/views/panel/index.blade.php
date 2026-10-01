@@ -24,6 +24,14 @@
                     <p class="tomyum-panel__hint">Restrictions, silences, reports, chat logs and score removal.</p>
                 </a>
             @endif
+            @if ($panels['tickets'])
+                <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('panel.tickets.index') }}">
+                    <span class="tomyum-panel__link-icon"><i class="fas fa-inbox"></i></span>
+                    <span class="tomyum-panel__kicker">Support</span>
+                    <h2>Tickets @if ($openTickets > 0)<span class="tomyum-panel__badge tomyum-panel__badge--success">{{ $openTickets }} open</span>@endif</h2>
+                    <p class="tomyum-panel__hint">Emails to support@, accounts@, appeal-review@, abuse@, privacy@, dmca@ and tournaments@: reply, take them on and close them.</p>
+                </a>
+            @endif
             @if ($panels['bots'])
                 <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('panel.bots.index') }}">
                     <span class="tomyum-panel__link-icon"><i class="fas fa-robot"></i></span>

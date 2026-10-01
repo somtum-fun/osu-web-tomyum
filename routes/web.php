@@ -38,6 +38,18 @@ Route::group(['middleware' => ['web']], function () {
     Route::group(['as' => 'panel.', 'prefix' => 'panel', 'namespace' => 'Panel'], function () {
         Route::get('/', 'PagesController@index')->name('index');
 
+        // Support tickets from email: each staff group sees its categories.
+        Route::group(['as' => 'tickets.', 'prefix' => 'tickets'], function () {
+            Route::get('/', 'TicketsController@index')->name('index');
+            Route::get('{ticket}', 'TicketsController@show')->name('show');
+            Route::post('{ticket}/reply', 'TicketsController@reply')->name('reply');
+            Route::post('{ticket}/note', 'TicketsController@note')->name('note');
+            Route::post('{ticket}/close', 'TicketsController@close')->name('close');
+            Route::post('{ticket}/reopen', 'TicketsController@reopen')->name('reopen');
+            Route::post('{ticket}/handlers', 'TicketsController@handlers')->name('handlers');
+            Route::post('{ticket}/category', 'TicketsController@category')->name('category');
+        });
+
         // Kudosu by hand: admins and developers.
         Route::get('kudosu', 'KudosuController@index')->name('kudosu.index');
         Route::post('kudosu/{user}', 'KudosuController@adjust')->name('kudosu.adjust');

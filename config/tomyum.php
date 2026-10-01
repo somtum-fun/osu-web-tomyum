@@ -31,6 +31,14 @@ return [
         ],
     ],
 
+    // Support tickets from email (App\Libraries\TomYumTickets): the domain of the ticket addresses
+    // (support@, accounts@, appeal-review@, abuse@, privacy@, dmca@, tournaments@), all received by the
+    // Zoho mailbox NoCodeAPI reads (aliases of it); empty TICKETS_ENABLED turns the fetching off.
+    'tickets' => [
+        'enabled' => get_bool(env('TICKETS_ENABLED')) ?? true,
+        'domain' => presence(env('TICKETS_MAIL_DOMAIN')) ?? 'example.com',
+    ],
+
     // Mail through NoCodeAPI's Zoho Mail endpoint when MAIL_DRIVER=nocodeapi (TomYumNocodeapiTransport).
     'nocodeapi_mail_url' => presence(env('NOCODEAPI_MAIL_URL')),
 
