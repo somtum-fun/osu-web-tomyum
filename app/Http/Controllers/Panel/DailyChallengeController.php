@@ -31,6 +31,58 @@ class DailyChallengeController extends Controller
 
     private const RULESETS = [0 => 'osu!', 1 => 'osu!taiko', 2 => 'osu!catch', 3 => 'osu!mania'];
 
+    /**
+     * osu!'s week (TomYum's DailyChallengeOptions.WeeklyStars picks the random maps from it): it
+     * starts easy on Thursday and ends hard on Wednesday. ISO weekday (1 = Monday) => [min, max] stars.
+     */
+    public const WEEKLY_STARS = [
+        4 => [3.0, 3.5],
+        5 => [3.5, 4.0],
+        6 => [4.0, 4.5],
+        7 => [4.5, 5.0],
+        1 => [5.0, 5.5],
+        2 => [5.5, 6.0],
+        3 => [6.0, 6.5],
+    ];
+
+    /** osu-web's star rating colours (utils/beatmap-helper getDiffColour): stops, blended with gamma 2.2. */
+    private const STAR_COLOURS = [
+        [0.1, '4290FB'], [1.25, '4FC0FF'], [2, '4FFFD5'], [2.5, '7CFF4F'], [3.3, 'F6F05C'], [4.2, 'FF8068'],
+        [4.9, 'FF4E6F'], [5.8, 'C645B8'], [6.7, '6563DE'], [7.7, '18158E'], [9, '000000'],
+    ];
+
+    /** The colour osu! gives a star rating, as #rrggbb. */
+    public static function starColour(float $stars): string
+    {
+        $stops = static::STAR_COLOURS;
+        if ($stars <= $stops[0][0]) {
+            return '#'.$stops[0][1];
+        }
+        foreach ($stops as $i => [$at, $colour]) {
+            if ($stars > $at && isset($stops[$i + 1]) && $stars <= $stops[$i + 1][0]) {
+                [$next, $nextColour] = $stops[$i + 1];
+                $t = ($stars - $at) / ($next - $at);
+                $channel = function (int $offset) use ($colour, $nextColour, $t) {
+                    $a = hexdec(substr($colour, $offset, 2));
+                    $b = hexdec(substr($nextColour, $offset, 2));
+                    $mixed = (($a / 255) ** 2.2 * (1 - $t) + ($b / 255) ** 2.2 * $t) ** (1 / 2.2);
+
+                    return sprintf('%02x', (int) round($mixed * 255));
+                };
+
+                return '#'.$channel(0).$channel(2).$channel(4);
+            }
+        }
+
+        return '#'.end($stops)[1];
+    }
+
+    /** [min, max] stars for a day. */
+    public static function starsFor(\DateTimeInterface $day): array
+    {
+        return static::WEEKLY_STARS[(int) $day->format('N')];
+    }
+
     public function __construct()
     {
         parent::__construct();

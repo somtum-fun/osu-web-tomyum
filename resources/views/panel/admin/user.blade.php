@@ -37,11 +37,11 @@
                 <div class="tomyum-panel__card-head">
                     <h2><i class="fas fa-id-card"></i>{{ $target->username }} <span class="tomyum-panel__muted">#{{ $userId }}</span></h2>
                     <div class="tomyum-panel__row" style="gap: 8px">
-                        <a class="tomyum-panel__button tomyum-panel__button--secondary tomyum-panel__button--small" href="{{ route('users.show', ['user' => $userId]) }}">
+                        <a class="btn-osu-big btn-osu-big--rounded-small btn-osu-big--panel-secondary" href="{{ route('users.show', ['user' => $userId]) }}">
                             <i class="fas fa-external-link-alt"></i>Profile
                         </a>
                         @if (App\Http\Controllers\Panel\Controller::canUseGmt(Auth::user()))
-                            <a class="tomyum-panel__button tomyum-panel__button--secondary tomyum-panel__button--small" href="{{ route('panel.gmt.users.show', ['user' => $userId]) }}">
+                            <a class="btn-osu-big btn-osu-big--rounded-small btn-osu-big--panel-secondary" href="{{ route('panel.gmt.users.show', ['user' => $userId]) }}">
                                 <i class="fas fa-gavel"></i>GMT panel
                             </a>
                         @endif
@@ -89,34 +89,34 @@
             <p class="tomyum-panel__hint">A rename keeps the old name in their username history. Changes reach the game immediately (they reconnect).</p>
             <form method="POST" action="{{ route('panel.admin.users.profile', ['user' => $userId]) }}" class="tomyum-panel__row">
                 @csrf
-                <label class="tomyum-panel__field">
-                    Username
-                    <input type="text" name="username" value="{{ $target->username }}" maxlength="15">
+                <label class="input-container tomyum-panel__field">
+                    <span class="input-container__label">Username</span>
+                    <input class="input-text" type="text" name="username" value="{{ $target->username }}" maxlength="15">
                 </label>
-                <label class="tomyum-panel__field">
-                    Email
-                    <input type="text" name="email" value="{{ $target->user_email }}">
+                <label class="input-container tomyum-panel__field">
+                    <span class="input-container__label">Email</span>
+                    <input class="input-text" type="text" name="email" value="{{ $target->user_email }}">
                 </label>
-                <label class="tomyum-panel__field" style="flex: 0 1 200px">
-                    Country
-                    <select name="country">
+                <label class="input-container input-container--select tomyum-panel__field" style="flex: 0 1 200px">
+                    <span class="input-container__label">Country</span>
+                    <select class="input-text" name="country">
                         @foreach ($countries as $acronym => $name)
                             <option value="{{ $acronym }}" @selected($acronym === $target->country_acronym)>{{ $name }}</option>
                         @endforeach
                     </select>
                 </label>
-                <button class="tomyum-panel__button" type="submit"><i class="fas fa-save"></i>Save</button>
+                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-save"></i>Save</button>
             </form>
 
             <h3>Password</h3>
             <p class="tomyum-panel__hint">Sets a new password for the website and the game. Give it to them privately; they can change it in their settings.</p>
             <form method="POST" action="{{ route('panel.admin.users.password', ['user' => $userId]) }}" class="tomyum-panel__row" autocomplete="off">
                 @csrf
-                <label class="tomyum-panel__field">
-                    New password (at least 8 characters)
-                    <input type="text" name="password" minlength="8" required autocomplete="new-password">
+                <label class="input-container tomyum-panel__field">
+                    <span class="input-container__label">New password (at least 8 characters)</span>
+                    <input class="input-text" type="text" name="password" minlength="8" required autocomplete="new-password">
                 </label>
-                <button class="tomyum-panel__button" type="submit"><i class="fas fa-key"></i>Set password</button>
+                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-key"></i>Set password</button>
             </form>
         </div>
 
@@ -165,7 +165,7 @@
                             </tr>
                         @endforeach
                     </table>
-                    <p><button class="tomyum-panel__button" type="submit"><i class="fas fa-save"></i>Save groups</button></p>
+                    <p><button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-save"></i>Save groups</button></p>
                 </form>
             </div>
 
@@ -183,17 +183,17 @@
                     <form method="POST" action="{{ route('panel.admin.users.supporter', ['user' => $userId]) }}" class="tomyum-panel__row" style="flex: 1">
                         @csrf
                         <input type="hidden" name="action" value="grant">
-                        <label class="tomyum-panel__field" style="flex: 0 1 160px">
-                            Months to add
-                            <input type="number" name="months" min="1" max="120" value="1" required>
+                        <label class="input-container tomyum-panel__field" style="flex: 0 1 160px">
+                            <span class="input-container__label">Months to add</span>
+                            <input class="input-text" type="number" name="months" min="1" max="120" value="1" required>
                         </label>
-                        <button class="tomyum-panel__button" type="submit"><i class="fas fa-heart"></i>Give supporter</button>
+                        <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-heart"></i>Give supporter</button>
                     </form>
                     @if ($target->isSupporter())
                         <form method="POST" action="{{ route('panel.admin.users.supporter', ['user' => $userId]) }}" onsubmit="return confirm('Remove supporter now?')">
                             @csrf
                             <input type="hidden" name="action" value="remove">
-                            <button class="tomyum-panel__button tomyum-panel__button--danger" type="submit">Remove supporter</button>
+                            <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit">Remove supporter</button>
                         </form>
                     @endif
                 </div>
@@ -211,11 +211,11 @@
                 <form method="POST" action="{{ route('panel.admin.users.delete', ['user' => $userId]) }}" class="tomyum-panel__row"
                     onsubmit="return confirm('Delete this account?')">
                     @csrf
-                    <label class="tomyum-panel__field">
-                        Type "{{ $target->username }}" to confirm
-                        <input type="text" name="confirm" required autocomplete="off">
+                    <label class="input-container tomyum-panel__field">
+                        <span class="input-container__label">Type "{{ $target->username }}" to confirm</span>
+                        <input class="input-text" type="text" name="confirm" required autocomplete="off">
                     </label>
-                    <button class="tomyum-panel__button tomyum-panel__button--danger" type="submit"><i class="fas fa-trash"></i>Delete</button>
+                    <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit"><i class="fas fa-trash"></i>Delete</button>
                 </form>
             </div>
         @endif

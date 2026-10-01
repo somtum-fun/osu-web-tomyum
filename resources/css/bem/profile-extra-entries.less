@@ -47,6 +47,46 @@
     }
   }
 
+  // TomYum: Community → Activity's rows, with the player's avatar, and new ones lit up for a moment.
+  &--activity {
+    margin: 0;
+  }
+
+  &__item--activity {
+    align-items: center;
+    border-radius: @border-radius-large;
+    margin: 0 -10px;
+    padding: 4px 10px;
+    transition: background-color 2s ease-out;
+
+    &:hover {
+      background: hsl(var(--hsl-b3));
+      transition: none;
+    }
+  }
+
+  &__item--fresh {
+    background: hsla(var(--hsl-h1), 0.2);
+    transition: none;
+  }
+
+  &__avatar {
+    flex: none;
+    height: 26px;
+    margin-right: 8px;
+    width: 26px;
+  }
+
+  &__client {
+    background: hsl(var(--hsl-b3));
+    border-radius: 4px;
+    color: hsl(var(--hsl-c2));
+    font-size: @font-size--small;
+    margin-left: 8px;
+    padding: 1px 6px;
+    white-space: nowrap;
+  }
+
   &__kudosu-amount {
     font-weight: inherit;
     color: @osu-colour-l1;

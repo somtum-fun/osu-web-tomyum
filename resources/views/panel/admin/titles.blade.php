@@ -18,20 +18,20 @@
             @else
                 <form method="POST" action="{{ route('panel.admin.titles.assign') }}" class="tomyum-panel__row">
                     @csrf
-                    <label class="tomyum-panel__field">
-                        Player (name or id)
-                        <input type="text" name="user" required>
+                    <label class="input-container tomyum-panel__field">
+                        <span class="input-container__label">Player (name or id)</span>
+                        <input class="input-text" type="text" name="user" required>
                     </label>
-                    <label class="tomyum-panel__field">
-                        Title
-                        <select name="title">
+                    <label class="input-container input-container--select tomyum-panel__field">
+                        <span class="input-container__label">Title</span>
+                        <select class="input-text" name="title">
                             @foreach ($titles as $title)
                                 <option value="{{ $title->getKey() }}">{{ $title->rank_title }}</option>
                             @endforeach
                             <option value="0">(no title)</option>
                         </select>
                     </label>
-                    <div><button class="tomyum-panel__button" type="submit">Save</button></div>
+                    <div><button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Save</button></div>
                 </form>
             @endif
         </div>
@@ -64,7 +64,7 @@
                                 <form method="POST" action="{{ route('panel.admin.titles.destroy', ['title' => $title->getKey()]) }}"
                                     onsubmit="return confirm('Remove this title (and take it from everyone who has it)?')">
                                     @csrf
-                                    <button class="tomyum-panel__button tomyum-panel__button--danger" type="submit">Remove</button>
+                                    <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit">Remove</button>
                                 </form>
                             </td>
                         </tr>
@@ -77,15 +77,15 @@
             <h2><i class="fas fa-plus"></i>Make a title</h2>
             <form method="POST" action="{{ route('panel.admin.titles.store') }}" class="tomyum-panel__row">
                 @csrf
-                <label class="tomyum-panel__field">
-                    Title
-                    <input type="text" name="title" required maxlength="100" placeholder="Server Tester">
+                <label class="input-container tomyum-panel__field">
+                    <span class="input-container__label">Title</span>
+                    <input class="input-text" type="text" name="title" required maxlength="100" placeholder="Server Tester">
                 </label>
-                <label class="tomyum-panel__field">
-                    Link when clicked (optional)
-                    <input type="text" name="url" maxlength="255" placeholder="https://…">
+                <label class="input-container tomyum-panel__field">
+                    <span class="input-container__label">Link when clicked (optional)</span>
+                    <input class="input-text" type="text" name="url" maxlength="255" placeholder="https://…">
                 </label>
-                <div><button class="tomyum-panel__button" type="submit">Make it</button></div>
+                <div><button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Make it</button></div>
             </form>
         </div>
     </div>

@@ -20,11 +20,11 @@
             </p>
             <form method="POST" action="{{ route('panel.bn.import') }}" class="tomyum-panel__row">
                 @csrf
-                <label class="tomyum-panel__field">
-                    Set link or id
-                    <input type="text" name="set" placeholder="https://osu.ppy.sh/beatmapsets/2424357" required autofocus>
+                <label class="input-container tomyum-panel__field">
+                    <span class="input-container__label">Set link or id</span>
+                    <input class="input-text" type="text" name="set" placeholder="https://osu.ppy.sh/beatmapsets/2424357" required autofocus>
                 </label>
-                <button class="tomyum-panel__button" type="submit">Import</button>
+                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Import</button>
             </form>
         </div>
 
@@ -43,11 +43,11 @@
                         .osz file
                         <input type="file" name="osz" accept=".osz" required>
                     </label>
-                    <label class="tomyum-panel__field">
-                        Update custom set (optional)
-                        <input type="text" name="set" placeholder="{{ App\Http\Controllers\Panel\BnController::CUSTOM_ID_FLOOR }}">
+                    <label class="input-container tomyum-panel__field">
+                        <span class="input-container__label">Update custom set (optional)</span>
+                        <input class="input-text" type="text" name="set" placeholder="{{ App\Http\Controllers\Panel\BnController::CUSTOM_ID_FLOOR }}">
                     </label>
-                    <button class="tomyum-panel__button" type="submit">Upload</button>
+                    <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Upload</button>
                 </div>
                 <p class="js-tomyum-upload-status" hidden></p>
             </form>
@@ -64,25 +64,25 @@
             <form method="POST" action="{{ route('panel.bn.import-bulk') }}">
                 @csrf
                 <input type="hidden" name="mode" value="ids">
-                <label class="tomyum-panel__field">
-                    Set links or ids, one per line (or separated by commas)
-                    <textarea name="ids" placeholder="https://osu.ppy.sh/beatmapsets/950289&#10;2285243&#10;2291277"></textarea>
+                <label class="input-container tomyum-panel__field">
+                    <span class="input-container__label">Set links or ids, one per line (or separated by commas)</span>
+                    <textarea class="input-text" name="ids" placeholder="https://osu.ppy.sh/beatmapsets/950289&#10;2285243&#10;2291277"></textarea>
                 </label>
-                <p><button class="tomyum-panel__button" type="submit">Import these sets</button></p>
+                <p><button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Import these sets</button></p>
             </form>
 
             <form method="POST" action="{{ route('panel.bn.import-bulk') }}" class="tomyum-panel__row">
                 @csrf
                 <input type="hidden" name="mode" value="dates">
-                <label class="tomyum-panel__field">
-                    Ranked or loved from
-                    <input type="date" name="from" required>
+                <label class="input-container tomyum-panel__field">
+                    <span class="input-container__label">Ranked or loved from</span>
+                    <input class="input-text" type="date" name="from" required>
                 </label>
-                <label class="tomyum-panel__field">
-                    Until (leave empty for today)
-                    <input type="date" name="to">
+                <label class="input-container tomyum-panel__field">
+                    <span class="input-container__label">Until (leave empty for today)</span>
+                    <input class="input-text" type="date" name="to">
                 </label>
-                <button class="tomyum-panel__button" type="submit">Import everything in this range</button>
+                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Import everything in this range</button>
             </form>
             <p class="tomyum-panel__hint">
                 Date ranges need the osu! API key on the server and are capped at 10,000 sets per import.

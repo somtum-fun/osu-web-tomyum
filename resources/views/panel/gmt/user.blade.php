@@ -18,15 +18,20 @@
         ['title' => $target->username],
     ]])
     <div class="osu-page osu-page--admin tomyum-panel">
-        <div class="tomyum-panel__card tomyum-panel__row" style="align-items: center">
-            <img src="{{ App\Libraries\User\AvatarHelper::url($target) }}"
-                alt="" style="border-radius: 12px; height: 64px; width: 64px; object-fit: cover">
-            <div style="flex: 1">
-                <h2 style="margin: 0">
-                    <a href="{{ route('users.show', ['user' => $userId]) }}">{{ $target->username }}</a>
-                    <span class="tomyum-panel__hint">#{{ $userId }} &middot; {{ $target->country_acronym }}</span>
-                </h2>
-                <p style="margin: 6px 0 0">
+        <div class="tomyum-panel__hero">
+            <div class="js-react u-contents" data-react="user-card" data-user="{{ json_encode($userCard) }}"></div>
+
+            <div class="tomyum-panel__card">
+                <div class="tomyum-panel__card-head">
+                    <h2><i class="fas fa-id-card"></i>{{ $target->username }} <span class="tomyum-panel__muted">#{{ $userId }}</span></h2>
+                    <div class="tomyum-panel__row" style="gap: 8px">
+                        <a class="btn-osu-big btn-osu-big--rounded-small btn-osu-big--panel-secondary" href="{{ route('panel.gmt.chat', ['user' => $userId]) }}"><i class="fas fa-comments"></i>Chat log</a>
+                        @if (App\Http\Controllers\Panel\Controller::canUseAdmin(Auth::user()))
+                            <a class="btn-osu-big btn-osu-big--rounded-small btn-osu-big--panel-secondary" href="{{ route('panel.admin.users.show', ['user' => $userId]) }}"><i class="fas fa-cog"></i>Admin page</a>
+                        @endif
+                    </div>
+                </div>
+                <p class="tomyum-panel__row" style="gap: 6px; margin: 0 0 12px">
                     @if ($target->isRestricted())
                         <span class="tomyum-panel__badge tomyum-panel__badge--error">Restricted</span>
                     @endif
@@ -36,12 +41,28 @@
                     @if (!$target->isRestricted() && $silencedUntil === null)
                         <span class="tomyum-panel__badge tomyum-panel__badge--success">In good standing</span>
                     @endif
-                    <span class="tomyum-panel__hint">
-                        &middot; {{ $online ? 'online now' : 'offline' }} &middot; joined {{ $target->user_regdate?->toFormattedDateString() }}
-                    </span>
                 </p>
+                <div class="tomyum-panel__facts">
+                    <div class="tomyum-panel__fact">
+                        <span class="tomyum-panel__kicker">Now</span>
+                        <span class="tomyum-panel__fact-value">
+                            <span class="tomyum-panel__live-dot {{ $online ? '' : 'tomyum-panel__live-dot--off' }}"></span>{{ $online ? 'online' : 'offline' }}
+                        </span>
+                    </div>
+                    <div class="tomyum-panel__fact">
+                        <span class="tomyum-panel__kicker">Joined</span>
+                        <span class="tomyum-panel__fact-value">{{ $target->user_regdate?->toFormattedDateString() ?? '—' }}</span>
+                    </div>
+                    <div class="tomyum-panel__fact">
+                        <span class="tomyum-panel__kicker">Country</span>
+                        <span class="tomyum-panel__fact-value">{{ $target->country?->name ?? $target->country_acronym }}</span>
+                    </div>
+                    <div class="tomyum-panel__fact">
+                        <span class="tomyum-panel__kicker">Reports about them</span>
+                        <span class="tomyum-panel__fact-value">{{ count($reports) }}</span>
+                    </div>
+                </div>
             </div>
-            <a href="{{ route('panel.gmt.chat', ['user' => $userId]) }}">Chat log</a>
         </div>
 
         @if (!$canModerate)
@@ -58,11 +79,11 @@
                 <form method="POST" action="{{ route($target->isRestricted() ? 'panel.gmt.users.unrestrict' : 'panel.gmt.users.restrict', ['user' => $userId]) }}" class="tomyum-panel__row"
                     onsubmit="return confirm({{ json_encode(($target->isRestricted() ? 'Unrestrict ' : 'Restrict ').$target->username.'?') }})">
                     @csrf
-                    <label class="tomyum-panel__field">
-                        Reason (shown in their account history)
-                        <input type="text" name="reason" required maxlength="2000">
+                    <label class="input-container tomyum-panel__field">
+                        <span class="input-container__label">Reason (shown in their account history)</span>
+                        <input class="input-text" type="text" name="reason" required maxlength="2000">
                     </label>
-                    <button class="tomyum-panel__button {{ $target->isRestricted() ? '' : 'tomyum-panel__button--danger' }}" type="submit">
+                    <button class="btn-osu-big btn-osu-big--rounded-thin {{ $target->isRestricted() ? '' : 'btn-osu-big--danger' }}" type="submit">
                         {{ $target->isRestricted() ? 'Unrestrict' : 'Restrict' }}
                     </button>
                 </form>
@@ -73,28 +94,28 @@
                 <p class="tomyum-panel__hint">A silenced player can't chat (they can still use BanchoBot commands). A new silence replaces the current one.</p>
                 <form method="POST" action="{{ route('panel.gmt.users.silence', ['user' => $userId]) }}" class="tomyum-panel__row">
                     @csrf
-                    <label class="tomyum-panel__field" style="flex: 0 1 160px">
-                        Length
-                        <select name="length" required>
+                    <label class="input-container input-container--select tomyum-panel__field" style="flex: 0 1 160px">
+                        <span class="input-container__label">Length</span>
+                        <select class="input-text" name="length" required>
                             @foreach (GmtController::SILENCE_LENGTHS as $seconds => $label)
                                 <option value="{{ $seconds }}">{{ $label }}</option>
                             @endforeach
                         </select>
                     </label>
-                    <label class="tomyum-panel__field">
-                        Reason
-                        <input type="text" name="reason" required maxlength="2000">
+                    <label class="input-container tomyum-panel__field">
+                        <span class="input-container__label">Reason</span>
+                        <input class="input-text" type="text" name="reason" required maxlength="2000">
                     </label>
-                    <button class="tomyum-panel__button tomyum-panel__button--danger" type="submit">Silence</button>
+                    <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit">Silence</button>
                 </form>
                 @if ($silencedUntil !== null)
                     <form method="POST" action="{{ route('panel.gmt.users.unsilence', ['user' => $userId]) }}" class="tomyum-panel__row" style="margin-top: 10px">
                         @csrf
-                        <label class="tomyum-panel__field">
-                            Reason for lifting it (optional)
-                            <input type="text" name="reason" maxlength="2000">
+                        <label class="input-container tomyum-panel__field">
+                            <span class="input-container__label">Reason for lifting it (optional)</span>
+                            <input class="input-text" type="text" name="reason" maxlength="2000">
                         </label>
-                        <button class="tomyum-panel__button" type="submit">Lift silence</button>
+                        <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Lift silence</button>
                     </form>
                 @endif
             </div>
@@ -119,7 +140,8 @@
                             <td><a href="{{ route('beatmaps.show', ['beatmap' => $score['beatmapId']]) }}">{{ $score['beatmap'] }}</a></td>
                             <td>{{ $modeNames[$score['mode']] ?? $score['mode'] }}</td>
                             <td>{{ number_format($score['score']) }}</td>
-                            <td>{{ number_format($score['accuracy'], 2) }}%</td>
+                            {{-- TomYum gives accuracy as a fraction (0.92 is 92%). --}}
+                            <td>{{ number_format($score['accuracy'] <= 1 ? $score['accuracy'] * 100 : $score['accuracy'], 2) }}%</td>
                             <td>{{ number_format($score['pp']) }}</td>
                             <td>{{ $score['grade'] }}</td>
                             <td>{{ $score['status'] }}</td>
@@ -129,7 +151,7 @@
                                         onsubmit="var r = prompt('Remove this score? Reason:'); if (r === null) return false; this.reason.value = r; return true;">
                                         @csrf
                                         <input type="hidden" name="reason">
-                                        <button class="tomyum-panel__button tomyum-panel__button--danger" type="submit" style="padding: 3px 10px">Remove</button>
+                                        <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit" style="padding: 3px 10px">Remove</button>
                                     </form>
                                 </td>
                             @endif
@@ -142,20 +164,20 @@
                 <form method="POST" action="{{ route('panel.gmt.users.wipe', ['user' => $userId]) }}" class="tomyum-panel__row" style="margin-top: 16px"
                     onsubmit="return confirm({{ json_encode('Wipe '.$target->username."'s scores? This can't be undone.") }})">
                     @csrf
-                    <label class="tomyum-panel__field" style="flex: 0 1 180px">
-                        Wipe scores in
-                        <select name="mode" required>
+                    <label class="input-container input-container--select tomyum-panel__field" style="flex: 0 1 180px">
+                        <span class="input-container__label">Wipe scores in</span>
+                        <select class="input-text" name="mode" required>
                             <option value="all">All modes</option>
                             @foreach (GmtController::MODES as $mode => $label)
                                 <option value="{{ $mode }}">{{ $label }}</option>
                             @endforeach
                         </select>
                     </label>
-                    <label class="tomyum-panel__field">
-                        Reason
-                        <input type="text" name="reason" required maxlength="2000">
+                    <label class="input-container tomyum-panel__field">
+                        <span class="input-container__label">Reason</span>
+                        <input class="input-text" type="text" name="reason" required maxlength="2000">
                     </label>
-                    <button class="tomyum-panel__button tomyum-panel__button--danger" type="submit">Wipe</button>
+                    <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit">Wipe</button>
                 </form>
                 <p class="tomyum-panel__hint">Removed scores are gone for good (also their replays); stats and ranks are recalculated.</p>
             @endif

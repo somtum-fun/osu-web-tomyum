@@ -65,7 +65,35 @@ class ActivityController extends Controller
             return $json;
         }
 
-        return ext_view('activity.index', ['json' => $json]);
+        return ext_view('activity.index', [
+            'json' => $json,
+            'type' => $type,
+            'ruleset' => $ruleset,
+            'labels' => static::LABELS,
+        ]);
+    }
+
+    /** The filters' names, in the order of the page's tabs. */
+    const LABELS = [
+        'highlights' => 'Highlights',
+        'firsts' => '#1s',
+        'ranks' => 'Top 50 ranks',
+        'medals' => 'Medals',
+        'beatmaps' => 'Beatmaps',
+        'supporters' => 'Supporters',
+        'names' => 'Name changes',
+    ];
+
+    /** The filters where a game mode can be picked (they're about plays). */
+    const WITH_RULESET = ['highlights', 'firsts', 'ranks'];
+
+    /** This page with a filter and mode. */
+    public static function url(string $type, ?string $ruleset = null): string
+    {
+        return route('activity.index', array_filter([
+            'type' => $type === 'highlights' ? null : $type,
+            'mode' => in_array($type, static::WITH_RULESET, true) ? $ruleset : null,
+        ]));
     }
 
     private static function eventJson(Event $event): ?array

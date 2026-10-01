@@ -12,11 +12,11 @@
     <div class="osu-page osu-page--admin tomyum-panel">
         <div class="tomyum-panel__card">
             <form method="GET" action="{{ route('panel.admin.users.index') }}" class="tomyum-panel__row">
-                <label class="tomyum-panel__field">
-                    Username, user id or email
-                    <input type="text" name="q" value="{{ $query }}" autofocus>
+                <label class="input-container tomyum-panel__field">
+                    <span class="input-container__label">Username, user id or email</span>
+                    <input class="input-text" type="text" name="q" value="{{ $query }}" autofocus>
                 </label>
-                <button class="tomyum-panel__button" type="submit">Find</button>
+                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Find</button>
             </form>
         </div>
         @if ($query !== '')

@@ -52,15 +52,19 @@
             <form method="POST" action="{{ route('panel.gmt.users.unrestrict', ['user' => $userId]) }}" class="tomyum-panel__row" style="flex: 1">
                 @csrf
                 <input type="hidden" name="from" value="admin">
-                <label class="tomyum-panel__field">Reason<input type="text" name="reason" required></label>
-                <button class="tomyum-panel__button" type="submit"><i class="fas fa-check"></i>Unrestrict</button>
+                <label class="input-container tomyum-panel__field">
+<span class="input-container__label">Reason</span>
+<input class="input-text" type="text" name="reason" required></label>
+                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-check"></i>Unrestrict</button>
             </form>
         @else
             <form method="POST" action="{{ route('panel.gmt.users.restrict', ['user' => $userId]) }}" class="tomyum-panel__row" style="flex: 1" onsubmit="return confirm('Restrict {{ $target->username }}?')">
                 @csrf
                 <input type="hidden" name="from" value="admin">
-                <label class="tomyum-panel__field">Reason<input type="text" name="reason" required></label>
-                <button class="tomyum-panel__button tomyum-panel__button--danger" type="submit"><i class="fas fa-ban"></i>Restrict</button>
+                <label class="input-container tomyum-panel__field">
+<span class="input-container__label">Reason</span>
+<input class="input-text" type="text" name="reason" required></label>
+                <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit"><i class="fas fa-ban"></i>Restrict</button>
             </form>
         @endif
     </div>
@@ -70,24 +74,32 @@
             <form method="POST" action="{{ route('panel.gmt.users.unsilence', ['user' => $userId]) }}" class="tomyum-panel__row" style="flex: 1">
                 @csrf
                 <input type="hidden" name="from" value="admin">
-                <label class="tomyum-panel__field">Reason (optional)<input type="text" name="reason"></label>
-                <button class="tomyum-panel__button" type="submit"><i class="fas fa-comment"></i>Unsilence</button>
+                <label class="input-container tomyum-panel__field">
+<span class="input-container__label">Reason (optional)</span>
+<input class="input-text" type="text" name="reason"></label>
+                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-comment"></i>Unsilence</button>
             </form>
         @else
             <form method="POST" action="{{ route('panel.gmt.users.silence', ['user' => $userId]) }}" class="tomyum-panel__row" style="flex: 1">
                 @csrf
                 <input type="hidden" name="from" value="admin">
-                <label class="tomyum-panel__field" style="flex: 0 1 160px">Length<select name="length">{!! $silenceOptions() !!}</select></label>
-                <label class="tomyum-panel__field">Reason<input type="text" name="reason" required></label>
-                <button class="tomyum-panel__button tomyum-panel__button--danger" type="submit"><i class="fas fa-comment-slash"></i>Silence</button>
+                <label class="input-container input-container--select tomyum-panel__field" style="flex: 0 1 160px">
+<span class="input-container__label">Length</span>
+<select class="input-text" name="length">{!! $silenceOptions() !!}</select></label>
+                <label class="input-container tomyum-panel__field">
+<span class="input-container__label">Reason</span>
+<input class="input-text" type="text" name="reason" required></label>
+                <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit"><i class="fas fa-comment-slash"></i>Silence</button>
             </form>
         @endif
     </div>
 
     <form method="POST" action="{{ route('panel.admin.users.note', ['user' => $userId]) }}" class="tomyum-panel__row" style="align-items: flex-end; margin-top: 10px">
         @csrf
-        <label class="tomyum-panel__field">Add a note to their history<input type="text" name="reason" required maxlength="500"></label>
-        <button class="tomyum-panel__button" type="submit"><i class="fas fa-sticky-note"></i>Add note</button>
+        <label class="input-container tomyum-panel__field">
+<span class="input-container__label">Add a note to their history</span>
+<input class="input-text" type="text" name="reason" required maxlength="500"></label>
+        <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-sticky-note"></i>Add note</button>
     </form>
 
     <h3 style="margin-top: 16px">History</h3>
@@ -120,16 +132,20 @@
                 <form method="POST" action="{{ route('panel.admin.users.lock', ['user' => $userId]) }}" class="tomyum-panel__row" style="align-items: flex-end">
                     @csrf
                     <input type="hidden" name="action" value="unlock">
-                    <label class="tomyum-panel__field">Reason (optional)<input type="text" name="reason"></label>
-                    <button class="tomyum-panel__button" type="submit"><i class="fas fa-lock-open"></i>Unlock</button>
+                    <label class="input-container tomyum-panel__field">
+<span class="input-container__label">Reason (optional)</span>
+<input class="input-text" type="text" name="reason"></label>
+                    <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-lock-open"></i>Unlock</button>
                 </form>
             @else
                 <p class="tomyum-panel__hint">No logins anywhere (website, lazer, stable), and signed out everywhere now, until unlocked.</p>
                 <form method="POST" action="{{ route('panel.admin.users.lock', ['user' => $userId]) }}" class="tomyum-panel__row" style="align-items: flex-end" onsubmit="return confirm('Lock {{ $target->username }}?')">
                     @csrf
                     <input type="hidden" name="action" value="lock">
-                    <label class="tomyum-panel__field">Reason<input type="text" name="reason" required></label>
-                    <button class="tomyum-panel__button tomyum-panel__button--danger" type="submit" @disabled($isSelf)><i class="fas fa-lock"></i>Lock</button>
+                    <label class="input-container tomyum-panel__field">
+<span class="input-container__label">Reason</span>
+<input class="input-text" type="text" name="reason" required></label>
+                    <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit" @disabled($isSelf)><i class="fas fa-lock"></i>Lock</button>
                 </form>
             @endif
         </div>
@@ -140,15 +156,17 @@
                 <form method="POST" action="{{ route('panel.admin.users.whitelist', ['user' => $userId]) }}">
                     @csrf
                     <input type="hidden" name="action" value="remove">
-                    <button class="tomyum-panel__button" type="submit"><i class="fas fa-times"></i>Remove from whitelist</button>
+                    <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-times"></i>Remove from whitelist</button>
                 </form>
             @else
                 <p class="tomyum-panel__hint">circleguard and the suspicious-play checks leave their plays alone.</p>
                 <form method="POST" action="{{ route('panel.admin.users.whitelist', ['user' => $userId]) }}" class="tomyum-panel__row" style="align-items: flex-end">
                     @csrf
                     <input type="hidden" name="action" value="add">
-                    <label class="tomyum-panel__field">Reason<input type="text" name="reason" required></label>
-                    <button class="tomyum-panel__button" type="submit"><i class="fas fa-shield-alt"></i>Whitelist</button>
+                    <label class="input-container tomyum-panel__field">
+<span class="input-container__label">Reason</span>
+<input class="input-text" type="text" name="reason" required></label>
+                    <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-shield-alt"></i>Whitelist</button>
                 </form>
             @endif
         </div>
@@ -166,8 +184,10 @@
     </p>
     <form method="POST" action="{{ route('panel.admin.users.devices.wipe', ['user' => $userId]) }}" class="tomyum-panel__row" style="align-items: flex-end" onsubmit="return confirm('Reset all of {{ $target->username }}\'s devices?')">
         @csrf
-        <label class="tomyum-panel__field">Reason (optional)<input type="text" name="reason"></label>
-        <button class="tomyum-panel__button tomyum-panel__button--danger" type="submit"><i class="fas fa-eraser"></i>Wipe HWID</button>
+        <label class="input-container tomyum-panel__field">
+<span class="input-container__label">Reason (optional)</span>
+<input class="input-text" type="text" name="reason"></label>
+        <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit"><i class="fas fa-eraser"></i>Wipe HWID</button>
     </form>
     @if ($devices === null)
         <p>Couldn't load devices from the game server.</p>
@@ -232,19 +252,23 @@
     <p class="tomyum-panel__hint">Removes their avatar, profile banner or me! page. Optionally warns them (a note in their history) and/or silences them.</p>
     <form method="POST" action="{{ route('panel.admin.users.reset', ['user' => $userId]) }}" class="tomyum-panel__row" style="align-items: flex-end" onsubmit="return confirm('Reset it?')">
         @csrf
-        <label class="tomyum-panel__field" style="flex: 0 1 170px">Reset
-            <select name="what">
+        <label class="input-container input-container--select tomyum-panel__field" style="flex: 0 1 170px">
+            <span class="input-container__label">Reset</span>
+            <select class="input-text" name="what">
                 <option value="avatar">Avatar</option>
                 <option value="cover">Profile banner</option>
                 <option value="page">me! page</option>
             </select>
         </label>
-        <label class="tomyum-panel__field">Reason<input type="text" name="reason" placeholder="inappropriate content"></label>
-        <label class="tomyum-panel__field" style="flex: 0 1 170px">Silence
-            <select name="silence"><option value="0">No silence</option>{!! $silenceOptions() !!}</select>
+        <label class="input-container tomyum-panel__field">
+<span class="input-container__label">Reason</span>
+<input class="input-text" type="text" name="reason" placeholder="inappropriate content"></label>
+        <label class="input-container input-container--select tomyum-panel__field" style="flex: 0 1 170px">
+            <span class="input-container__label">Silence</span>
+            <select class="input-text" name="silence"><option value="0">No silence</option>{!! $silenceOptions() !!}</select>
         </label>
         <label class="tomyum-panel__check"><input type="checkbox" name="warn" value="1"> Warn</label>
-        <button class="tomyum-panel__button tomyum-panel__button--danger" type="submit"><i class="fas fa-eraser"></i>Reset</button>
+        <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit"><i class="fas fa-eraser"></i>Reset</button>
     </form>
 </div>
 
@@ -257,17 +281,22 @@
     <form method="POST" action="{{ route('panel.admin.users.rollback', ['user' => $userId]) }}" class="tomyum-panel__row" style="align-items: flex-end"
         onsubmit="return confirm('Remove every score after this moment? This can\'t be undone.')">
         @csrf
-        <label class="tomyum-panel__field" style="flex: 0 1 220px">Remove scores after (UTC)<input type="datetime-local" name="after" required></label>
-        <label class="tomyum-panel__field" style="flex: 0 1 170px">Mode
-            <select name="mode">
+        <label class="input-container tomyum-panel__field" style="flex: 0 1 220px">
+<span class="input-container__label">Remove scores after (UTC)</span>
+<input class="input-text" type="datetime-local" name="after" required></label>
+        <label class="input-container input-container--select tomyum-panel__field" style="flex: 0 1 170px">
+            <span class="input-container__label">Mode</span>
+            <select class="input-text" name="mode">
                 <option value="all">All modes</option>
                 @foreach ($modes as $id => $label)
                     <option value="{{ $id }}">{{ $label }}</option>
                 @endforeach
             </select>
         </label>
-        <label class="tomyum-panel__field">Reason<input type="text" name="reason" required></label>
-        <button class="tomyum-panel__button tomyum-panel__button--danger" type="submit"><i class="fas fa-undo"></i>Roll back</button>
+        <label class="input-container tomyum-panel__field">
+<span class="input-container__label">Reason</span>
+<input class="input-text" type="text" name="reason" required></label>
+        <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit"><i class="fas fa-undo"></i>Roll back</button>
     </form>
 </div>
 
@@ -294,16 +323,19 @@
         @if ($earlier->isNotEmpty())
             <form method="POST" action="{{ route('panel.admin.users.username-rollback', ['user' => $userId]) }}" class="tomyum-panel__row" style="align-items: flex-end; margin-top: 10px">
                 @csrf
-                <label class="tomyum-panel__field" style="flex: 0 1 200px">Change back to
-                    <select name="username">
+                <label class="input-container input-container--select tomyum-panel__field" style="flex: 0 1 200px">
+                    <span class="input-container__label">Change back to</span>
+                    <select class="input-text" name="username">
                         @foreach ($earlier as $name)
                             <option value="{{ $name }}">{{ $name }}</option>
                         @endforeach
                     </select>
                 </label>
-                <label class="tomyum-panel__field">Reason (optional)<input type="text" name="reason"></label>
+                <label class="input-container tomyum-panel__field">
+<span class="input-container__label">Reason (optional)</span>
+<input class="input-text" type="text" name="reason"></label>
                 <label class="tomyum-panel__check"><input type="checkbox" name="warn" value="1"> Warn</label>
-                <button class="tomyum-panel__button" type="submit"><i class="fas fa-undo"></i>Roll back name</button>
+                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-undo"></i>Roll back name</button>
             </form>
         @endif
     @endif

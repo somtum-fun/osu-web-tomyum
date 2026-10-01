@@ -13,11 +13,11 @@
         <div class="tomyum-panel__card">
             <h2><i class="fas fa-search"></i>Player</h2>
             <form method="GET" action="{{ route('panel.admin.badges.index') }}" class="tomyum-panel__row">
-                <label class="tomyum-panel__field">
-                    Name or id
-                    <input type="text" name="user" value="{{ $query }}" required>
+                <label class="input-container tomyum-panel__field">
+                    <span class="input-container__label">Name or id</span>
+                    <input class="input-text" type="text" name="user" value="{{ $query }}" required>
                 </label>
-                <div><button class="tomyum-panel__button" type="submit">Show</button></div>
+                <div><button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Show</button></div>
             </form>
             @if (count($holders) > 0)
                 <p class="tomyum-panel__hint" style="margin-top: 12px">
@@ -50,7 +50,7 @@
                                         onsubmit="return confirm('Take this badge away?')">
                                         @csrf
                                         <input type="hidden" name="image" value="{{ $badge->image }}">
-                                        <button class="tomyum-panel__button tomyum-panel__button--danger" type="submit">Take away</button>
+                                        <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit">Take away</button>
                                     </form>
                                 </td>
                             </tr>
@@ -64,22 +64,22 @@
                 <form method="POST" action="{{ route('panel.admin.badges.store', ['user' => $user->getKey()]) }}" class="tomyum-panel">
                     @csrf
                     <div class="tomyum-panel__row">
-                        <label class="tomyum-panel__field">
-                            Image: a link to any image (fitted to 86×40), or an osu! badge's file name (like contributor.png)
-                            <input type="text" name="image" required placeholder="https://… or contributor.png">
+                        <label class="input-container tomyum-panel__field">
+                            <span class="input-container__label">Image: a link to any image (fitted to 86×40), or an osu! badge's file name (like contributor.png)</span>
+                            <input class="input-text" type="text" name="image" required placeholder="https://… or contributor.png">
                         </label>
                     </div>
                     <div class="tomyum-panel__row">
-                        <label class="tomyum-panel__field">
-                            Tooltip
-                            <input type="text" name="description" required maxlength="255" placeholder="Server tester">
+                        <label class="input-container tomyum-panel__field">
+                            <span class="input-container__label">Tooltip</span>
+                            <input class="input-text" type="text" name="description" required maxlength="255" placeholder="Server tester">
                         </label>
-                        <label class="tomyum-panel__field">
-                            Link when clicked (optional)
-                            <input type="text" name="url" maxlength="255" placeholder="https://…">
+                        <label class="input-container tomyum-panel__field">
+                            <span class="input-container__label">Link when clicked (optional)</span>
+                            <input class="input-text" type="text" name="url" maxlength="255" placeholder="https://…">
                         </label>
                     </div>
-                    <div><button class="tomyum-panel__button" type="submit">Give it</button></div>
+                    <div><button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Give it</button></div>
                 </form>
             </div>
         @endif

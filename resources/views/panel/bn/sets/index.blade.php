@@ -16,20 +16,20 @@
         <div class="tomyum-panel__card">
             <h2><i class="fas fa-search"></i>Find a beatmap set</h2>
             <form method="GET" action="{{ route('panel.bn.sets.index') }}" class="tomyum-panel__row">
-                <label class="tomyum-panel__field">
-                    Title, artist, mapper, set id or link
-                    <input type="text" name="q" value="{{ $query }}" autofocus>
+                <label class="input-container tomyum-panel__field">
+                    <span class="input-container__label">Title, artist, mapper, set id or link</span>
+                    <input class="input-text" type="text" name="q" value="{{ $query }}" autofocus>
                 </label>
-                <label class="tomyum-panel__field" style="flex: 0 1 180px">
-                    Status
-                    <select name="status">
+                <label class="input-container input-container--select tomyum-panel__field" style="flex: 0 1 180px">
+                    <span class="input-container__label">Status</span>
+                    <select class="input-text" name="status">
                         <option value="">Any</option>
                         @foreach (BnSetsController::APPROVED_LABELS as $value => $label)
                             <option value="{{ $value }}" @selected((string) $status === (string) $value)>{{ $label }}</option>
                         @endforeach
                     </select>
                 </label>
-                <button class="tomyum-panel__button" type="submit">Search</button>
+                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Search</button>
             </form>
             <p class="tomyum-panel__hint">
                 Only sets on this server are listed. To add one, <a href="{{ route('panel.bn.index') }}">import it</a> first.
@@ -52,7 +52,7 @@
                             </td>
                             <td>{{ $set->creator }}</td>
                             <td>{{ $difficultyCounts[$set->getKey()] ?? 0 }}</td>
-                            <td>{{ BnSetsController::APPROVED_LABELS[$set->approved] ?? $set->approved }}</td>
+                            <td>@include('panel._status', ['approved' => $set->approved])</td>
                             <td>{!! timeago($set->last_update) !!}</td>
                         </tr>
                     @endforeach

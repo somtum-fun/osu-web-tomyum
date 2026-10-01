@@ -8,10 +8,16 @@
 @extends('master', ['titlePrepend' => 'Ranked mods'])
 
 @section('content')
-    @include('panel._header', ['crumbs' => [
-        ['url' => route('panel.admin.index'), 'title' => 'Admin panel'],
-        ['title' => 'Ranked mods'],
-    ]])
+    @include('panel._header', [
+        'crumbs' => [
+            ['url' => route('panel.admin.index'), 'title' => 'Admin panel'],
+            ['title' => 'Ranked mods'],
+        ],
+        'panelRuleset' => [
+            'current' => $currentRuleset,
+            'urlFn' => fn (string $mode) => route('panel.admin.mods.index', ['mode' => $mode]),
+        ],
+    ])
     <div class="osu-page osu-page--admin tomyum-panel">
         <div class="tomyum-panel__card">
             <h2><i class="fas fa-info-circle"></i>How it works</h2>
@@ -26,15 +32,7 @@
         </div>
 
         <div class="tomyum-panel__card">
-            <div class="tomyum-panel__card-head">
-                <h2><i class="fas fa-sliders-h"></i>{{ $rulesets[$currentRuleset][1] }} mods</h2>
-                <div class="tomyum-panel__tabs">
-                    @foreach ($rulesets as $name => [, $label])
-                        <a href="{{ route('panel.admin.mods.index', ['mode' => $name]) }}"
-                            class="tomyum-panel__tab {{ $name === $currentRuleset ? 'tomyum-panel__tab--active' : '' }}">{{ $label }}</a>
-                    @endforeach
-                </div>
-            </div>
+            <h2><i class="fal fa-extra-mode-{{ $currentRuleset }}"></i>{{ $rulesets[$currentRuleset][1] }} mods</h2>
 
             @if (!$ready)
                 <p class="tomyum-panel__empty">
@@ -74,9 +72,13 @@
                                             @if ($mod['pending'])
                                                 <span class="tomyum-panel__client" title="Old scores are getting their pp worked out again"><i class="fas fa-sync-alt fa-spin"></i>updating</span>
                                             @endif
-                                            <label class="tomyum-panel__switch" title="{{ $mod['osu_ranked'] ? 'Also ranked with other settings' : 'Ranked on this server' }}">
-                                                <input type="checkbox" name="ranked[]" value="{{ $mod['acronym'] }}" @checked($mod['ranked'])>
+                                            <label class="tomyum-panel__toggle" title="{{ $mod['osu_ranked'] ? 'Also ranked with other settings' : 'Ranked on this server' }}">
                                                 <span>{{ $mod['osu_ranked'] ? 'any settings' : 'ranked here' }}</span>
+                                                @include('objects._switch', ['locals' => [
+                                                    'checked' => $mod['ranked'],
+                                                    'name' => 'ranked[]',
+                                                    'value' => $mod['acronym'],
+                                                ]])
                                             </label>
                                         @endif
                                     </td>
@@ -86,7 +88,7 @@
                         </div>
                     @endforeach
                     <div style="margin-top: 16px">
-                        <button class="tomyum-panel__button" type="submit"><i class="fas fa-save"></i>Save {{ $rulesets[$currentRuleset][1] }}</button>
+                        <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-save"></i>Save {{ $rulesets[$currentRuleset][1] }}</button>
                     </div>
                 </form>
             @endif

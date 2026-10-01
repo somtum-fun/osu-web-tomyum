@@ -10,12 +10,12 @@
         <div class="tomyum-panel__card">
             <h2><i class="fas fa-search"></i>Find a player</h2>
             <form method="GET" action="{{ route('panel.gmt.index') }}" class="tomyum-panel__row">
-                <label class="tomyum-panel__field">
-                    Username or user id
-                    <input type="text" name="q" value="{{ $query }}" autofocus>
+                <label class="input-container tomyum-panel__field">
+                    <span class="input-container__label">Username or user id</span>
+                    <input class="input-text" type="text" name="q" value="{{ $query }}" autofocus>
                 </label>
-                <button class="tomyum-panel__button" type="submit">Open</button>
-                <a class="tomyum-panel__button" href="{{ route('panel.gmt.chat') }}" style="background: hsl(var(--hsl-b3)); color: inherit">Chat logs</a>
+                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Open</button>
+                <a class="btn-osu-big btn-osu-big--rounded-thin" href="{{ route('panel.gmt.chat') }}" style="background: hsl(var(--hsl-b3)); color: inherit">Chat logs</a>
             </form>
             @if ($query !== '')
                 @if (count($matches) === 0)

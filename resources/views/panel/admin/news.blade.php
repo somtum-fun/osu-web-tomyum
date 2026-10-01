@@ -24,36 +24,36 @@
                     <input type="hidden" name="id" value="{{ $editing->getKey() }}">
                 @endif
                 <div class="tomyum-panel__row">
-                    <label class="tomyum-panel__field">
-                        Title
-                        <input type="text" name="title" maxlength="200" value="{{ $editing?->title() }}" placeholder="or from the text's header">
+                    <label class="input-container tomyum-panel__field">
+                        <span class="input-container__label">Title</span>
+                        <input class="input-text" type="text" name="title" maxlength="200" value="{{ $editing?->title() }}" placeholder="or from the text's header">
                     </label>
-                    <label class="tomyum-panel__field" style="flex: 0 1 200px">
-                        Date (UTC; empty: now)
-                        <input type="text" name="date" placeholder="2026-09-29 18:00" value="{{ $editing?->published_at?->format('Y-m-d H:i') ?? ($editing ? $editing->page['header']['date'] ?? '' : '') }}">
+                    <label class="input-container tomyum-panel__field" style="flex: 0 1 200px">
+                        <span class="input-container__label">Date (UTC; empty: now)</span>
+                        <input class="input-text" type="text" name="date" placeholder="2026-09-29 18:00" value="{{ $editing?->published_at?->format('Y-m-d H:i') ?? ($editing ? $editing->page['header']['date'] ?? '' : '') }}">
                     </label>
-                    <label class="tomyum-panel__field" style="flex: 0 1 200px">
-                        Author (empty: you)
-                        <input type="text" name="author" value="{{ $editing?->page['header']['author'] ?? '' }}">
+                    <label class="input-container tomyum-panel__field" style="flex: 0 1 200px">
+                        <span class="input-container__label">Author (empty: you)</span>
+                        <input class="input-text" type="text" name="author" value="{{ $editing?->page['header']['author'] ?? '' }}">
                     </label>
-                    <label class="tomyum-panel__field" style="flex: 0 1 200px">
-                        Series
-                        <select name="series">
+                    <label class="input-container input-container--select tomyum-panel__field" style="flex: 0 1 200px">
+                        <span class="input-container__label">Series</span>
+                        <select class="input-text" name="series">
                             @foreach ($series as $name)
                                 <option value="{{ $name }}" @if (($editing?->series() ?? 'miscellaneous') === $name) selected @endif>{{ str_replace('_', ' ', $name) }}</option>
                             @endforeach
                         </select>
                     </label>
                 </div>
-                <label class="tomyum-panel__field">
-                    Text
-                    <textarea name="body" required style="min-height: 320px; font-family: monospace">{{ $editing?->page['tomyum_markdown'] ?? '' }}</textarea>
+                <label class="input-container tomyum-panel__field">
+                    <span class="input-container__label">Text</span>
+                    <textarea class="input-text" name="body" required style="min-height: 320px; font-family: monospace">{{ $editing?->page['tomyum_markdown'] ?? '' }}</textarea>
                 </label>
                 <div class="tomyum-panel__row">
                     <label><input type="checkbox" name="draft" value="1" @if ($editing !== null && $editing->published_at === null) checked @endif> Draft (not shown yet)</label>
                 </div>
                 <div>
-                    <button class="tomyum-panel__button" type="submit">{{ $editing === null ? 'Post' : 'Save' }}</button>
+                    <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">{{ $editing === null ? 'Post' : 'Save' }}</button>
                     @if ($editing !== null)
                         <a href="{{ route('panel.admin.news.index') }}" style="margin-left: 10px">Write a new one instead</a>
                     @endif
@@ -79,11 +79,11 @@
                             </td>
                             <td>{{ $post->published_at?->toDateString() ?? '–' }}</td>
                             <td style="white-space: nowrap">
-                                <a class="tomyum-panel__button" href="{{ route('panel.admin.news.index', ['edit' => $post->getKey()]) }}">Edit</a>
+                                <a class="btn-osu-big btn-osu-big--rounded-thin" href="{{ route('panel.admin.news.index', ['edit' => $post->getKey()]) }}">Edit</a>
                                 <form method="POST" action="{{ route('panel.admin.news.destroy', ['post' => $post->getKey()]) }}" style="display: inline"
                                     onsubmit="return confirm('Remove this post for good?')">
                                     @csrf
-                                    <button class="tomyum-panel__button tomyum-panel__button--danger" type="submit">Remove</button>
+                                    <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit">Remove</button>
                                 </form>
                             </td>
                         </tr>

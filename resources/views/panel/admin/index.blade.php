@@ -57,11 +57,11 @@
         <div class="tomyum-panel__card">
             <h2><i class="fas fa-user-cog"></i>Accounts</h2>
             <form method="GET" action="{{ route('panel.admin.users.index') }}" class="tomyum-panel__row">
-                <label class="tomyum-panel__field">
-                    Username, user id or email
-                    <input type="text" name="q">
+                <label class="input-container tomyum-panel__field">
+                    <span class="input-container__label">Username, user id or email</span>
+                    <input class="input-text" type="text" name="q">
                 </label>
-                <button class="tomyum-panel__button" type="submit">Find</button>
+                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Find</button>
             </form>
         </div>
 
@@ -73,7 +73,7 @@
             </p>
             <form method="POST" action="{{ route('panel.admin.recalculate') }}">
                 @csrf
-                <button class="tomyum-panel__button" type="submit">Recalculate all pp</button>
+                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Recalculate all pp</button>
             </form>
         </div>
 

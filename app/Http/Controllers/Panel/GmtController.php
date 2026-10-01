@@ -97,6 +97,7 @@ class GmtController extends Controller
 
         return ext_view('panel.gmt.user', [
             'target' => $target,
+            'userCard' => json_item($target, new \App\Transformers\UserCompactTransformer(), \App\Transformers\UserCompactTransformer::CARD_INCLUDES),
             'canModerate' => static::canModerate($target),
             'silencedUntil' => static::silencedUntil($target),
             'online' => $online->successful() && in_array($target->getKey(), array_column($online->json(), 'userId'), true),

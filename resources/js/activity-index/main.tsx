@@ -14,8 +14,9 @@ import { classWithModifiers } from 'utils/css';
 import { stripTags } from 'utils/html';
 import { trans } from 'utils/lang';
 
-// TomYum: Community → Activity, the whole server's recent activity (the entries players get on
-// their profiles), asked again every 10 seconds while the page is in view.
+// TomYum: Community → Activity, the whole server's recent activity in the profile's "recent activity"
+// rows (osu-web's profile-extra-entries), asked again every 10 seconds while the page is in view. The
+// filter and mode are the page header's tabs and icons.
 
 type ActivityEventJson = EventJson & {
   avatar_url?: string | null;
@@ -31,24 +32,6 @@ interface ActivityJson {
   type: FilterType;
 }
 
-const types: [FilterType, string][] = [
-  ['highlights', 'Highlights'],
-  ['firsts', '#1s'],
-  ['ranks', 'Top 50 ranks'],
-  ['medals', 'Medals'],
-  ['beatmaps', 'Beatmaps'],
-  ['supporters', 'Supporters'],
-  ['names', 'Name changes'],
-];
-
-const modes: [Ruleset | null, string][] = [
-  [null, 'All modes'],
-  ['osu', 'osu!'],
-  ['taiko', 'osu!taiko'],
-  ['fruits', 'osu!catch'],
-  ['mania', 'osu!mania'],
-];
-
 const emptyText: Record<FilterType, string> = {
   beatmaps: 'No beatmaps ranked, loved or uploaded yet.',
   firsts: 'Nobody has set a #1 yet.',
@@ -59,19 +42,15 @@ const emptyText: Record<FilterType, string> = {
   supporters: 'Nobody has become a supporter yet.',
 };
 
-// Types whose entries are plays, where a mode can be picked.
-const scoreTypes = new Set<FilterType>(['firsts', 'ranks']);
-
 const refreshInterval = 10000;
 
-function url(type: FilterType, mode: Ruleset | null, extra: Record<string, number> = {}) {
+function url(type: FilterType, mode: Ruleset | null, extra: Record<string, number>) {
   const params = new URLSearchParams();
   if (type !== 'highlights') params.set('type', type);
   if (mode != null) params.set('mode', mode);
   for (const [key, value] of Object.entries(extra)) params.set(key, String(value));
-  const query = params.toString();
 
-  return `/community/activity${query === '' ? '' : `?${query}`}`;
+  return `/community/activity?${params.toString()}`;
 }
 
 async function get(path: string) {
@@ -81,28 +60,13 @@ async function get(path: string) {
   return await response.json() as ActivityJson;
 }
 
-export default function Main(props: ActivityJson) {
-  const [events, setEvents] = React.useState(props.events);
-  const [hasMore, setHasMore] = React.useState(props.has_more);
+export default function Main({ events: initialEvents, has_more: initialHasMore, mode, type }: ActivityJson) {
+  const [events, setEvents] = React.useState(initialEvents);
+  const [hasMore, setHasMore] = React.useState(initialHasMore);
   const [loading, setLoading] = React.useState(false);
-  const [type, setType] = React.useState(props.type);
-  const [mode, setMode] = React.useState(props.mode);
   // Entries that came in while the page was open, lit up for a moment.
   const [fresh, setFresh] = React.useState(new Set<number>());
   const newest = events[0]?.id ?? 0;
-
-  const pick = (newType: FilterType, newMode: Ruleset | null) => {
-    setLoading(true);
-    const path = url(newType, newMode);
-    get(path).then((json) => {
-      setType(newType);
-      setMode(newMode);
-      setEvents(json.events);
-      setHasMore(json.has_more);
-      setFresh(new Set());
-      window.history.replaceState(window.history.state, '', path);
-    }).catch(() => undefined).finally(() => setLoading(false));
-  };
 
   const showMore = () => {
     const oldest = events[events.length - 1]?.id;
@@ -135,50 +99,21 @@ export default function Main(props: ActivityJson) {
     };
   }, [type, mode, newest]);
 
+  if (events.length === 0) {
+    return (
+      <p className='profile-extra-entries'>
+        {emptyText[type]} New entries show up here by themselves.
+      </p>
+    );
+  }
+
   return (
-    <div className='activity-feed'>
-      <div className='activity-feed__filters'>
-        <div className='activity-feed__tabs'>
-          {types.map(([value, label]) => (
-            <button
-              key={value}
-              className={classWithModifiers('activity-feed__tab', { active: value === type })}
-              disabled={loading}
-              onClick={() => pick(value, scoreTypes.has(value) || value === 'highlights' ? mode : null)}
-              type='button'
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-        {(scoreTypes.has(type) || type === 'highlights') && (
-          <select
-            className='activity-feed__mode'
-            disabled={loading}
-            onChange={(e) => pick(type, e.currentTarget.value === '' ? null : e.currentTarget.value as Ruleset)}
-            value={mode ?? ''}
-          >
-            {modes.map(([value, label]) => <option key={label} value={value ?? ''}>{label}</option>)}
-          </select>
-        )}
-      </div>
-
-      {type === 'highlights' && mode != null && (
-        <p className='activity-feed__hint'>The mode picks which #1s show; medals, beatmaps and the rest show for every mode.</p>
-      )}
-
-      {events.length === 0 ? (
-        <p className='activity-feed__empty'>
-          {emptyText[type]} New entries show up here by themselves.
-        </p>
-      ) : (
-        <ul className='activity-feed__entries'>
-          {events.map((event) => <Entry key={event.id} event={event} fresh={fresh.has(event.id)} />)}
-        </ul>
-      )}
-
-      <ShowMoreLink callback={showMore} hasMore={hasMore} loading={loading} modifiers='t-greysky' />
-    </div>
+    <ul className='profile-extra-entries profile-extra-entries--activity'>
+      {events.map((event) => <Entry key={event.id} event={event} fresh={fresh.has(event.id)} />)}
+      <li className='profile-extra-entries__item u-contents'>
+        <ShowMoreLink callback={showMore} hasMore={hasMore} loading={loading} modifiers='profile-page' />
+      </li>
+    </ul>
   );
 }
 
@@ -188,27 +123,25 @@ function Entry({ event, fresh }: { event: ActivityEventJson; fresh: boolean }) {
   const user = 'user' in event ? event.user : null;
 
   return (
-    <li className={classWithModifiers('activity-feed__entry', { fresh })}>
-      <div className='activity-feed__avatar'>
-        {user != null && (
-          <a href={user.url}>
-            <UserAvatar modifiers='full-rounded' user={{ avatar_url: event.avatar_url }} />
-          </a>
-        )}
+    <li className={classWithModifiers('profile-extra-entries__item', { activity: true, fresh })}>
+      <div className='profile-extra-entries__detail'>
+        <a className='profile-extra-entries__avatar' href={user?.url}>
+          {user != null && <UserAvatar modifiers='full-rounded' user={{ avatar_url: event.avatar_url }} />}
+        </a>
+        <div className={classWithModifiers('profile-extra-entries__icon', iconModifiers)}>
+          {badge}
+        </div>
+        <div className='profile-extra-entries__text'>
+          <StringWithComponent
+            mappings={mappings}
+            pattern={stripTags(trans(`events.${snakeCase(event.type)}`))}
+          />
+          {event.legacy_score_event != null && (
+            <span className='profile-extra-entries__client'>{event.legacy_score_event ? 'stable' : 'lazer'}</span>
+          )}
+        </div>
       </div>
-      <div className={classWithModifiers('profile-extra-entries__icon', iconModifiers)}>
-        {badge}
-      </div>
-      <div className='activity-feed__text'>
-        <StringWithComponent
-          mappings={mappings}
-          pattern={stripTags(trans(`events.${snakeCase(event.type)}`))}
-        />
-        {event.legacy_score_event != null && (
-          <span className='activity-feed__client'>{event.legacy_score_event ? 'stable' : 'lazer'}</span>
-        )}
-      </div>
-      <div className='activity-feed__time'>
+      <div className='profile-extra-entries__time'>
         <TimeWithTooltip dateTime={event.created_at} relative />
       </div>
     </li>

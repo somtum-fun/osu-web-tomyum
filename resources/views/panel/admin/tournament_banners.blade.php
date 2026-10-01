@@ -20,22 +20,22 @@
             <form method="POST" action="{{ route('panel.admin.tournament-banners.store') }}" enctype="multipart/form-data" style="display: grid; gap: 12px">
                 @csrf
                 <div class="tomyum-panel__row">
-                    <label class="tomyum-panel__field">
-                        Tournament
-                        <input type="text" name="name" required maxlength="255" placeholder="sundei.eu Winter Cup 2026">
+                    <label class="input-container tomyum-panel__field">
+                        <span class="input-container__label">Tournament</span>
+                        <input class="input-text" type="text" name="name" required maxlength="255" placeholder="sundei.eu Winter Cup 2026">
                     </label>
-                    <label class="tomyum-panel__field" style="flex: 0 1 160px">
-                        Mode
-                        <select name="mode">
+                    <label class="input-container input-container--select tomyum-panel__field" style="flex: 0 1 160px">
+                        <span class="input-container__label">Mode</span>
+                        <select class="input-text" name="mode">
                             <option value="0">osu!</option>
                             <option value="1">osu!taiko</option>
                             <option value="2">osu!catch</option>
                             <option value="3">osu!mania</option>
                         </select>
                     </label>
-                    <label class="tomyum-panel__field" style="flex: 0 1 180px">
-                        Held on (optional)
-                        <input type="date" name="date">
+                    <label class="input-container tomyum-panel__field" style="flex: 0 1 180px">
+                        <span class="input-container__label">Held on (optional)</span>
+                        <input class="input-text" type="date" name="date">
                     </label>
                 </div>
                 <div class="tomyum-panel__row">
@@ -43,17 +43,17 @@
                         Image (JPEG, PNG, WebP or GIF, up to 10 MB)
                         <input type="file" name="image" accept="image/*">
                     </label>
-                    <label class="tomyum-panel__field">
-                        …or the address of one
-                        <input type="text" name="image_url" placeholder="https://assets.ppy.sh/tournament-banners/official/owc2025/profile/winner_PL.jpg">
+                    <label class="input-container tomyum-panel__field">
+                        <span class="input-container__label">…or the address of one</span>
+                        <input class="input-text" type="text" name="image_url" placeholder="https://assets.ppy.sh/tournament-banners/official/owc2025/profile/winner_PL.jpg">
                     </label>
                 </div>
                 <div class="tomyum-panel__row">
-                    <label class="tomyum-panel__field">
-                        The tournament's page (optional)
-                        <input type="text" name="info_url" maxlength="255" placeholder="https://…">
+                    <label class="input-container tomyum-panel__field">
+                        <span class="input-container__label">The tournament's page (optional)</span>
+                        <input class="input-text" type="text" name="info_url" maxlength="255" placeholder="https://…">
                     </label>
-                    <div><button class="tomyum-panel__button" type="submit"><i class="fas fa-plus"></i>Make it</button></div>
+                    <div><button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-plus"></i>Make it</button></div>
                 </div>
             </form>
         </div>
@@ -79,14 +79,14 @@
                     <div style="display: flex; gap: 8px">
                         <form method="POST" action="{{ route('panel.admin.tournament-banners.toggle', ['banner' => $banner->getKey()]) }}">
                             @csrf
-                            <button class="tomyum-panel__button tomyum-panel__button--secondary tomyum-panel__button--small" type="submit">
+                            <button class="btn-osu-big btn-osu-big--rounded-small btn-osu-big--panel-secondary" type="submit">
                                 <i class="fas {{ $banner->is_active ? 'fa-eye-slash' : 'fa-eye' }}"></i>{{ $banner->is_active ? 'Hide' : 'Show' }}
                             </button>
                         </form>
                         <form method="POST" action="{{ route('panel.admin.tournament-banners.destroy', ['banner' => $banner->getKey()]) }}"
                             onsubmit="return confirm('Remove this banner (and take it from everyone who has it)?')">
                             @csrf
-                            <button class="tomyum-panel__button tomyum-panel__button--danger tomyum-panel__button--small" type="submit"><i class="fas fa-trash"></i>Remove</button>
+                            <button class="btn-osu-big btn-osu-big--rounded-small btn-osu-big--danger" type="submit"><i class="fas fa-trash"></i>Remove</button>
                         </form>
                     </div>
                 </div>
@@ -102,21 +102,21 @@
                             Image
                             <input type="file" name="image" accept="image/*">
                         </label>
-                        <label class="tomyum-panel__field">
-                            …or the address of one
-                            <input type="text" name="image_url" placeholder="https://…">
+                        <label class="input-container tomyum-panel__field">
+                            <span class="input-container__label">…or the address of one</span>
+                            <input class="input-text" type="text" name="image_url" placeholder="https://…">
                         </label>
-                        <div><button class="tomyum-panel__button tomyum-panel__button--secondary" type="submit"><i class="fas fa-image"></i>Change</button></div>
+                        <div><button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--panel-secondary" type="submit"><i class="fas fa-image"></i>Change</button></div>
                     </form>
                 </details>
 
                 <form method="POST" action="{{ route('panel.admin.tournament-banners.give', ['banner' => $banner->getKey()]) }}" class="tomyum-panel__row">
                     @csrf
-                    <label class="tomyum-panel__field">
-                        Give it to (name or id)
-                        <input type="text" name="user" required>
+                    <label class="input-container tomyum-panel__field">
+                        <span class="input-container__label">Give it to (name or id)</span>
+                        <input class="input-text" type="text" name="user" required>
                     </label>
-                    <div><button class="tomyum-panel__button" type="submit"><i class="fas fa-user-plus"></i>Give</button></div>
+                    <div><button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-user-plus"></i>Give</button></div>
                 </form>
 
                 <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px">

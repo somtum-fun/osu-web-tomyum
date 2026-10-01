@@ -17,7 +17,7 @@
                         <form method="POST" action="{{ route('panel.admin.users.unlink', ['user' => $userId]) }}" onsubmit="return confirm('Unlink their Discord?')">
                             @csrf
                             <input type="hidden" name="service" value="discord">
-                            <button class="tomyum-panel__button tomyum-panel__button--danger" type="submit"><i class="fas fa-eraser"></i>Reset</button>
+                            <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit"><i class="fas fa-eraser"></i>Reset</button>
                         </form>
                     </td>
                 @else
@@ -32,7 +32,7 @@
                         <form method="POST" action="{{ route('panel.admin.users.unlink', ['user' => $userId]) }}" onsubmit="return confirm('Unlink their Last.fm?')">
                             @csrf
                             <input type="hidden" name="service" value="lastfm">
-                            <button class="tomyum-panel__button tomyum-panel__button--danger" type="submit"><i class="fas fa-eraser"></i>Reset</button>
+                            <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit"><i class="fas fa-eraser"></i>Reset</button>
                         </form>
                     </td>
                 @else
