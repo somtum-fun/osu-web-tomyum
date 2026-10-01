@@ -71,6 +71,7 @@ export default class MessageGroup extends React.Component<Props> {
             </time>
             <div className='chat-message-group__sender'>
               <UserLink
+                cardSize='compact'
                 className='chat-message-group__username u-ellipsis-overflow'
                 reportable={reportable(message)}
                 tooltipPosition='top center'

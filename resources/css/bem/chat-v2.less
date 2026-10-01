@@ -150,6 +150,49 @@
     background-color: hsl(var(--hsl-b4));
   }
 
+  // Add More Channels: the design's table of channels, a check by the joined ones (white), the
+  // others in mint; the name 14px semibold, a wide gap, the description
+  .chat-join-channel {
+    padding-top: 12px;
+
+    &__channels {
+      column-gap: 10px;
+      grid-template-columns: 25px 187px minmax(0, 1fr);
+      grid-auto-rows: max-content;
+    }
+
+    &__channel {
+      align-items: baseline;
+      color: @_mint-text;
+      font-size: 14px;
+      padding: 2px 20px;
+
+      &--joined {
+        color: #fff;
+      }
+
+      .link-hover({
+        background-color: hsl(var(--hsl-b3));
+        color: #fff;
+      });
+    }
+
+    &__status {
+      font-size: 12px;
+      text-align: right;
+    }
+
+    &__name {
+      font-weight: 600;
+    }
+
+    &__description {
+      .chat-join-channel__channel:not(.chat-join-channel__channel--joined) & {
+        color: hsl(var(--base-hue), 40%, 90%);
+      }
+    }
+  }
+
   // fills the panel, so the message box stays at the bottom
   .chat-conversation {
     flex: 1 1 0;

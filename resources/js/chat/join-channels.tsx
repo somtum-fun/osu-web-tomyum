@@ -45,9 +45,10 @@ function Channel({ channel, onClick, status }: ChannelProps) {
       href={route('chat.index', { channel_id: channel.channel_id })}
       onClick={handleClick}
     >
-      <span>{statusElement}</span>
-      <span>{channel.name}</span>
-      <span>{channel.description}</span>
+      {/* TomYum: classes for the chat design's channel table */}
+      <span className='chat-join-channel__status'>{statusElement}</span>
+      <span className='chat-join-channel__name'>{channel.name}</span>
+      <span className='chat-join-channel__description'>{channel.description}</span>
     </a>
   );
 }

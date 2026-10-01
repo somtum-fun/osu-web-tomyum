@@ -42,6 +42,8 @@ function createTooltipOptions(card: HTMLElement) {
     hide: {
       delay: 220,
       effect: hideEffect,
+      // TomYum: also on clicking elsewhere (see hideOnScroll for scrolling)
+      event: 'mouseleave unfocus',
       fixed: true,
     },
     position: {
@@ -185,7 +187,17 @@ function shouldShow(event: JQuery.Event, api: any) {
   }
 }
 
+// TomYum: a scroll moves the name away under a still cursor, which never counts as leaving it (the
+// card stayed, e.g. in chat as messages came in): any scroll outside a card hides the cards.
+function hideOnScroll(event: Event) {
+  if (event.target instanceof Element && event.target.closest(`.${userCardTooltipClass}`) != null) return;
+  if (tooltipWithActiveMenu != null) return;
+
+  $(`.${userCardTooltipClass}`).qtip('hide');
+}
+
 export function startListening() {
+  document.addEventListener('scroll', hideOnScroll, { capture: true, passive: true });
   $(document).on('mouseover', '.js-usercard', onMouseOver);
   $(document).on('mouseenter', '.js-user-card-tooltip', onMouseEnter);
   $(document).on('mouseleave', '.js-user-card-tooltip', onMouseLeave);
@@ -258,7 +270,7 @@ export class UserCardTooltip extends React.PureComponent<Props> {
           <KeyContext.Provider value={this.props.lookup}>
             <UserCard
               activated={activated}
-              expanded
+              expanded={this.props.container.dataset.cardSize !== 'compact'}
               reportable={this.reportable}
               user={this.user}
             />

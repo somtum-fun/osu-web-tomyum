@@ -8,6 +8,8 @@ import { route } from 'laroute';
 import * as React from 'react';
 
 interface Props {
+  /** TomYum: 'compact' hovers the plain player card instead of the expanded one (chat). */
+  cardSize?: 'compact';
   children?: React.ReactNode;
   className?: string;
   /** Where to link when the user has no page here (TomYum: a mapper known only from osu!). */
@@ -32,6 +34,7 @@ export default class UserLink extends React.PureComponent<Props> {
     return (
       <a
         className={className}
+        data-card-size={this.props.cardSize}
         data-reportable={JSON.stringify(this.props.reportable)}
         data-tooltip-position={this.props.tooltipPosition}
         data-user-id={this.props.user.id}
