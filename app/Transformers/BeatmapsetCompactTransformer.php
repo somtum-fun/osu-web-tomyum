@@ -28,6 +28,7 @@ class BeatmapsetCompactTransformer extends TransformerAbstract
         'converts',
         'current_nominations',
         'current_user_attributes',
+        'tomyum_mappers',
         'tomyum_nominators',
         'description',
         'discussions',
@@ -130,6 +131,31 @@ class BeatmapsetCompactTransformer extends TransformerAbstract
     public function includeCurrentNominations(Beatmapset $beatmapset): Collection
     {
         return $this->collection($beatmapset->beatmapsetNominationsCurrent, new BeatmapsetNominationTransformer());
+    }
+
+    /**
+     * TomYum: the osu! users who made the set (`creator`) and each difficulty (`beatmaps`: {beatmap id:
+     * [{id, username}]}), for imported sets whose mappers have no account here.
+     */
+    public function includeTomyumMappers(Beatmapset $beatmapset)
+    {
+        $rows = \DB::table('tomyum_beatmap_mappers')
+            ->where('beatmapset_id', $beatmapset->getKey())
+            ->orderBy('username')
+            ->get(['beatmap_id', 'osu_user_id', 'username']);
+
+        $creator = null;
+        $beatmaps = [];
+        foreach ($rows as $row) {
+            $user = ['id' => (int) $row->osu_user_id, 'username' => $row->username];
+            if ((int) $row->beatmap_id === 0) {
+                $creator = $user;
+            } else {
+                $beatmaps[$row->beatmap_id][] = $user;
+            }
+        }
+
+        return $this->primitive(['beatmaps' => (object) $beatmaps, 'creator' => $creator]);
     }
 
     /** TomYum: the set's osu! nominators (no accounts here), for links to their osu! profiles. */

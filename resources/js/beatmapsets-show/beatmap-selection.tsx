@@ -5,13 +5,14 @@ import { BeatmapIcon } from 'components/beatmap-icon';
 import { action, computed, makeObservable } from 'mobx';
 import { observer } from 'mobx-react';
 import * as React from 'react';
-import { generate as generateHash } from 'utils/beatmapset-page-hash';
+import { getDiffColour } from 'utils/beatmap-helper';
+import BeatmapExtendedJson from 'interfaces/beatmap-extended-json';
 import { classWithModifiers } from 'utils/css';
-import Controller from './controller';
+import { PickerState } from './beatmap-picker';
 
 interface Props {
-  beatmap: Controller['currentBeatmap'];
-  controller: Controller;
+  beatmap: BeatmapExtendedJson;
+  controller: PickerState;
 }
 
 @observer
@@ -29,13 +30,15 @@ export default class BeatmapSelection extends React.Component<Props> {
   render() {
     const className = classWithModifiers('beatmapset-beatmap-picker__beatmap', { active: this.active });
 
+    // TomYum: its colour for the underline (the design proposal's picker).
     return (
       <a
         className={className}
-        href={generateHash({ beatmap: this.props.beatmap })}
+        href={this.props.controller.beatmapUrl(this.props.beatmap)}
         onClick={this.onClick}
         onMouseEnter={this.onMouseEnter}
         onMouseLeave={this.onMouseLeave}
+        style={{ '--diff': getDiffColour(this.props.beatmap.difficulty_rating) } as React.CSSProperties}
       >
         <BeatmapIcon beatmap={this.props.beatmap} modifiers='beatmapset' />
       </a>

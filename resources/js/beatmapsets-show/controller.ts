@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
 // See the LICENCE file in the repository root for full licence text.
 
+import BeatmapJson from 'interfaces/beatmap-json';
 import { BeatmapsetJsonForShow } from 'interfaces/beatmapset-extended-json';
 import TagJson from 'interfaces/tag-json';
 import UserJson from 'interfaces/user-json';
@@ -9,7 +10,7 @@ import { action, computed, makeObservable, observable, runInAction } from 'mobx'
 import { deletedUserJson } from 'models/user';
 import core from 'osu-core-singleton';
 import { find, findDefault, group } from 'utils/beatmap-helper';
-import { parse } from 'utils/beatmapset-page-hash';
+import { generate, parse } from 'utils/beatmapset-page-hash';
 import { parseJson } from 'utils/json';
 import { present } from 'utils/string';
 import { currentUrl } from 'utils/turbolinks';
@@ -156,6 +157,11 @@ export default class Controller {
   }
 
   @action
+  // TomYum: the link to a difficulty (the difficulty picker).
+  beatmapUrl(beatmap: BeatmapJson) {
+    return generate({ beatmap });
+  }
+
   readonly setCurrentBeatmap = (beatmap: BeatmapJsonForBeatmapsetShow) => {
     if (beatmap === this.currentBeatmap) return;
 
