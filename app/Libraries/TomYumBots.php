@@ -104,7 +104,11 @@ class TomYumBots
         $registration->save();
         $bot = $registration->user()->fresh();
 
-        $bot->update(['user_email' => "bot{$bot->getKey()}@".static::EMAIL_DOMAIN]);
+        // The bot flies its owner's flag (not the country of whoever made it).
+        $bot->update([
+            'user_email' => "bot{$bot->getKey()}@".static::EMAIL_DOMAIN,
+            'country_acronym' => $owner->country_acronym,
+        ]);
         DB::table('tomyum_bot_accounts')->insert([
             'user_id' => $bot->getKey(),
             'owner_id' => $owner->getKey(),
