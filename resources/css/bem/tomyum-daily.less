@@ -141,14 +141,19 @@
 
 // A star rating in osu!'s colour for it (set --colour and --text).
 .tomyum-stars {
+  align-items: center;
   background: var(--colour);
   border-radius: 10000px;
   color: var(--text);
+  display: inline-flex;
   font-weight: 700;
+  gap: 3px;
+  line-height: 1.5;
   padding: 0 8px;
+  vertical-align: middle;
+  white-space: nowrap;
 
   .fas {
     font-size: 9px;
-    margin-right: 3px;
   }
 }
