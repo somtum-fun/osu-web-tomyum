@@ -5,6 +5,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use DB;
 use Exception;
 
@@ -32,10 +33,24 @@ class LoginAttempt extends Model
         return DB::raw("CONCAT(failed_ids, ',', {$newFailedId})");
     }
 
+    /**
+     * TomYum: minutes after its last attempt that an address's record is cleared (unlocking it), as
+     * osu.ppy.sh clears them on its side ("wait a few minutes"); nothing else cleared them here.
+     */
+    public const RESET_AFTER_MINUTES = 10;
+
+    /** TomYum: the address's record, after removing it if its last attempt was over RESET_AFTER_MINUTES ago. */
+    private static function findCurrent($ip): ?static
+    {
+        static::where('ip', $ip)->where('last_attempt', '<', Carbon::now()->subMinutes(static::RESET_AFTER_MINUTES))->delete();
+
+        return static::find($ip);
+    }
+
     public static function findOrDefault($ip)
     {
         try {
-            return static::find($ip) ?? static::create([
+            return static::findCurrent($ip) ?? static::create([
                 'ip' => $ip,
                 'failed_ids' => '',
                 'unique_ids' => 0,
@@ -66,7 +81,7 @@ class LoginAttempt extends Model
 
     public static function isLocked($ip)
     {
-        $record = static::find($ip);
+        $record = static::findCurrent($ip);
 
         if ($record === null) {
             return false;
@@ -99,7 +114,8 @@ class LoginAttempt extends Model
             'last_attempt' => DB::raw('CURRENT_TIMESTAMP'),
         ];
 
-        $isUserVerification = $type === 'verify';
+        // TomYum: a verification step that succeeded (a right code, a link opened) isn't a failure either.
+        $isUserVerification = $type === 'verify' || (str_starts_with($type, 'verify-') && str_ends_with($type, '-success'));
         $userRecorded = $record->containsUser($user);
         $newRecord = $record->failed_attempts === 0;
 
