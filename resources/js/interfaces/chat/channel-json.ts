@@ -22,6 +22,7 @@ export default interface ChannelJson {
   description?: string;
   icon?: string;
   last_message_id?: number;
+  member_count?: number; // TomYum: the public channel list only
   message_length_limit: number;
   name: string;
   type: ChannelType;

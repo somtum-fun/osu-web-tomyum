@@ -14,7 +14,7 @@
 
     display: grid;
     grid-template-columns: subgrid;
-    grid-column: span 3;
+    grid-column: span 4; // TomYum: and the member count
     color: hsl(var(--hsl-l3));
     text-align: left;
     padding: 5px 10px;
@@ -34,7 +34,7 @@
     column-gap: 10px;
 
     // checkmark is 14px wide
-    grid-template-columns: minmax(14px, max-content) auto 1fr;
+    grid-template-columns: minmax(14px, max-content) auto 1fr auto;
 
     overflow-wrap: anywhere;
     overflow-y: auto;

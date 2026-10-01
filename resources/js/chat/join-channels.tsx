@@ -9,6 +9,7 @@ import { observer } from 'mobx-react';
 import core from 'osu-core-singleton';
 import * as React from 'react';
 import { classWithModifiers } from 'utils/css';
+import { formatNumber } from 'utils/html';
 import { trans } from 'utils/lang';
 
 type JoinedStatus = 'joined' | 'joining' | null;
@@ -49,6 +50,15 @@ function Channel({ channel, onClick, status }: ChannelProps) {
       <span className='chat-join-channel__status'>{statusElement}</span>
       <span className='chat-join-channel__name'>{channel.name}</span>
       <span className='chat-join-channel__description'>{channel.description}</span>
+      <span className='chat-join-channel__members' title='members'>
+        {channel.member_count != null && (
+          <>
+            <span className='fas fa-user' />
+            {' '}
+            {formatNumber(channel.member_count)}
+          </>
+        )}
+      </span>
     </a>
   );
 }

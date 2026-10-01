@@ -50,8 +50,20 @@ class ChannelsController extends Controller
      */
     public function index()
     {
+        $channels = Channel::public()->get();
+
+        // TomYum: each channel's member count (the chat design's channel list), in one query.
+        $counts = UserChannel::whereIn('channel_id', $channels->pluck('channel_id'))
+            ->where('hidden', false)
+            ->groupBy('channel_id')
+            ->selectRaw('channel_id, COUNT(*) AS member_count')
+            ->pluck('member_count', 'channel_id');
+        foreach ($channels as $channel) {
+            $channel->memberCount = (int) ($counts[$channel->channel_id] ?? 0);
+        }
+
         return json_collection(
-            Channel::public()->get(),
+            $channels,
             ChannelTransformer::forUser(auth()->user())
         );
     }

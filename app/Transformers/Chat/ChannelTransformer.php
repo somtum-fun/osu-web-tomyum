@@ -43,7 +43,7 @@ class ChannelTransformer extends TransformerAbstract
 
     public function transform(Channel $channel)
     {
-        return [
+        $ret = [
             'channel_id' => $channel->channel_id,
             'description' => $channel->description,
             'icon' => $channel->displayIconFor($this->user),
@@ -53,6 +53,13 @@ class ChannelTransformer extends TransformerAbstract
             'type' => $channel->type,
             'uuid' => $channel->uuid,
         ];
+
+        // TomYum: only where it was counted (the public channel list).
+        if ($channel->memberCount !== null) {
+            $ret['member_count'] = $channel->memberCount;
+        }
+
+        return $ret;
     }
 
     public function includeCurrentUserAttributes(Channel $channel)

@@ -55,6 +55,8 @@ class Channel extends Model
         'name' => 50,
     ];
 
+    // TomYum: how many have joined it on the website (set for the public channel list).
+    public ?int $memberCount = null;
     public ?string $uuid = null;
 
     protected $attributes = [

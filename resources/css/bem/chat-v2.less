@@ -150,14 +150,16 @@
     background-color: hsl(var(--hsl-b4));
   }
 
-  // Add More Channels: the design's table of channels, a check by the joined ones (white), the
-  // others in mint; the name 14px semibold, a wide gap, the description
+  // Add More Channels: the design's table of channels ("Join Public Channel"), measured from the
+  // panel's edge: the check (12px, right-aligned) 7px in, the name (14px semibold) at 42px, the
+  // description (14px regular) at 239px, then a person and the member count; joined ones white,
+  // the others mint (the description pale mint), 22px a row
   .chat-join-channel {
     padding-top: 12px;
 
     &__channels {
       column-gap: 10px;
-      grid-template-columns: 25px 187px minmax(0, 1fr);
+      grid-template-columns: 25px 187px minmax(0, 403px) max-content;
       grid-auto-rows: max-content;
     }
 
@@ -165,7 +167,9 @@
       align-items: baseline;
       color: @_mint-text;
       font-size: 14px;
-      padding: 2px 20px;
+      font-weight: 400;
+      line-height: 18px;
+      padding: 2px 20px 2px 7px;
 
       &--joined {
         color: #fff;
@@ -187,8 +191,20 @@
     }
 
     &__description {
+      font-weight: 400;
+
       .chat-join-channel__channel:not(.chat-join-channel__channel--joined) & {
         color: hsl(var(--base-hue), 40%, 90%);
+      }
+    }
+
+    &__members {
+      color: @_mint-text;
+      white-space: nowrap;
+
+      .fa-user {
+        font-size: 12px;
+        margin-right: 2px;
       }
     }
   }
