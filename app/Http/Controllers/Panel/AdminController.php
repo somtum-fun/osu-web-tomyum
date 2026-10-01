@@ -391,19 +391,54 @@ class AdminController extends Controller
             'page' => $target->userPage === null ? null : $target->updatePage(''),
         };
 
+        $tail = $this->warnAndSilence($target, "{$labels[$what]} reset", $reason);
+
+        return $this->done($target, 'user.reset_'.$what, "Reset {$target->username}'s {$labels[$what]}: {$reason}{$tail}", ucfirst($labels[$what])." reset{$tail}.");
+    }
+
+    /**
+     * The form's Warn (a note in their history) and Silence, for a reset or a rename by staff: what
+     * was done, as " (warned, silenced for 1 day)" for the messages, or "".
+     */
+    private function warnAndSilence(User $target, string $what, string $reason): string
+    {
         $extra = [];
         if (Request::boolean('warn')) {
-            $this->history($target, 'note', "Warned: {$labels[$what]} reset ({$reason})");
+            $this->history($target, 'note', "Warned: {$what} ({$reason})");
             $extra[] = 'warned';
         }
         $seconds = (int) Request::input('silence');
         if ($seconds > 0 && isset(GmtController::SILENCE_LENGTHS[$seconds])) {
-            $this->history($target, 'silence', "{$labels[$what]} reset: {$reason}", $seconds);
+            $this->history($target, 'silence', "{$what}: {$reason}", $seconds);
             $extra[] = 'silenced for '.GmtController::SILENCE_LENGTHS[$seconds];
         }
-        $tail = count($extra) > 0 ? ' ('.implode(', ', $extra).')' : '';
 
-        return $this->done($target, 'user.reset_'.$what, "Reset {$target->username}'s {$labels[$what]}: {$reason}{$tail}", ucfirst($labels[$what])." reset{$tail}.");
+        return count($extra) > 0 ? ' ('.implode(', ', $extra).')' : '';
+    }
+
+    /**
+     * Renames the player to a name staff pick (by default Player<id>), e.g. for an inappropriate one;
+     * optionally warns and/or silences them. Doesn't count towards their own monthly renames.
+     */
+    public function usernameReset(string $user)
+    {
+        $target = User::findOrFail((int) $user);
+        $name = trim(Request::input('username') ?? '');
+        $name = $name === '' ? 'Player'.$target->getKey() : $name;
+        if ($name === $target->username) {
+            return $this->back($target, 'error', 'That is already their name.');
+        }
+
+        $old = $target->username;
+        try {
+            $target->changeUsername($name, 'admin');
+        } catch (ChangeUsernameException $e) {
+            return $this->back($target, 'error', 'Username not changed: '.implode(' ', $e->getErrors()->allMessages()));
+        }
+        $reason = $this->reason() ?? 'inappropriate username';
+        $tail = $this->warnAndSilence($target, "username reset from {$old} to {$name}", $reason);
+
+        return $this->done($target->fresh(), 'user.username_reset', "Reset {$old}'s name to {$name}: {$reason}{$tail}", "Renamed to {$name}{$tail}.");
     }
 
     /** Unlinks a connected profile (Discord, Last.fm). */
@@ -477,12 +512,10 @@ class AdminController extends Controller
             return $this->back($target, 'error', 'Username not changed: '.implode(' ', $e->getErrors()->allMessages()));
         }
         $reason = $this->reason();
-        if (Request::boolean('warn')) {
-            $this->history($target, 'note', "Warned: username reverted from {$old} to {$name}".($reason === null ? '' : " ({$reason})"));
-        }
+        $tail = $this->warnAndSilence($target, "username reverted from {$old} to {$name}", $reason ?? 'inappropriate username');
 
-        return $this->done($target->fresh(), 'user.username_rollback', "Reverted {$old}'s name to {$name}".($reason === null ? '.' : ": {$reason}"),
-            "Renamed back to {$name}".(Request::boolean('warn') ? ' (warned).' : '.'));
+        return $this->done($target->fresh(), 'user.username_rollback', "Reverted {$old}'s name to {$name}".($reason === null ? '' : ": {$reason}").$tail,
+            "Renamed back to {$name}{$tail}.");
     }
 
     /** Recalculates every score's pp on the game server (after a pp update), which also updates this site. */

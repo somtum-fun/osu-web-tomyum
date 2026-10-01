@@ -13,7 +13,7 @@
         'connections' => ['fas fa-link', 'Links'],
         'content' => ['fas fa-eraser', 'Content'],
         'rollback' => ['fas fa-undo', 'Rollback'],
-        'names' => ['fas fa-id-badge', 'Names'],
+        'names' => ['fas fa-id-badge', 'Username'],
         'profile' => ['fas fa-user', 'Profile'],
         'groups' => ['fas fa-users', 'Groups'],
         'supporter' => ['fas fa-heart', 'Supporter'],

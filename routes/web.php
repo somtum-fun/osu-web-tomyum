@@ -82,6 +82,7 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('users/{user}/unlink', 'AdminController@unlink')->name('users.unlink');
             Route::post('users/{user}/rollback', 'AdminController@rollback')->name('users.rollback');
             Route::post('users/{user}/username-rollback', 'AdminController@usernameRollback')->name('users.username-rollback');
+            Route::post('users/{user}/username-reset', 'AdminController@usernameReset')->name('users.username-reset');
 
             Route::get('daily-challenge', 'DailyChallengeController@index')->name('daily-challenge.index');
             Route::post('daily-challenge', 'DailyChallengeController@store')->name('daily-challenge.store');
