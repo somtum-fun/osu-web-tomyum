@@ -29,6 +29,8 @@ class Kernel extends HttpKernel
             // TomYum: import maps lazer asks about from bancho first (TomYum docs/lazer.md); after
             // sign-in, so the import log says who asked.
             Middleware\TomYumImportMissingBeatmaps::class,
+            // TomYum: maintenance mode keeps players out of the API (score submission stays open).
+            Middleware\TomYumMaintenanceGate::class,
         ],
         'web' => [
             Middleware\EncryptCookies::class,

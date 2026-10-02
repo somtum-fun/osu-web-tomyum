@@ -11,6 +11,7 @@
 @else
     <div
         class="js-react"
+        data-currency="{{ store_currency() }}"
         data-max-message-length={{ ExtraDataSupporterTag::MAX_MESSAGE_LENGTH }}
         data-react="store-supporter-tag"
     ></div>

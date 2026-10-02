@@ -7,7 +7,8 @@
         <div class="notification-banner-v2__col notification-banner-v2__col--icon"></div>
 
         <div class="notification-banner-v2__col notification-banner-v2__col--label">
-            <div class="notification-banner-v2__type">{{ $type }}</div>
+            {{-- TomYum: a label of its own (default: the type, as before). --}}
+            <div class="notification-banner-v2__type">{{ $label ?? $type }}</div>
             <div class="notification-banner-v2__text">{{ $title }}</div>
         </div>
 

@@ -24,6 +24,35 @@
                     <td colspan="2" class="tomyum-panel__hint">not linked</td>
                 @endif
             </tr>
+            @php
+                $osuLink = App\Libraries\TomYumConnections::status($target, false)['osu_bancho'];
+            @endphp
+            <tr>
+                <td><i class="fas fa-circle"></i> osu!</td>
+                @if ($osuLink['linked'])
+                    <td>
+                        <a href="https://osu.ppy.sh/users/{{ $osuLink['id'] }}" rel="nofollow noreferrer" target="_blank">{{ $osuLink['name'] ?? $osuLink['id'] }}</a>
+                        on osu.ppy.sh (id {{ $osuLink['id'] }})
+                        @if ($osuLink['restricted'])
+                            · <span class="tomyum-panel__badge tomyum-panel__badge--error">restricted there</span>
+                        @elseif ($osuLink['restricted_recently'])
+                            · <span class="tomyum-panel__badge tomyum-panel__badge--error">restricted there {!! timeago(Carbon\Carbon::parse($osuLink['restricted_at'])) !!}</span>
+                        @endif
+                        @if ($osuLink['checked_at'])
+                            <span class="tomyum-panel__hint">· checked {!! timeago(Carbon\Carbon::parse($osuLink['checked_at'])) !!}</span>
+                        @endif
+                    </td>
+                    <td>
+                        <form method="POST" action="{{ route('panel.admin.users.unlink', ['user' => $userId]) }}" onsubmit="return confirm('Unlink their osu! account?')">
+                            @csrf
+                            <input type="hidden" name="service" value="osu">
+                            <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit"><i class="fas fa-eraser"></i>Reset</button>
+                        </form>
+                    </td>
+                @else
+                    <td colspan="2" class="tomyum-panel__hint">not linked</td>
+                @endif
+            </tr>
             <tr>
                 <td><i class="fab fa-lastfm"></i> Last.fm</td>
                 @if ($links['lastFm'] !== null)

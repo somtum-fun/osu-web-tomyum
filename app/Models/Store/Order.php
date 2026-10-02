@@ -61,6 +61,9 @@ class Order extends Model
     const PROVIDER_PAYPAL = 'paypal';
     const PROVIDER_SHOPIFY = 'shopify';
     const PROVIDER_XSOLLA = 'xsolla';
+    // TomYum: paid through payments-service.
+    const PROVIDER_STRIPE = 'stripe';
+    const PROVIDER_TRUEMONEY = 'truemoney';
 
     const STATUS_CANCELLED = 'cancelled';
     const STATUS_DELIVERED = 'delivered';

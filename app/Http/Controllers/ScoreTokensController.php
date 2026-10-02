@@ -28,6 +28,10 @@ class ScoreTokensController extends BaseController
 
         $beatmap = Beatmap::increasesStatistics()->findOrFail($beatmapId);
         $user = auth()->user();
+        // TomYum: bot accounts don't play.
+        if ($user->isBot()) {
+            abort(403, 'bot accounts can\'t submit scores');
+        }
         $request = \Request::instance();
 
         $scoreToken = new ScoreToken([

@@ -49,8 +49,10 @@ class ChangeUsername
             return $this->validationErrors()->add('username', '.change_username.restricted');
         }
 
-        if ($this->hasExtraValidations() && !$this->user->hasSupported()) {
-            return $this->validationErrors()->addTranslated('username', static::requireSupportedMessage());
+        // TomYum: renaming yourself is free for everyone (the store's name change costs nothing);
+        // without supporter, 5 times in 30 days (supporters: no limit).
+        if ($this->hasExtraValidations() && ($limit = $this->monthlyLimitMessage()) !== null) {
+            return $this->validationErrors()->addTranslated('username', $limit);
         }
 
         if (User::cleanUsername($this->username) === $this->user->username_clean) {
@@ -61,7 +63,7 @@ class ChangeUsername
             return $this->validationErrors();
         }
 
-        if ($this->validationErrors()->merge(UsernameValidation::validateUsersOfUsername($this->username))->isAny()) {
+        if ($this->validationErrors()->merge(UsernameValidation::validateUsersOfUsername($this->username, $this->user->getKey()))->isAny()) {
             return $this->validationErrors();
         }
 
@@ -72,6 +74,43 @@ class ChangeUsername
         }
 
         return $this->validationErrors()->merge(UsernameValidation::validateAvailability($this->username));
+    }
+
+    /** TomYum: renames a non-supporter may make in MONTHLY_WINDOW_DAYS days. */
+    public const MONTHLY_LIMIT = 5;
+
+    public const MONTHLY_WINDOW_DAYS = 30;
+
+    /** TomYum: why a non-supporter can't rename right now (their monthly renames are used up), or null. */
+    private function monthlyLimitMessage(): ?string
+    {
+        if ($this->user->isSupporter()) {
+            return null;
+        }
+        $recent = static::recentChanges($this->user);
+        if ($recent->count() < static::MONTHLY_LIMIT) {
+            return null;
+        }
+        $next = $recent[$recent->count() - static::MONTHLY_LIMIT]->copy()->addDays(static::MONTHLY_WINDOW_DAYS);
+
+        return 'Without osu!supporter you can change your name '.static::MONTHLY_LIMIT.' times in '.static::MONTHLY_WINDOW_DAYS
+            .' days (supporters have no limit). Your next change is available '.$next->toDayDateTimeString().' UTC.';
+    }
+
+    /** TomYum: renames a non-supporter has left in the window, or null for a supporter (no limit). */
+    public static function remainingThisMonth(User $user): ?int
+    {
+        return $user->isSupporter() ? null : max(0, static::MONTHLY_LIMIT - static::recentChanges($user)->count());
+    }
+
+    /** TomYum: when the player's renames in the last MONTHLY_WINDOW_DAYS days were made, oldest first. */
+    private static function recentChanges(User $user): \Illuminate\Support\Collection
+    {
+        return \App\Models\UsernameChangeHistory::where('user_id', $user->getKey())
+            ->whereIn('type', ['paid', 'support'])
+            ->where('timestamp', '>', \Carbon\Carbon::now()->subDays(static::MONTHLY_WINDOW_DAYS))
+            ->orderBy('timestamp')
+            ->pluck('timestamp');
     }
 
     /** TomYum: whether the last rename involving this name was the player's own (nobody had it since). */

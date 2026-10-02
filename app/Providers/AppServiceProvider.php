@@ -10,11 +10,13 @@ use App\Libraries\OAuth\BridgeClientRepository;
 use App\Libraries\OAuth\BridgeScopeRepository;
 use App\Libraries\OsuCookieJar;
 use App\Libraries\OsuMessageSelector;
+use App\Libraries\TomYumNocodeapiTransport;
 use App\Libraries\RateLimiter;
 use App\Singletons;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
 use Illuminate\Queue\Events\JobProcessed;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\ServiceProvider;
 use Knuckles\Scribe\Scribe;
 use Laravel\Octane\Contracts\DispatchesTasks;
@@ -75,6 +77,9 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->app->make('translator')->setSelector(new OsuMessageSelector());
+
+        // TomYum: MAIL_DRIVER=nocodeapi sends mail through NoCodeAPI (TomYumNocodeapiTransport).
+        Mail::extend('nocodeapi', fn () => new TomYumNocodeapiTransport($GLOBALS['cfg']['tomyum']['nocodeapi_mail_url'] ?? ''));
 
         app('url')->forceScheme(substr($GLOBALS['cfg']['app']['url'], 0, 5) === 'https' ? 'https' : 'http');
 

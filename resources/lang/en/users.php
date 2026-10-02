@@ -378,6 +378,12 @@ return [
                         ],
                     ],
 
+                    // TomYum: staff adjustments from the panel (:post is the reason).
+                    'staff' => [
+                        'give' => 'Received :amount from :giver: :post',
+                        'reset' => 'Lost :amount (by :giver): :post',
+                    ],
+
                     'forum_post' => [
                         'give' => 'Received :amount from :giver for a post at :post',
                         'reset' => 'Kudosu reset by :giver for the post :post',

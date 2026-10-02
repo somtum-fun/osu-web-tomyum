@@ -19,11 +19,10 @@
         </div>
         <div>
             <p>
-                <em class="store-text store-text--emphasis">ppy Pty Ltd</em><br />
-                ACN 163 593 413 a.t.f. Dean Herbert Family Trust
+                <em class="store-text store-text--emphasis">Server Operator</em>
             </p>
 
-            <p>{{ osu_trans('store.invoice.contact') }} pe@ppy.sh / +81 80 1381 1430</p>
+            <p>{{ osu_trans('store.invoice.contact') }} mind@example.com / +00 000 000 000</p>
         </div>
     </div>
 

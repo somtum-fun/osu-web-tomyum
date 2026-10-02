@@ -128,7 +128,8 @@ core.reactTurbolinks.register('store-supporter-tag', (container) => {
     throw new Error('missing maxMessageLength');
   }
 
-  return <StoreSupporterTag maxMessageLength={maxMessageLength} />;
+  // TomYum: baht in Thailand, US$ elsewhere (store_currency() in php).
+  return <StoreSupporterTag currency={container.dataset.currency === 'usd' ? 'usd' : 'thb'} maxMessageLength={maxMessageLength} />;
 });
 
 core.reactTurbolinks.register('team-extra-menu', (container) => (

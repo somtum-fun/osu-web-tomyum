@@ -9,8 +9,12 @@ use App\Exceptions\InvariantException;
 
 class SupporterTag
 {
+    // TomYum: prices are in Thai baht, osu!'s ladder at ฿25 to its US$1 (฿100 is a month, ฿650 a
+    // year, the same discounts). Keep in step with store-supporter-tag.tsx.
+    const BAHT_PER_DOLLAR = 25;
+
     const MAX_DONATION = 1 << 16; // 65k-ish
-    const MIN_DONATION = 4;
+    const MIN_DONATION = 4 * self::BAHT_PER_DOLLAR;
 
     /**
      * Gets the duration for a donated amount.
@@ -30,6 +34,8 @@ class SupporterTag
         if ($amount > static::MAX_DONATION) {
             throw new InvariantException('amount must be <= '.static::MAX_DONATION);
         }
+
+        $amount = intdiv($amount, static::BAHT_PER_DOLLAR);
 
         switch (true) {
             case $amount >= 26:
@@ -63,6 +69,11 @@ class SupporterTag
      * @throws Exception
      **/
     public static function getMinimumDonation(int $duration)
+    {
+        return static::getMinimumDonationDollars($duration) * static::BAHT_PER_DOLLAR;
+    }
+
+    private static function getMinimumDonationDollars(int $duration)
     {
         switch (true) {
             case $duration >= 12:

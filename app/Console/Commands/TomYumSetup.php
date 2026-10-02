@@ -35,6 +35,7 @@ class TomYumSetup extends Command
         'bng' => ['Beatmap Nominators', 'BN', 'A347EB', 5, true],
         'bng_limited' => ['Beatmap Nominators (Probationary)', 'BN', 'D6A8F2', 6, true],
         'loved' => ['Project Loved', 'LVD', 'FFD1DC', 7, true],
+        'spt' => ['Support Team', 'SPT', 'EB8C47', 8, true],
         'alumni' => ['osu! Alumni', 'ALM', '999999', 9, true],
         'bot' => ['Chat Bots', 'BOT', 'D3D3D3', 10, true],
         // Permission only (chat announcements): no badge, no listing, like on osu.ppy.sh.

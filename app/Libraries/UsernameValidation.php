@@ -96,10 +96,16 @@ class UsernameValidation
         return $errors;
     }
 
-    public static function validateUsersOfUsername(string $username): ValidationErrors
+    /**
+     * TomYum: $exceptUserId is the player being renamed. Their own past with the name (a top 100
+     * rank, badges, ranked maps) doesn't lock it against them: taking back your own name isn't
+     * impersonating anyone.
+     */
+    public static function validateUsersOfUsername(string $username, ?int $exceptUserId = null): ValidationErrors
     {
         $errors = new ValidationErrors('user');
-        $userIds = static::usersOfUsername($username)->pluck('user_id');
+        $userIds = static::usersOfUsername($username)->pluck('user_id')
+            ->reject(fn ($id) => $exceptUserId !== null && (int) $id === $exceptUserId)->values();
 
         // Check if any of the users have been ranked in the top 100
         $highestRank = RankHighest::whereIn('user_id', $userIds)->min('rank');

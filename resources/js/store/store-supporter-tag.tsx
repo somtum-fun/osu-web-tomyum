@@ -21,8 +21,13 @@ const jsonId = 'json-store-supporter-tag';
 
 const maxValue = 52;
 const minValue = 4;
+// TomYum: the slider keeps osu!'s US$ ladder; the price is in Thai baht at ฿25 to the dollar
+// (SupporterTag::BAHT_PER_DOLLAR in php). Players outside Thailand see the dollars, osu!'s own
+// prices; the order is still in baht.
+const bahtPerDollar = 25;
 
 interface Props {
+  currency: 'thb' | 'usd';
   maxMessageLength: number;
 }
 
@@ -61,6 +66,11 @@ export default class StoreSupporterTag extends React.Component<Props> {
 
   @computed
   get cost() {
+    return this.dollars * bahtPerDollar;
+  }
+
+  @computed
+  get dollars() {
     return Math.floor(this.sliderValue);
   }
 
@@ -69,21 +79,21 @@ export default class StoreSupporterTag extends React.Component<Props> {
       return 46;
     }
 
-    const raw = ((1 - (this.cost / this.duration) / 4) * 100);
+    const raw = ((1 - (this.dollars / this.duration) / 4) * 100);
     return Math.max(0, Math.round(raw));
   }
 
   @computed
   get duration() {
     switch (true) {
-      case this.cost >= 26: return Math.floor(this.cost / 26.0 * 12);
-      case this.cost >= 24: return 10;
-      case this.cost >= 22: return 9;
-      case this.cost >= 20: return 8;
-      case this.cost >= 16: return 6;
-      case this.cost >= 12: return 4;
-      case this.cost >= 8: return 2;
-      case this.cost >= 4: return 1;
+      case this.dollars >= 26: return Math.floor(this.dollars / 26.0 * 12);
+      case this.dollars >= 24: return 10;
+      case this.dollars >= 22: return 9;
+      case this.dollars >= 20: return 8;
+      case this.dollars >= 16: return 6;
+      case this.dollars >= 12: return 4;
+      case this.dollars >= 8: return 2;
+      case this.dollars >= 4: return 1;
       default: return 0;
     }
   }
@@ -196,7 +206,7 @@ export default class StoreSupporterTag extends React.Component<Props> {
             <div className='ui-slider-handle'>
               <div className='store-slider__fake-callout'>
                 <div className='store-slider__callout'>
-                  <div className='store-slider__bigtext'>USD {this.cost}</div>
+                  <div className='store-slider__bigtext'>{this.props.currency === 'usd' ? `USD ${this.dollars}` : `฿${this.cost}`}</div>
                   <div>{this.durationText}</div>
                   <div className='store-slider__subtext'>{trans('store.discount', { percent: this.discount })}</div>
                 </div>

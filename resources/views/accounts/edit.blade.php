@@ -183,6 +183,8 @@
 
         @include('accounts._edit_legacy_api')
 
+        @include('accounts._edit_connections')
+
         @include('accounts._edit_lastfm')
     </div>
 @endsection

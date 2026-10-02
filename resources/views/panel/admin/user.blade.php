@@ -13,7 +13,7 @@
         'connections' => ['fas fa-link', 'Links'],
         'content' => ['fas fa-eraser', 'Content'],
         'rollback' => ['fas fa-undo', 'Rollback'],
-        'names' => ['fas fa-id-badge', 'Names'],
+        'names' => ['fas fa-id-badge', 'Username'],
         'profile' => ['fas fa-user', 'Profile'],
         'groups' => ['fas fa-users', 'Groups'],
         'supporter' => ['fas fa-heart', 'Supporter'],
@@ -88,6 +88,20 @@
                     </a>
                 @endforeach
             </div>
+        </div>
+
+        @if ($target->isBot() && !App\Libraries\TomYumBots::isBanchoBot($target))
+            <div class="tomyum-panel__card tomyum-panel__row" style="align-items: center">
+                <i class="fas fa-robot"></i>
+                <span style="flex: 1">This is a bot account (IRC and the website only).</span>
+                <a class="btn-osu-big btn-osu-big--rounded-small btn-osu-big--panel-secondary" href="{{ route('panel.bots.show', ['bot' => $userId]) }}">Bot settings</a>
+            </div>
+        @endif
+
+        <div class="tomyum-panel__card tomyum-panel__row" style="align-items: center">
+            <i class="fas fa-medal"></i>
+            <span style="flex: 1">Kudosu: {{ number_format($target->osu_kudostotal) }} earned, {{ number_format($target->osu_kudosavailable) }} available.</span>
+            <a class="btn-osu-big btn-osu-big--rounded-small btn-osu-big--panel-secondary" href="{{ route('panel.kudosu.index', ['user' => $userId]) }}">Change kudosu</a>
         </div>
 
         @include('panel.admin._moderation')
@@ -214,7 +228,7 @@
                 <h2><i class="fas fa-trash"></i>Delete account</h2>
                 <p class="tomyum-panel__hint">
                     Renames it to DeletedUser_{{ $userId }}, removes the email and all groups, and bans it from the game.
-                    Scores stay on record but are hidden. This can't be undone from the panel.
+                    Their scores stay on beatmap leaderboards (deleted isn't restricted), but they leave the rankings and can't log in. This can't be undone from the panel.
                 </p>
                 <form method="POST" action="{{ route('panel.admin.users.delete', ['user' => $userId]) }}" class="tomyum-panel__row"
                     onsubmit="return confirm('Delete this account?')">

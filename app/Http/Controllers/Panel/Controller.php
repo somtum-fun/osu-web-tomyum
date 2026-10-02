@@ -60,7 +60,9 @@ abstract class Controller extends BaseController
 
     public static function canUseAny(?User $user): bool
     {
-        return static::canUseBn($user) || static::canUseGmt($user) || static::canUseTc($user) || static::canUseAdmin($user);
+        return static::canUseBn($user) || static::canUseGmt($user) || static::canUseTc($user) || static::canUseAdmin($user)
+            || \App\Libraries\TomYumBots::canManageAll($user)
+            || TicketsController::canUseTickets($user);
     }
 
     protected function ensure(bool $allowed): void

@@ -32,6 +32,30 @@
                     <p class="tomyum-panel__hint">Live multiplayer matches (abort, close, talk to the room), tournament banners and badges.</p>
                 </a>
             @endif
+            @if ($panels['tickets'])
+                <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('panel.tickets.index') }}">
+                    <span class="tomyum-panel__link-icon"><i class="fas fa-inbox"></i></span>
+                    <span class="tomyum-panel__kicker">Support</span>
+                    <h2>Tickets @if ($openTickets > 0)<span class="tomyum-panel__badge tomyum-panel__badge--success">{{ $openTickets }} open</span>@endif</h2>
+                    <p class="tomyum-panel__hint">Emails to support@, accounts@, appeal-review@, abuse@, privacy@, dmca@ and tournaments@: reply, take them on and close them.</p>
+                </a>
+            @endif
+            @if ($panels['bots'])
+                <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('panel.bots.index') }}">
+                    <span class="tomyum-panel__link-icon"><i class="fas fa-robot"></i></span>
+                    <span class="tomyum-panel__kicker">Admins and developers</span>
+                    <h2>Bots</h2>
+                    <p class="tomyum-panel__hint">Make bot accounts for IRC, pick their owners, and change their name, avatar, banner, me! page and passwords.</p>
+                </a>
+            @endif
+            @if ($panels['kudosu'])
+                <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('panel.kudosu.index') }}">
+                    <span class="tomyum-panel__link-icon"><i class="fas fa-medal"></i></span>
+                    <span class="tomyum-panel__kicker">Admins and developers</span>
+                    <h2>Kudosu</h2>
+                    <p class="tomyum-panel__hint">Give or take a player's kudosu, with a reason that shows on their profile.</p>
+                </a>
+            @endif
             @if ($panels['admin'])
                 <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('panel.admin.index') }}">
                     <span class="tomyum-panel__link-icon"><i class="fas fa-cog"></i></span>

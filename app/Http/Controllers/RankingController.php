@@ -294,7 +294,10 @@ class RankingController extends Controller
                 }
 
                 $class = UserStatistics\Model::getClass($mode, $params['variant']);
-                $stats = $class::with(['user', 'user.country', 'user.team'])->where('rank_score', '>', 0);
+                $stats = $class::with(['user', 'user.country', 'user.team'])->where('rank_score', '>', 0)
+                    // TomYum: restricted, banned and deleted players aren't ranked (osu! zeroes their stats
+                    // elsewhere; here they're kept, so an unrestricted player comes back as they were).
+                    ->whereHas('user', fn ($user) => $user->default());
 
                 if ($params['country'] === null) {
                     // force to order by rank(ed)_score instead of sucking down entire users table first.

@@ -41,7 +41,7 @@ export default class TopCard extends React.PureComponent<Props> {
       <div className={classWithModifiers('beatmap-score-top', this.props.modifiers)}>
         <a
           className='beatmap-score-top__link-container'
-          href={route('scores.show', { score: this.props.score.id })}
+          href={(this.props.score as { tomyum_url?: string }).tomyum_url ?? route('scores.show', { score: this.props.score.id })}
         />
 
         <div className='beatmap-score-top__section'>

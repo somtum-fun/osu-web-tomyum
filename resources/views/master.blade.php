@@ -77,6 +77,21 @@
             ])
         @endif
 
+        {{-- TomYum: maintenance (the admin panel): only staff can play until it's over. --}}
+        @php
+            $tomyumMaintenance = App\Libraries\TomYumMaintenance::status();
+        @endphp
+        @if ($tomyumMaintenance['enabled'] ?? false)
+            @include('objects._notification_banner', [
+                'type' => 'warning',
+                'label' => 'Maintenance',
+                'title' => ($tomyumMaintenance['locked'] ?? false)
+                    ? 'In progress'
+                    : 'Starts '.(isset($tomyumMaintenance['startsAt']) ? Carbon\Carbon::parse($tomyumMaintenance['startsAt'])->diffForHumans() : 'soon'),
+                'message' => e($tomyumMaintenance['notice'] ?? ''),
+            ])
+        @endif
+
         @if (!isset($blank))
             @include("layout.header")
 

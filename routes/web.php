@@ -38,6 +38,36 @@ Route::group(['middleware' => ['web']], function () {
     Route::group(['as' => 'panel.', 'prefix' => 'panel', 'namespace' => 'Panel'], function () {
         Route::get('/', 'PagesController@index')->name('index');
 
+        // Support tickets from email: each staff group sees its categories.
+        Route::group(['as' => 'tickets.', 'prefix' => 'tickets'], function () {
+            Route::get('/', 'TicketsController@index')->name('index');
+            Route::get('{ticket}', 'TicketsController@show')->name('show');
+            Route::post('{ticket}/reply', 'TicketsController@reply')->name('reply');
+            Route::post('{ticket}/note', 'TicketsController@note')->name('note');
+            Route::post('{ticket}/close', 'TicketsController@close')->name('close');
+            Route::post('{ticket}/reopen', 'TicketsController@reopen')->name('reopen');
+            Route::post('{ticket}/handlers', 'TicketsController@handlers')->name('handlers');
+            Route::post('{ticket}/category', 'TicketsController@category')->name('category');
+        });
+
+        // Kudosu by hand: admins and developers.
+        Route::get('kudosu', 'KudosuController@index')->name('kudosu.index');
+        Route::post('kudosu/{user}', 'KudosuController@adjust')->name('kudosu.adjust');
+
+        // Bot accounts: admins/developers make them; owners manage their own.
+        Route::group(['as' => 'bots.', 'prefix' => 'bots'], function () {
+            Route::get('/', 'BotsController@index')->name('index');
+            Route::post('/', 'BotsController@store')->name('store');
+            Route::get('{bot}', 'BotsController@show')->name('show');
+            Route::post('{bot}/avatar', 'BotsController@avatar')->name('avatar');
+            Route::post('{bot}/cover', 'BotsController@cover')->name('cover');
+            Route::post('{bot}/page', 'BotsController@page')->name('page');
+            Route::post('{bot}/rename', 'BotsController@rename')->name('rename');
+            Route::post('{bot}/irc', 'BotsController@irc')->name('irc');
+            Route::post('{bot}/password', 'BotsController@password')->name('password');
+            Route::post('{bot}/settings', 'BotsController@settings')->name('settings');
+        });
+
         Route::group(['as' => 'bn.', 'prefix' => 'bn'], function () {
             Route::get('/', 'BnController@index')->name('index');
             Route::post('import', 'BnController@import')->name('import');
@@ -84,6 +114,8 @@ Route::group(['middleware' => ['web']], function () {
         Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
             Route::get('/', 'AdminController@index')->name('index');
             Route::post('recalculate', 'AdminController@recalculate')->name('recalculate');
+            Route::post('maintenance', 'AdminController@maintenance')->name('maintenance');
+            Route::post('alert', 'AdminController@alert')->name('alert');
             Route::get('users', 'AdminController@users')->name('users.index');
             Route::get('users/{user}', 'AdminController@show')->name('users.show');
             Route::post('users/{user}/profile', 'AdminController@profile')->name('users.profile');
@@ -100,6 +132,7 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('users/{user}/unlink', 'AdminController@unlink')->name('users.unlink');
             Route::post('users/{user}/rollback', 'AdminController@rollback')->name('users.rollback');
             Route::post('users/{user}/username-rollback', 'AdminController@usernameRollback')->name('users.username-rollback');
+            Route::post('users/{user}/username-reset', 'AdminController@usernameReset')->name('users.username-reset');
 
             Route::get('daily-challenge', 'DailyChallengeController@index')->name('daily-challenge.index');
             Route::post('daily-challenge', 'DailyChallengeController@store')->name('daily-challenge.store');
@@ -359,6 +392,11 @@ Route::group(['middleware' => ['web']], function () {
             Route::resource('github-users', 'Account\GithubUsersController', ['only' => ['create']]);
             Route::delete('github-users', 'Account\GithubUsersController@destroy')->name('github-users.destroy');
 
+            // TomYum: linking Discord and the player's osu! account.
+            Route::get('connections/{kind}', 'Account\ConnectionsController@create')->name('connections.create');
+            Route::get('connections/{kind}/callback', 'Account\ConnectionsController@callback')->name('connections.callback');
+            Route::delete('connections/{kind}', 'Account\ConnectionsController@destroy')->name('connections.destroy');
+
             // TomYum: Last.fm scrobbling.
             Route::get('lastfm', 'Account\LastFmController@create')->name('lastfm.create');
             Route::get('lastfm/callback', 'Account\LastFmController@callback')->name('lastfm.callback');
@@ -375,6 +413,10 @@ Route::group(['middleware' => ['web']], function () {
         Route::get('download', 'HomeController@getDownload')->name('download');
         Route::post('set-locale', 'HomeController@setLocale')->name('set-locale');
         Route::get('support', 'HomeController@supportTheGame')->name('support-the-game');
+        // TomYum: osu!supporter is bought in the store, when there's one (the support page otherwise).
+        Route::get('supporter', fn () => redirect(\App\Http\Middleware\TomYumStoreUnavailable::enabled()
+            ? '/store/products/'.\App\Models\Store\Product::SUPPORTER_TAG_NAME
+            : route('support-the-game')));
         Route::get('testflight', 'HomeController@testflight')->name('testflight');
 
         Route::get('password-reset', 'PasswordResetController@index')->name('password-reset');
@@ -501,7 +543,8 @@ Route::group(['middleware' => ['web']], function () {
     Route::put('wiki/{locale}/{path}', 'WikiController@update')->where('path', '.+');
 
     // FIXME: someone split this crap up into proper controllers
-    // TomYum: nothing is sold here; every store page says so (the routes stay for links to them).
+    // TomYum: the store sells osu!supporter, paid with TrueMoney or a card (TomYumCheckoutController),
+    // when it's switched on (tomyum.store.enabled); otherwise every store page says it isn't available.
     Route::group(['as' => 'store.', 'prefix' => 'store', 'middleware' => [\App\Http\Middleware\TomYumStoreUnavailable::class]], function () {
         route_redirect('/', 'store.products.index');
 
@@ -518,6 +561,9 @@ Route::group(['middleware' => ['web']], function () {
             Route::resource('cart', 'CartController', ['only' => ['store']]);
 
             Route::resource('checkout', 'CheckoutController', ['only' => ['show', 'store']]);
+            Route::post('checkout/{checkout}/truemoney', 'TomYumCheckoutController@truemoney')->name('checkout.tomyum.truemoney');
+            Route::post('checkout/{checkout}/stripe', 'TomYumCheckoutController@stripe')->name('checkout.tomyum.stripe');
+            Route::get('checkout/{checkout}/stripe-return', 'TomYumCheckoutController@stripeReturn')->name('checkout.tomyum.stripe-return');
 
             Route::resource('orders', 'OrdersController', ['only' => ['destroy', 'index']]);
 
@@ -729,6 +775,8 @@ Route::group(['as' => 'api.', 'prefix' => 'api', 'middleware' => ['api', Throttl
         Route::get('me/beatmapset-favourites', 'Account\BeatmapsetFavouritesController@index');
         //  GET /api/v2/me/download-quota-check
         Route::get('me/download-quota-check', 'HomeController@downloadQuotaCheck')->name('download-quota-check');
+        //  GET /api/v2/me/tomyum-connections (TomYum: linked Discord and osu! account, for QAT)
+        Route::get('me/tomyum-connections', 'Account\ConnectionsController@me')->middleware('require-scopes:identify')->name('me.tomyum-connections');
         //  GET /api/v2/me
         Route::get('me/{mode?}', 'UsersController@me')->name('me');
         //  PUT /api/v2/me/options
@@ -788,10 +836,15 @@ Route::group(['prefix' => '_lio', 'middleware' => 'lio', 'as' => 'interop.'], fu
     Route::post('tomyum/index-beatmapset-document/{beatmapset}', 'TomYumInterOpController@indexBeatmapsetDocument');
     // TomYum: rebuild a country's ranking data after a player's stats changed.
     Route::post('tomyum/recalculate-country/{acronym}', 'TomYumInterOpController@recalculateCountry');
+    // TomYum: osu!supporter bought through payments-service (a store order paid; or time granted).
+    Route::post('tomyum/store-order-paid', 'TomYumInterOpController@storeOrderPaid');
+    Route::post('tomyum/grant-supporter', 'TomYumInterOpController@grantSupporter');
     // TomYum: in-game chat into website chat, and the game's channels on the website.
     Route::post('tomyum/chat-message', 'TomYumInterOpController@chatMessage');
     Route::post('tomyum/chat-channels', 'TomYumInterOpController@chatChannels');
     Route::post('tomyum/beatmapset-extras/{beatmapset}', 'TomYumInterOpController@beatmapsetExtras');
+    // TomYum: BN groups as BN Management (QAT) decided them (applications, evaluations, resignations).
+    Route::post('tomyum/bn-groups/{user}', 'TomYumInterOpController@bnGroups');
 
     Route::group(['namespace' => 'InterOp'], function () {
         Route::post('artist-tracks/reindex-all', 'ArtistTracksController@reindexAll');

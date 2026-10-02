@@ -125,7 +125,11 @@ class Chat
     {
         if ($channel->isPM()) {
             // restricted users should be treated as if they do not exist
-            if (optional($channel->pmTargetFor($sender))->isRestricted()) {
+            // (TomYum: except by BanchoBot, which tells them about their restriction.)
+            if (
+                $sender->getKey() !== $GLOBALS['cfg']['osu']['legacy']['bancho_bot_user_id']
+                && optional($channel->pmTargetFor($sender))->isRestricted()
+            ) {
                 abort(404, 'target user not found');
             }
         }

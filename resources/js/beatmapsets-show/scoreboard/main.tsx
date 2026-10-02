@@ -13,7 +13,7 @@ import * as React from 'react';
 import { classWithModifiers } from 'utils/css';
 import { trans } from 'utils/lang';
 import { SwitchError } from 'utils/switch-never';
-import Controller from './controller';
+import Controller, { ScoreboardVariant, variantsByRuleset } from './controller';
 import Mod from './mod';
 import { scoreboardTypes } from './scoreboard-type';
 import Tab from './tab';
@@ -28,6 +28,7 @@ const legacyMods = {
   taiko: legacyDefaultMods,
 };
 const maniaConvertMods = new Set(['1K', '2K', '3K', '4K', '5K', '6K', '7K', '8K', '9K', '10K', 'DS']);
+const variantLabels: Record<ScoreboardVariant, string> = { ap: 'Autopilot', rx: 'Relax', vn: 'Vanilla' };
 
 interface Props {
   beatmap: BeatmapExtendedJson;
@@ -45,6 +46,11 @@ export default class Main extends React.Component<Props> {
   @computed
   private get mods() {
     let mods: string[];
+
+    // TomYum: Relax/Autopilot plays are the game server's, with stable's mods (RX/AP is the board itself).
+    if (this.controller.variant !== 'vn') {
+      return legacyMods[this.controller.beatmap.mode];
+    }
 
     if (core.userPreferences.get('legacy_score_only')) {
       mods = legacyMods[this.controller.beatmap.mode];
@@ -73,6 +79,8 @@ export default class Main extends React.Component<Props> {
   render() {
     return (
       <div className='beatmapset-scoreboard'>
+        {this.renderVariants()}
+
         <div className='page-tabs'>
           {scoreboardTypes.map((type) => (
             <Tab
@@ -97,6 +105,12 @@ export default class Main extends React.Component<Props> {
       </div>
     );
   }
+
+  private readonly onClickVariant = (e: React.MouseEvent<HTMLDivElement>) => {
+    const variant = e.currentTarget.dataset.variant as ScoreboardVariant;
+    // The mod lists differ (lazer's on Vanilla, stable's on Relax/Autopilot): start without a filter.
+    this.controller.setCurrent({ resetMods: true, variant });
+  };
 
   private readonly onClickRetryButton = () => {
     this.controller.setCurrent({ forceReload: true });
@@ -150,6 +164,29 @@ export default class Main extends React.Component<Props> {
       default:
         throw new SwitchError(this.controller.loadingState);
     }
+  }
+
+  // TomYum: Vanilla / Relax / Autopilot, for the rulesets that have them.
+  private renderVariants() {
+    const variants = variantsByRuleset[this.controller.beatmap.mode];
+    if (variants == null || !this.controller.beatmap.is_scoreable) return null;
+
+    return (
+      <div className='page-tabs'>
+        {variants.map((variant) => (
+          <div
+            key={variant}
+            className={classWithModifiers('page-tabs__tab', { active: this.controller.variant === variant })}
+            data-variant={variant}
+            onClick={this.onClickVariant}
+          >
+            <span className='fake-bold' data-content={variantLabels[variant]}>
+              {variantLabels[variant]}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
   }
 
   private renderScores() {

@@ -11,15 +11,25 @@ use Closure;
 use Illuminate\Http\Request;
 
 /**
- * TomYum: this server sells nothing (no products, no payment provider), so every store page, the cart
- * and checkout answer that the store isn't available instead of breaking halfway through an order.
+ * TomYum: unless the store is switched on (tomyum.store.enabled, with payments-service set up),
+ * every store page, the cart and checkout answer that the store isn't available instead of
+ * breaking halfway through an order.
  */
 class TomYumStoreUnavailable
 {
     public const MESSAGE = 'The osu!store isn\'t available on this server.';
 
+    public static function enabled(): bool
+    {
+        return $GLOBALS['cfg']['tomyum']['store']['enabled'] ?? false;
+    }
+
     public function handle(Request $request, Closure $next)
     {
+        if (static::enabled()) {
+            return $next($request);
+        }
+
         if (is_json_request() || !$request->isMethod('GET')) {
             return response()->json(['error' => static::MESSAGE], 404);
         }

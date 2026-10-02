@@ -21,8 +21,16 @@
 
   @media @desktop {
     flex-direction: row;
+    // TomYum: the message lines up with the icon and label (it sat at the top).
+    align-items: center;
     border-radius: 40px;
     text-align: left;
+  }
+
+  // TomYum: heads-up, not trouble (maintenance): yellow instead of the restriction banner's red.
+  &--warning {
+    background-color: fade(@yellow-dark, 22%);
+    --divider-colour: @yellow;
   }
 
   &--info {
@@ -39,6 +47,9 @@
       @media @desktop {
         height: auto;
         width: 30px;
+        // TomYum: keeps its height with the row centred (align-items: center above).
+        align-self: stretch;
+        min-height: 30px;
       }
 
       flex: none;

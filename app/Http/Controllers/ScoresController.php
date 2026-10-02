@@ -50,6 +50,11 @@ class ScoresController extends Controller
             throw new AuthenticationException('User is not logged in.');
         }
 
+        // TomYum: a Relax/Autopilot play (lazer asks by the id the website gave it).
+        if ($legacyId === null && ($tomyumId = \App\Libraries\TomYumModeScores::tomyumId($rulesetOrId)) !== null) {
+            return app(TomYumScoresController::class)->download($tomyumId);
+        }
+
         if ($legacyId === null) {
             $score = Score::where('has_replay', true)->findOrFail(static::parseIdOrFail($rulesetOrId));
         } else {
@@ -198,6 +203,13 @@ class ScoresController extends Controller
 
     public function show($rulesetOrSoloId, $legacyId = null)
     {
+        // TomYum: a Relax/Autopilot play, on its own page (or as json for lazer's results screen).
+        if ($legacyId === null && ($tomyumId = \App\Libraries\TomYumModeScores::tomyumId($rulesetOrSoloId)) !== null) {
+            return is_json_request()
+                ? (\App\Libraries\TomYumModeScores::one($tomyumId)[0] ?? abort(404))
+                : ujs_redirect(route('scores.tomyum', ['score' => $tomyumId]));
+        }
+
         if ($legacyId === null) {
             $scoreQuery = Score::whereKey(static::parseIdOrFail($rulesetOrSoloId));
         } else {

@@ -5,7 +5,7 @@
 {{-- TomYum: moderation on the admin panel's account page. --}}
 @php
     $historyTypes = [0 => 'Note', 1 => 'Restriction', 2 => 'Silence', 3 => 'Tournament ban'];
-    $resultLabels = ['ok' => 'Logged in', 'held' => 'Device to verify', 'locked' => 'Refused (locked)', 'bad_password' => 'Wrong password'];
+    $resultLabels = ['ok' => 'Logged in', 'held' => 'Device to verify', 'locked' => 'Refused (locked)', 'bad_password' => 'Wrong password', 'bot' => 'Refused (bot)', 'maintenance' => 'Refused (maintenance)'];
     $locked = $flags?->locked_at !== null;
     $whitelisted = $flags?->whitelisted_at !== null;
     $actorNames = App\Http\Controllers\Panel\GmtController::userNames([$flags?->locked_by, $flags?->whitelisted_by]);
@@ -301,7 +301,61 @@
 </div>
 
 <div class="tomyum-panel__card" id="names">
-    <h2><i class="fas fa-id-badge"></i>Username history</h2>
+    <h2><i class="fas fa-id-badge"></i>Username</h2>
+    @php
+        $earlier = $usernames->pluck('username_last')->merge($usernames->pluck('username'))
+            ->filter(fn ($name) => $name !== null && $name !== $target->username)->unique()->values();
+    @endphp
+
+    <h3>Reset username</h3>
+    <p class="tomyum-panel__hint">
+        Renames them, e.g. for an inappropriate name; leave the new name empty for Player{{ $userId }}. It doesn't use up
+        their own monthly name changes. Optionally warns them (a note in their history) and/or silences them.
+    </p>
+    <form method="POST" action="{{ route('panel.admin.users.username-reset', ['user' => $userId]) }}" class="tomyum-panel__row" style="align-items: flex-end"
+        onsubmit="return confirm('Rename {{ $target->username }}?')">
+        @csrf
+        <label class="input-container tomyum-panel__field" style="flex: 0 1 200px">
+<span class="input-container__label">New name</span>
+<input class="input-text" type="text" name="username" maxlength="15" placeholder="Player{{ $userId }}"></label>
+        <label class="input-container tomyum-panel__field">
+<span class="input-container__label">Reason</span>
+<input class="input-text" type="text" name="reason" placeholder="inappropriate username"></label>
+        <label class="input-container input-container--select tomyum-panel__field" style="flex: 0 1 170px">
+            <span class="input-container__label">Silence</span>
+            <select class="input-text" name="silence"><option value="0">No silence</option>{!! $silenceOptions() !!}</select>
+        </label>
+        <label class="tomyum-panel__check"><input type="checkbox" name="warn" value="1"> Warn</label>
+        <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit"><i class="fas fa-eraser"></i>Reset name</button>
+    </form>
+
+    <h3>Roll back to an earlier name</h3>
+    @if ($earlier->isEmpty())
+        <p class="tomyum-panel__empty">They have no earlier names.</p>
+    @else
+        <form method="POST" action="{{ route('panel.admin.users.username-rollback', ['user' => $userId]) }}" class="tomyum-panel__row" style="align-items: flex-end">
+            @csrf
+            <label class="input-container input-container--select tomyum-panel__field" style="flex: 0 1 200px">
+                <span class="input-container__label">Change back to</span>
+                <select class="input-text" name="username">
+                    @foreach ($earlier as $name)
+                        <option value="{{ $name }}">{{ $name }}</option>
+                    @endforeach
+                </select>
+            </label>
+            <label class="input-container tomyum-panel__field">
+<span class="input-container__label">Reason (optional)</span>
+<input class="input-text" type="text" name="reason"></label>
+            <label class="input-container input-container--select tomyum-panel__field" style="flex: 0 1 170px">
+                <span class="input-container__label">Silence</span>
+                <select class="input-text" name="silence"><option value="0">No silence</option>{!! $silenceOptions() !!}</select>
+            </label>
+            <label class="tomyum-panel__check"><input type="checkbox" name="warn" value="1"> Warn</label>
+            <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-undo"></i>Roll back name</button>
+        </form>
+    @endif
+
+    <h3>History</h3>
     @if ($usernames->isEmpty())
         <p class="tomyum-panel__empty">Never renamed.</p>
     @else
@@ -316,27 +370,5 @@
                 </tr>
             @endforeach
         </table>
-        @php
-            $earlier = $usernames->pluck('username_last')->merge($usernames->pluck('username'))
-                ->filter(fn ($name) => $name !== null && $name !== $target->username)->unique()->values();
-        @endphp
-        @if ($earlier->isNotEmpty())
-            <form method="POST" action="{{ route('panel.admin.users.username-rollback', ['user' => $userId]) }}" class="tomyum-panel__row" style="align-items: flex-end; margin-top: 10px">
-                @csrf
-                <label class="input-container input-container--select tomyum-panel__field" style="flex: 0 1 200px">
-                    <span class="input-container__label">Change back to</span>
-                    <select class="input-text" name="username">
-                        @foreach ($earlier as $name)
-                            <option value="{{ $name }}">{{ $name }}</option>
-                        @endforeach
-                    </select>
-                </label>
-                <label class="input-container tomyum-panel__field">
-<span class="input-container__label">Reason (optional)</span>
-<input class="input-text" type="text" name="reason"></label>
-                <label class="tomyum-panel__check"><input type="checkbox" name="warn" value="1"> Warn</label>
-                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-undo"></i>Roll back name</button>
-            </form>
-        @endif
     @endif
 </div>

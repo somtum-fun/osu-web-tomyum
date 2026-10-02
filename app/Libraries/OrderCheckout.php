@@ -39,13 +39,8 @@ class OrderCheckout
         }
 
         if ($this->order->getTotal() > 0) {
-            $allowed = [Order::PROVIDER_PAYPAL];
-
-            if ($this->allowXsollaPayment()) {
-                $allowed[] = Order::PROVIDER_XSOLLA;
-            }
-
-            return $allowed;
+            // TomYum: TrueMoney and cards (Stripe) through payments-service, not PayPal or Xsolla.
+            return [Order::PROVIDER_TRUEMONEY, Order::PROVIDER_STRIPE];
         }
 
         return [Order::PROVIDER_FREE];

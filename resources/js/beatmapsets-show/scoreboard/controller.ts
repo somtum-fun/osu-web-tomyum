@@ -13,7 +13,17 @@ interface SetOptions {
   resetMods?: boolean;
   toggleMod?: string | null;
   type?: ScoreboardType;
+  variant?: ScoreboardVariant;
 }
+
+// TomYum: Relax/Autopilot leaderboards (the game server's, by pp) next to the website's own.
+export type ScoreboardVariant = 'vn' | 'rx' | 'ap';
+
+export const variantsByRuleset: Partial<Record<string, ScoreboardVariant[]>> = {
+  fruits: ['vn', 'rx'],
+  osu: ['vn', 'rx', 'ap'],
+  taiko: ['vn', 'rx'],
+};
 
 export type ScoreLoadingState = null | 'error' | 'loading' | 'supporter_only' | 'unranked';
 
@@ -32,11 +42,13 @@ interface StoredState {
   allData: Partial<Record<string, BeatmapScoresJson>>;
   currentType: ScoreboardType;
   enabledMods: string[];
+  variant?: ScoreboardVariant;
 }
 
 export default class Controller {
   @observable currentType: ScoreboardType = 'global';
   @observable enabledMods = new Set<string>();
+  @observable variant: ScoreboardVariant = 'vn';
 
   @observable private allData: Partial<Record<string, BeatmapScoresJson>> = {};
   private readonly disposers = new Set<(() => void) | undefined>();
@@ -51,7 +63,7 @@ export default class Controller {
   get currentDataKey() {
     const beatmap = this.beatmap;
 
-    return `${beatmap.id}-${beatmap.mode}-${[...this.enabledMods].sort().join(':')}-${this.currentType}`;
+    return `${beatmap.id}-${beatmap.mode}-${[...this.enabledMods].sort().join(':')}-${this.currentType}-${this.variant}`;
   }
 
   @computed
@@ -73,6 +85,9 @@ export default class Controller {
   }
 
   get requiresSupporter() {
+    // Relax/Autopilot: country and friends need supporter as on Vanilla; the mod filter is open to everyone.
+    if (this.variant !== 'vn') return supporterTypes.has(this.currentType);
+
     return supporterTypes.has(this.currentType) || this.enabledMods.size > 0;
   }
 
@@ -88,6 +103,7 @@ export default class Controller {
       this.currentType = storedState.currentType;
       this.allData = storedState.allData;
       this.enabledMods = new Set(storedState.enabledMods);
+      this.variant = storedState.variant ?? 'vn';
     }
 
     makeObservable(this);
@@ -99,7 +115,12 @@ export default class Controller {
 
     this.disposers.add(reaction(
       () => `${this.beatmap.mode}:${this.beatmap.id}`,
-      () => this.setCurrent({ resetMods: true, type: 'global' }),
+      () => this.setCurrent({
+        resetMods: true,
+        type: 'global',
+        // Keep Relax/Autopilot when the new ruleset has it (osu! → taiko keeps RX, loses AP).
+        variant: variantsByRuleset[this.beatmap.mode]?.includes(this.variant) ? this.variant : 'vn',
+      }),
     ));
   }
 
@@ -134,6 +155,10 @@ export default class Controller {
       this.currentType = options.type;
     }
 
+    if (options.variant != null) {
+      this.variant = options.variant;
+    }
+
     const beatmap = this.beatmap;
 
     if (!forceReload && !this.data.blank) {
@@ -148,6 +173,7 @@ export default class Controller {
         mode: beatmap.mode,
         mods: [...this.enabledMods],
         type: this.currentType,
+        variant: this.variant === 'vn' ? undefined : this.variant,
       },
       dataType: 'JSON',
       method: 'GET',
@@ -165,6 +191,7 @@ export default class Controller {
       allData: this.allData,
       currentType: this.currentType,
       enabledMods: [...this.enabledMods],
+      variant: this.variant,
     };
 
     this.container.dataset.scoreboardState = JSON.stringify(state);

@@ -19,7 +19,16 @@ class KudosuHistoryTransformer extends TransformerAbstract
             ];
         }
 
-        if (($kudosuHistory->post->topic ?? null) !== null) {
+        if (($kudosuHistory->details['tomyum'] ?? null) === 'staff') {
+            // TomYum: added or taken by staff in the panel; the reason stands in for the post.
+            $post = [
+                'url' => null,
+                'title' => $kudosuHistory->details['reason'] ?? '',
+            ];
+
+            $model = 'staff';
+            $action = $kudosuHistory->action;
+        } elseif (($kudosuHistory->post->topic ?? null) !== null) {
             $post = [
                 'url' => route('forum.posts.show', $kudosuHistory->post_id),
                 'title' => $kudosuHistory->post->topic->topic_title,

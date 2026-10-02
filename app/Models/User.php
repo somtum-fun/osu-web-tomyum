@@ -326,6 +326,9 @@ class User extends Model implements AfterCommit, AuthenticatableContract, HasLoc
 
     public function usernameChangeCost()
     {
+        // TomYum: name changes are free (non-supporters are limited to a few a month instead: ChangeUsername).
+        return 0;
+
         $minTier = $this->usernameChangeHistory()->paid()->exists() ? 1 : 0;
 
         $tier = max(
@@ -2089,7 +2092,9 @@ class User extends Model implements AfterCommit, AuthenticatableContract, HasLoc
         if ($user === null) {
             $authError = 'nonexistent_user';
         } else {
-            $isLoginBlocked = $user->isLoginBlocked();
+            $isLoginBlocked = $user->isLoginBlocked()
+                // TomYum: bot accounts use IRC and the website, not the game (lazer signs in here).
+                || ($user->isBot() && Request::is('oauth/*'));
 
             if ($isLoginBlocked) {
                 $authError = 'user_login_blocked';
@@ -2111,6 +2116,13 @@ class User extends Model implements AfterCommit, AuthenticatableContract, HasLoc
             }
 
             return osu_trans('users.login.failed');
+        }
+
+        // TomYum: during maintenance only staff sign in to lazer (the website itself stays open).
+        if ($client === 'lazer' && \App\Libraries\TomYumMaintenance::isLockedFor($user)) {
+            \App\Libraries\TomYumAccount::recordLogin($user, $client, 'maintenance');
+
+            return \App\Libraries\TomYumMaintenance::notice();
         }
 
         LoginAttempt::logLoggedIn($ip, $user);

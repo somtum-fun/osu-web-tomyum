@@ -62,13 +62,61 @@ class AdminController extends Controller
             'online' => $online->successful() ? $online->json() : [],
             'counts' => [
                 'Players' => User::where('user_type', '<>', 1)->count(),
-                'Restricted' => User::where(fn ($q) => $q->where('user_warnings', '>', 0)->orWhere('user_type', 1))->count(),
+                'Restricted' => User::where('user_warnings', '>', 0)->count(),
                 'Scores (24h)' => DB::table('scores')->where('ended_at', '>=', Carbon::now()->subDay())->count(),
                 'Beatmap sets' => DB::table('osu_beatmapsets')->whereNull('deleted_at')->count(),
             ],
             'entries' => $entries,
             'actors' => BnController::actorNames($entries),
+            'maintenance' => \App\Libraries\TomYumMaintenance::status(),
         ]);
+    }
+
+    /** Maintenance mode on (a message, a countdown) or off: only staff can log in while it's on. */
+    public function maintenance()
+    {
+        $enable = Request::input('action') === 'start';
+        $message = trim(Request::input('message') ?? '');
+        $delay = (int) Request::input('delay', 0);
+        $response = $this->tomyum()->post('/maintenance', [
+            'enabled' => $enable,
+            'message' => $message === '' ? null : mb_substr($message, 0, 500),
+            'delaySeconds' => max(0, min($delay, 86400)),
+        ]);
+        \App\Libraries\TomYumMaintenance::forget();
+        if (!$response->successful()) {
+            return $this->backToIndex('error', "The game server couldn't be reached (HTTP {$response->status()}).");
+        }
+
+        $summary = $enable
+            ? 'Started maintenance'.($delay > 0 ? ' in '.intdiv($delay, 60).' min' : '').($message === '' ? '.' : ": {$message}")
+            : 'Ended maintenance.';
+        $this->staffLog($enable ? 'server.maintenance_on' : 'server.maintenance_off', null, $summary);
+
+        return $this->backToIndex('success', $enable
+            ? 'Maintenance is on: players were told, and only staff can log in'.($delay > 0 ? ' once the countdown ends' : '').'.'
+            : 'Maintenance is over: players are let back in as their game reconnects.');
+    }
+
+    /** An in-game alert to everyone online (and a BanchoBot message to lazer players). */
+    public function alert()
+    {
+        $message = trim(Request::input('message') ?? '');
+        if ($message === '') {
+            return $this->backToIndex('error', 'Write a message.');
+        }
+        $response = $this->tomyum()->post('/alert', ['message' => mb_substr($message, 0, 500), 'lazer' => Request::boolean('lazer')]);
+        if (!$response->successful()) {
+            return $this->backToIndex('error', "The game server couldn't be reached (HTTP {$response->status()}).");
+        }
+        $this->staffLog('server.alert', null, "Alert: {$message}");
+
+        return $this->backToIndex('success', 'Alert sent to '.($response->json('reached') ?? 0).' player(s).');
+    }
+
+    private function backToIndex(string $type, string $message)
+    {
+        return redirect(route('panel.admin.index'))->with('panel_status', ['type' => $type, 'message' => $message, 'link' => null]);
     }
 
     public function users()
@@ -196,6 +244,9 @@ class AdminController extends Controller
         return $this->done($target, 'admin.password', "Set a new password for {$target->username}.", 'Password changed. Tell them the new one privately.');
     }
 
+    /** Groups whose members nominate (and so need modes). */
+    private const NOMINATOR_GROUPS = ['bng', 'bng_limited', 'nat'];
+
     public function groups(string $user)
     {
         $target = User::findOrFail((int) $user);
@@ -204,6 +255,14 @@ class AdminController extends Controller
         $added = [];
         $removed = [];
         $titleChanges = [];
+
+        // Nominators nominate only in their modes (osu-web's nomination rules): without one they can't.
+        foreach (static::NOMINATOR_GROUPS as $identifier) {
+            $group = app('groups')->byIdentifier($identifier);
+            if ($group?->has_playmodes && in_array($identifier, $wanted, true) && count(array_intersect(array_keys(static::PLAYMODES), $modes[$identifier] ?? [])) === 0) {
+                return $this->back($target, 'error', "Pick at least one mode for {$group->group_name}: they can only nominate in their modes.");
+            }
+        }
 
         foreach (Group::whereNotIn('identifier', static::UNASSIGNABLE_GROUPS)->get() as $group) {
             $want = in_array($group->identifier, $wanted, true);
@@ -350,7 +409,8 @@ class AdminController extends Controller
                     $target->removeFromGroup($membership->group, Auth::user());
                 }
             }
-            // osu-web treats DeletedUser_* as deleted; a banned account type keeps them out of the game.
+            // osu-web treats DeletedUser_* as deleted; the banned account type keeps them out of the game
+            // and the rankings. Deleted isn't restricted: their scores stay on beatmap leaderboards.
             $name = "DeletedUser_{$target->getKey()}";
             $target->update([
                 'username' => $name,
@@ -363,7 +423,7 @@ class AdminController extends Controller
 
         TomYumCountryStats::recalculate($target->country_acronym);
 
-        return $this->done($target->fresh(), 'admin.delete', "Deleted {$old}'s account.", "Deleted {$old}: renamed, banned from the game, removed from all groups. Their scores stay on record but hidden.");
+        return $this->done($target->fresh(), 'admin.delete', "Deleted {$old}'s account.", "Deleted {$old}: renamed, banned from the game, removed from all groups. Their scores stay on beatmap leaderboards; they leave the rankings.");
     }
 
     /** Lock: no logins anywhere (website, lazer, stable) and signed out everywhere; unlock undoes it. */
@@ -456,19 +516,54 @@ class AdminController extends Controller
             'page' => $target->userPage === null ? null : $target->updatePage(''),
         };
 
+        $tail = $this->warnAndSilence($target, "{$labels[$what]} reset", $reason);
+
+        return $this->done($target, 'user.reset_'.$what, "Reset {$target->username}'s {$labels[$what]}: {$reason}{$tail}", ucfirst($labels[$what])." reset{$tail}.");
+    }
+
+    /**
+     * The form's Warn (a note in their history) and Silence, for a reset or a rename by staff: what
+     * was done, as " (warned, silenced for 1 day)" for the messages, or "".
+     */
+    private function warnAndSilence(User $target, string $what, string $reason): string
+    {
         $extra = [];
         if (Request::boolean('warn')) {
-            $this->history($target, 'note', "Warned: {$labels[$what]} reset ({$reason})");
+            $this->history($target, 'note', "Warned: {$what} ({$reason})");
             $extra[] = 'warned';
         }
         $seconds = (int) Request::input('silence');
         if ($seconds > 0 && isset(GmtController::SILENCE_LENGTHS[$seconds])) {
-            $this->history($target, 'silence', "{$labels[$what]} reset: {$reason}", $seconds);
+            $this->history($target, 'silence', "{$what}: {$reason}", $seconds);
             $extra[] = 'silenced for '.GmtController::SILENCE_LENGTHS[$seconds];
         }
-        $tail = count($extra) > 0 ? ' ('.implode(', ', $extra).')' : '';
 
-        return $this->done($target, 'user.reset_'.$what, "Reset {$target->username}'s {$labels[$what]}: {$reason}{$tail}", ucfirst($labels[$what])." reset{$tail}.");
+        return count($extra) > 0 ? ' ('.implode(', ', $extra).')' : '';
+    }
+
+    /**
+     * Renames the player to a name staff pick (by default Player<id>), e.g. for an inappropriate one;
+     * optionally warns and/or silences them. Doesn't count towards their own monthly renames.
+     */
+    public function usernameReset(string $user)
+    {
+        $target = User::findOrFail((int) $user);
+        $name = trim(Request::input('username') ?? '');
+        $name = $name === '' ? 'Player'.$target->getKey() : $name;
+        if ($name === $target->username) {
+            return $this->back($target, 'error', 'That is already their name.');
+        }
+
+        $old = $target->username;
+        try {
+            $target->changeUsername($name, 'admin');
+        } catch (ChangeUsernameException $e) {
+            return $this->back($target, 'error', 'Username not changed: '.implode(' ', $e->getErrors()->allMessages()));
+        }
+        $reason = $this->reason() ?? 'inappropriate username';
+        $tail = $this->warnAndSilence($target, "username reset from {$old} to {$name}", $reason);
+
+        return $this->done($target->fresh(), 'user.username_reset', "Reset {$old}'s name to {$name}: {$reason}{$tail}", "Renamed to {$name}{$tail}.");
     }
 
     /** Unlinks a connected profile (Discord, Last.fm). */
@@ -476,6 +571,19 @@ class AdminController extends Controller
     {
         $target = User::findOrFail((int) $user);
         $service = Request::input('service');
+        // Their osu! (osu.ppy.sh) account, linked in their settings: only kept on the website.
+        if ($service === 'osu') {
+            if (!\App\Libraries\TomYumConnections::status($target, false)['osu_bancho']['linked']) {
+                return $this->back($target, 'error', 'They have no osu! account linked.');
+            }
+            \App\Libraries\TomYumConnections::unlink($target, 'osu_bancho');
+
+            return $this->done($target, 'user.unlink_osu', "Unlinked {$target->username}'s osu! account.", 'osu! account unlinked.');
+        }
+        // A Discord link made in their settings is also kept on the website: forget it there too.
+        if ($service === 'discord') {
+            \Illuminate\Support\Facades\DB::table('tomyum_user_connections')->where('user_id', $target->getKey())->where('kind', 'discord')->delete();
+        }
         $response = match ($service) {
             'discord' => $this->tomyum()->post("/users/{$target->getKey()}/links/discord/unlink"),
             'lastfm' => $this->tomyum()->post("/lastfm/{$target->getKey()}/unlink"),
@@ -542,12 +650,10 @@ class AdminController extends Controller
             return $this->back($target, 'error', 'Username not changed: '.implode(' ', $e->getErrors()->allMessages()));
         }
         $reason = $this->reason();
-        if (Request::boolean('warn')) {
-            $this->history($target, 'note', "Warned: username reverted from {$old} to {$name}".($reason === null ? '' : " ({$reason})"));
-        }
+        $tail = $this->warnAndSilence($target, "username reverted from {$old} to {$name}", $reason ?? 'inappropriate username');
 
-        return $this->done($target->fresh(), 'user.username_rollback', "Reverted {$old}'s name to {$name}".($reason === null ? '.' : ": {$reason}"),
-            "Renamed back to {$name}".(Request::boolean('warn') ? ' (warned).' : '.'));
+        return $this->done($target->fresh(), 'user.username_rollback', "Reverted {$old}'s name to {$name}".($reason === null ? '' : ": {$reason}").$tail,
+            "Renamed back to {$name}{$tail}.");
     }
 
     /** Recalculates every score's pp on the game server (after a pp update), which also updates this site. */

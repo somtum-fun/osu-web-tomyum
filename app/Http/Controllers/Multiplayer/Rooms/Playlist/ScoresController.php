@@ -180,6 +180,10 @@ class ScoresController extends BaseController
         $room = Room::findOrFail($roomId);
         $playlistItem = $room->playlist()->findOrFail($playlistId);
         $user = \Auth::user();
+        // TomYum: bot accounts don't play.
+        if ($user->isBot()) {
+            abort(403, 'bot accounts can\'t submit scores');
+        }
         $request = \Request::instance();
 
         $scoreToken = $room->startPlay($user, $playlistItem, [
