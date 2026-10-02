@@ -288,6 +288,7 @@ return [
     'general' => [
         'converts' => 'Include converted beatmaps',
         'featured_artists' => 'Featured Artists',
+        'prod' => 'production only', // TomYum
         'follows' => 'Subscribed mappers',
         'recommended' => 'Recommended difficulty',
         'spotlights' => 'Spotlighted beatmaps',

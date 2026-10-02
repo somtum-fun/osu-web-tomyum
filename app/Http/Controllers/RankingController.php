@@ -209,6 +209,11 @@ class RankingController extends Controller
     public function index(?string $mode = null, ?string $type = null, ?string $sort = null)
     {
         $rawParams = \Request::instance()->query->all();
+        // TomYum: lazer asks for Relax/Autopilot rankings with its mode (osurx, ...), the website with variant.
+        if (($lazerVariant = \App\Libraries\TomYumModeScores::variant($mode)) !== null) {
+            $rawParams['variant'] = substr($mode, strlen($lazerVariant[0]));
+            $mode = $lazerVariant[0];
+        }
         // it's more convenient to lump both route (path) and query params in one array
         $params = compact('mode', 'sort', 'type');
 
