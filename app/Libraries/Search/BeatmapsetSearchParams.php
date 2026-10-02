@@ -43,6 +43,8 @@ class BeatmapsetSearchParams extends SearchParams
     public bool $showFollows = false;
     public bool $showRecommended = false;
     public bool $showSpotlights = false;
+    // TomYum: only sets uploaded to this server.
+    public bool $showProd = false;
     public ?string $source = null;
     public ?string $status = null;
     public ?array $tags = null;

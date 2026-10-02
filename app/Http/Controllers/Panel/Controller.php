@@ -43,10 +43,10 @@ abstract class Controller extends BaseController
         return $user !== null && ($user->isTournamentCommittee() || $user->isAdmin());
     }
 
-    // The Loved panel: Project Loved rounds.
+    // Project Loved's decisions are on its own page (Community → Project Loved); the panels link to it.
     public static function canUseLoved(?User $user): bool
     {
-        return \App\Libraries\TomYumLoved::canRunRounds($user);
+        return \App\Libraries\TomYumLoved::isTeam($user);
     }
 
     /**

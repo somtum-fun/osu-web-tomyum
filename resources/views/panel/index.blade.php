@@ -25,11 +25,11 @@
                 </a>
             @endif
             @if ($panels['loved'])
-                <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('panel.loved.index') }}">
+                <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('loved.index') }}">
                     <span class="tomyum-panel__link-icon"><i class="fas fa-heart"></i></span>
                     <span class="tomyum-panel__kicker">Project Loved</span>
-                    <h2>Loved panel</h2>
-                    <p class="tomyum-panel__hint">Pick maps for a round, open its polls, and close it to love the maps that passed.</p>
+                    <h2>Loved requests</h2>
+                    <p class="tomyum-panel__hint">Players' requests, the most supported first: love, reject or remove them, or blacklist a map. On the Project Loved page.</p>
                 </a>
             @endif
             @if ($panels['tc'])

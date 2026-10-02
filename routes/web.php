@@ -83,22 +83,6 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('sets/{set}/track', 'BnSetsController@track')->name('sets.track');
         });
 
-        // Project Loved rounds: the Loved group and admins.
-        Route::group(['as' => 'loved.', 'prefix' => 'loved'], function () {
-            Route::get('/', 'LovedController@index')->name('index');
-            Route::post('rounds', 'LovedController@store')->name('store');
-            Route::get('rounds/{round}', 'LovedController@show')->name('show');
-            Route::post('rounds/{round}', 'LovedController@update')->name('update');
-            Route::post('rounds/{round}/remove', 'LovedController@destroy')->name('destroy');
-            Route::post('rounds/{round}/nominate', 'LovedController@nominate')->name('nominate');
-            Route::post('rounds/{round}/open', 'LovedController@open')->name('open');
-            Route::post('rounds/{round}/close', 'LovedController@close')->name('close');
-            Route::post('rounds/{round}/requests/{request}/pick', 'LovedController@pickRequest')->name('requests.pick');
-            Route::post('rounds/{round}/requests/{request}/decline', 'LovedController@declineRequest')->name('requests.decline');
-            Route::post('nominations/{nomination}', 'LovedController@updateNomination')->name('nominations.update');
-            Route::post('nominations/{nomination}/remove', 'LovedController@destroyNomination')->name('nominations.destroy');
-        });
-
         Route::group(['as' => 'gmt.', 'prefix' => 'gmt'], function () {
             Route::get('/', 'GmtController@index')->name('index');
             Route::get('chat', 'GmtController@chat')->name('chat');
@@ -139,7 +123,8 @@ Route::group(['middleware' => ['web']], function () {
 
         Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
             Route::get('/', 'AdminController@index')->name('index');
-            Route::post('recalculate', 'AdminController@recalculate')->name('recalculate');
+            Route::post('pp-rework', 'AdminController@ppRework')->name('pp-rework');
+            Route::post('pp-library', 'AdminController@ppLibrary')->name('pp-library');
             Route::post('maintenance', 'AdminController@maintenance')->name('maintenance');
             Route::post('alert', 'AdminController@alert')->name('alert');
             Route::get('users', 'AdminController@users')->name('users.index');
@@ -357,13 +342,18 @@ Route::group(['middleware' => ['web']], function () {
         Route::post('tournaments/{tournament}/register', 'TournamentsController@register')->name('tournaments.register');
         Route::resource('tournaments', 'TournamentsController', ['only' => ['index', 'show']]);
 
-        // TomYum: Project Loved rounds and their polls.
+        // TomYum: Project Loved: requests, their reviews, the team's decisions and the blacklist.
         Route::get('loved', 'LovedController@index')->name('loved.index');
-        Route::get('loved/rounds/{round}', 'LovedController@round')->name('loved.rounds.show');
-        Route::get('loved/requests', 'LovedController@requests')->name('loved.requests');
         Route::post('loved/requests', 'LovedController@storeRequest')->name('loved.requests.store');
-        Route::post('loved/requests/{request}/support', 'LovedController@support')->name('loved.requests.support');
-        Route::post('loved/{nomination}/vote', 'LovedController@vote')->name('loved.vote');
+        Route::get('loved/requests/{request}', 'LovedController@show')->name('loved.requests.show');
+        Route::post('loved/requests/{request}/review', 'LovedController@review')->name('loved.requests.review');
+        Route::post('loved/requests/{request}/review/remove', 'LovedController@destroyReview')->name('loved.requests.review.destroy');
+        Route::post('loved/requests/{request}/decide', 'LovedController@decide')->name('loved.requests.decide');
+        Route::get('loved/blacklist', 'LovedController@blacklist')->name('loved.blacklist');
+        Route::post('loved/blacklist', 'LovedController@storeBlacklist')->name('loved.blacklist.store');
+        Route::post('loved/blacklist/{beatmapset}/remove', 'LovedController@destroyBlacklist')->name('loved.blacklist.destroy');
+        // Older links.
+        Route::redirect('loved/requests', '/community/loved');
 
         Route::group(['as' => 'forum.', 'namespace' => 'Forum'], function () {
             Route::group(['prefix' => 'forums'], function () {

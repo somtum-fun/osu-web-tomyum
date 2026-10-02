@@ -7,25 +7,26 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use DB;
-
 /**
- * TomYum: a player's request for a map to be in a Project Loved round, in one mode
- * (App\Libraries\TomYumLoved). Others support it; the Loved team picks or declines it.
+ * TomYum: a player's request for a map to be Loved in one mode (App\Libraries\TomYumLoved). Others
+ * review it, for or against; the Loved team loves, rejects or removes it. One per map and mode.
  *
  * @property int $beatmapset_id
- * @property string|null $decline_reason
+ * @property \Carbon\Carbon|null $decided_at
+ * @property string|null $decision_reason
  * @property int|null $handled_by
  * @property int $id
- * @property int|null $nomination_id
  * @property string $reason
  * @property int $ruleset_id
- * @property string $status open, picked or declined
- * @property int $supporters_count
+ * @property int $score The reviews' sum (+1 for, -1 against), the asker's "for" included
+ * @property string $status open, loved, rejected or removed
  * @property int $user_id
  */
 class TomYumLovedRequest extends Model
 {
+    const STATUSES = ['open', 'loved', 'rejected', 'removed'];
+
+    protected $casts = ['decided_at' => 'datetime'];
     protected $table = 'tomyum_loved_requests';
 
     public function beatmapset()
@@ -38,9 +39,9 @@ class TomYumLovedRequest extends Model
         return $this->belongsTo(User::class, 'handled_by');
     }
 
-    public function nomination()
+    public function reviews()
     {
-        return $this->belongsTo(TomYumLovedNomination::class, 'nomination_id');
+        return $this->hasMany(TomYumLovedReview::class, 'request_id');
     }
 
     public function user()
@@ -53,35 +54,14 @@ class TomYumLovedRequest extends Model
         return $this->status === 'open';
     }
 
-    public function isSupportedBy(?User $user): bool
+    public function reviewBy(?User $user): ?TomYumLovedReview
     {
-        return $user !== null && DB::table('tomyum_loved_request_supporters')
-            ->where(['request_id' => $this->getKey(), 'user_id' => $user->getKey()])
-            ->exists();
+        return $user === null ? null : $this->reviews()->where('user_id', $user->getKey())->first();
     }
 
-    /** Adds or takes away $user's support; the request goes when nobody supports it any more. */
-    public function setSupport(User $user, bool $support): void
+    /** The score from the reviews: the asker's "for", plus one for each "for", minus one for each "against". */
+    public function refreshScore(): void
     {
-        DB::transaction(function () use ($user, $support) {
-            $key = ['request_id' => $this->getKey(), 'user_id' => $user->getKey()];
-            if ($support) {
-                DB::table('tomyum_loved_request_supporters')->insertOrIgnore([...$key, 'created_at' => now()]);
-            } else {
-                DB::table('tomyum_loved_request_supporters')->where($key)->delete();
-            }
-            $count = DB::table('tomyum_loved_request_supporters')->where('request_id', $this->getKey())->count();
-            if ($count === 0) {
-                $this->delete();
-            } else {
-                $this->update(['supporters_count' => $count]);
-            }
-        });
-    }
-
-    /** The request was picked into a round (or its map added by hand): done. */
-    public function markPicked(TomYumLovedNomination $nomination, User $by): void
-    {
-        $this->update(['status' => 'picked', 'nomination_id' => $nomination->getKey(), 'handled_by' => $by->getKey()]);
+        $this->update(['score' => 1 + (int) $this->reviews()->sum('score')]);
     }
 }

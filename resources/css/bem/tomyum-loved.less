@@ -1,9 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
 // See the LICENCE file in the repository root for full licence text.
 
-// TomYum: Project Loved. The public page (loved/index) is osu-web's own pieces (page-extra sections,
-// the beatmap listing's cards, user cards); this styles what's between them: the about text, the
-// round's facts, each map's write-up and poll under its card. Then the Loved panel's round page.
+// TomYum: Project Loved. Its pages (loved/*) are osu-web's own pieces (page-extra sections, the
+// beatmap listing's cards, user cards); this styles what's between them: the about text, the ask
+// form, each request's write-up and score under its card, and a request's reviews and decision.
 
 .tomyum-loved {
   display: grid;
@@ -299,146 +299,7 @@
   }
 }
 
-// A map of the latest round on the overview: its cover, mode and title.
-.tomyum-loved-tile {
-  .link-plain();
-  background: hsl(var(--hsl-b5)) center / cover;
-  border-radius: @border-radius--large;
-  color: #fff;
-  display: flex;
-  flex-direction: column;
-  height: 100px;
-  justify-content: flex-end;
-  overflow: hidden;
-  position: relative;
-
-  &::before {
-    background: linear-gradient(transparent 20%, hsla(var(--hsl-b6), 0.9));
-    content: "";
-    inset: 0;
-    position: absolute;
-  }
-
-  &:hover {
-    color: #fff;
-
-    &::before {
-      background: linear-gradient(transparent, hsla(var(--hsl-b6), 0.75));
-    }
-  }
-
-  &--loved {
-    box-shadow: inset 0 0 0 2px hsl(var(--hsl-pink-1));
-  }
-
-  &--failed {
-    filter: grayscale(0.8);
-    opacity: 0.6;
-  }
-
-  &__mode,
-  &__badge {
-    background: hsla(var(--hsl-b6), 0.75);
-    border-radius: 10000px;
-    font-size: @font-size--normal;
-    padding: 3px 7px;
-    position: absolute;
-    top: 7px;
-  }
-
-  &__mode {
-    left: 7px;
-  }
-
-  &__badge {
-    color: hsl(var(--hsl-pink-1));
-    font-weight: 700;
-    right: 7px;
-  }
-
-  &__text {
-    display: grid;
-    padding: 8px 10px;
-    position: relative;
-  }
-
-  &__title {
-    font-weight: 700;
-  }
-
-  &__artist {
-    font-size: @font-size--normal;
-    opacity: 0.8;
-  }
-}
-
-// A short list on the overview (most wanted requests, rounds).
-.tomyum-loved-list {
-  display: grid;
-  gap: 5px;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-
-  &__item {
-    .link-plain();
-    align-items: center;
-    background: hsl(var(--hsl-b3));
-    border-radius: @border-radius--large;
-    color: hsl(var(--hsl-c1));
-    display: flex;
-    gap: 10px;
-    overflow: hidden;
-    padding-right: 12px;
-
-    &:hover {
-      background: hsl(var(--hsl-b2));
-      color: hsl(var(--hsl-c1));
-    }
-  }
-
-  &__cover {
-    align-self: stretch;
-    background: hsl(var(--hsl-b5)) center / cover;
-    flex: none;
-    min-height: 44px;
-    width: 70px;
-  }
-
-  &__text {
-    display: grid;
-    flex: 1;
-    min-width: 0;
-    padding: 7px 0;
-
-    .tomyum-loved-list__item:not(:has(.tomyum-loved-list__cover)) & {
-      padding-left: 12px;
-    }
-  }
-
-  &__title {
-    font-weight: 700;
-  }
-
-  &__meta {
-    color: hsl(var(--hsl-c2));
-    font-size: @font-size--normal;
-  }
-
-  &__value {
-    color: hsl(var(--hsl-c2));
-    flex: none;
-    font-size: @font-size--normal-2;
-    font-weight: 700;
-
-    .fas {
-      color: hsl(var(--hsl-pink-1));
-      margin-right: 3px;
-    }
-  }
-}
-
-// A map in the round: osu-web's card, then the captain's write-up and the poll.
+// A request: osu-web's card, then why it was asked for, and its score.
 .tomyum-loved-entry {
   display: flex;
   flex-direction: column;
@@ -596,103 +457,83 @@
   }
 }
 
-// The Loved panel's round page: a map per row (cover, details and write-up, votes and actions).
-.tomyum-loved-picks {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+// A request's page: the team's decision, the reviews and the review buttons.
+.tomyum-loved-decision {
+  background: hsl(var(--hsl-b4));
+  border-radius: @border-radius--large;
+  margin-top: 12px;
+  padding: 10px 14px;
+
+  &__head {
+    color: hsl(var(--hsl-c2));
+    font-size: @font-size--small;
+    margin-bottom: 4px;
+  }
+
+  &__body {
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
 }
 
-.tomyum-loved-pick {
-  background: hsl(var(--hsl-b3));
-  border-radius: @border-radius-large;
+.tomyum-loved-reviews {
   display: grid;
-  gap: 15px;
-  grid-template-columns: 130px minmax(0, 1fr) auto;
-  overflow: hidden;
-  scroll-margin-top: 150px;
+  gap: 10px;
+  margin-bottom: 16px;
+}
 
-  @media @mobile {
-    grid-template-columns: minmax(0, 1fr);
+.tomyum-loved-review {
+  background: hsl(var(--hsl-b4));
+  border-radius: @border-radius--large;
+  padding: 10px 14px;
+
+  &__head {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 4px;
   }
 
-  &__cover {
-    background: hsl(var(--hsl-b5)) center / cover;
-    min-height: 80px;
-  }
+  &__score {
+    border-radius: 10000px;
+    font-size: @font-size--small;
+    font-weight: 700;
+    padding: 1px 10px;
 
-  &__info {
-    min-width: 0;
-    padding: 10px 0;
-
-    @media @mobile {
-      padding: 0 12px;
+    &--for {
+      background: hsla(var(--hsl-lime-1), 0.2);
+      color: hsl(var(--hsl-lime-1));
     }
+
+    &--against {
+      background: hsla(var(--hsl-red-2), 0.2);
+      color: hsl(var(--hsl-red-2));
+    }
+  }
+
+  &__body {
+    white-space: pre-wrap;
+    word-break: break-word;
   }
 
   &__title {
-    .link-plain();
-    color: hsl(var(--hsl-c1));
-    font-size: @font-size--title-small;
-    font-weight: 600;
-
-    &:hover {
-      color: hsl(var(--hsl-c1));
-      text-decoration: underline;
-    }
+    font-size: @font-size--normal-2;
+    margin: 0 0 8px;
   }
 
-  &__meta {
-    color: hsl(var(--hsl-c2));
-    font-size: @font-size--normal;
-  }
-
-  &__description {
-    border-left: 2px solid hsl(var(--hsl-h1));
-    margin-top: 8px;
-    padding-left: 10px;
-
-    &--empty {
-      color: hsl(var(--hsl-c2));
-      font-style: italic;
-    }
-  }
-
-  &__edit {
-    margin-top: 6px;
-
-    summary {
-      color: hsl(var(--hsl-h1));
-      cursor: pointer;
-      font-size: @font-size--normal;
-    }
-
-    form {
-      align-items: flex-start;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    textarea {
-      resize: vertical;
-      width: 100%;
-    }
-  }
-
-  &__side {
-    align-items: flex-end;
+  &__buttons {
     display: flex;
-    flex-direction: column;
-    gap: 6px;
-    justify-content: center;
-    padding: 10px 15px 10px 0;
-    white-space: nowrap;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
 
-    @media @mobile {
-      align-items: flex-start;
-      padding: 0 12px 12px;
-    }
+  &__remove {
+    .reset-input();
+    color: hsl(var(--hsl-c2));
+    cursor: pointer;
+    font-size: @font-size--small;
+    margin-top: 6px;
+    text-decoration: underline;
   }
 }

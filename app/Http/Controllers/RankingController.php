@@ -209,6 +209,11 @@ class RankingController extends Controller
     public function index(?string $mode = null, ?string $type = null, ?string $sort = null)
     {
         $rawParams = \Request::instance()->query->all();
+        // TomYum: lazer asks for Relax/Autopilot rankings with its mode (osurx, ...), the website with variant.
+        if (($lazerVariant = \App\Libraries\TomYumModeScores::variant($mode)) !== null) {
+            $rawParams['variant'] = substr($mode, strlen($lazerVariant[0]));
+            $mode = $lazerVariant[0];
+        }
         // it's more convenient to lump both route (path) and query params in one array
         $params = compact('mode', 'sort', 'type');
 
@@ -294,7 +299,15 @@ class RankingController extends Controller
                 }
 
                 $class = UserStatistics\Model::getClass($mode, $params['variant']);
-                $stats = $class::with(['user', 'user.country', 'user.team'])->where('rank_score', '>', 0)
+                // TomYum: a pp rework in this ruleset: the ranking as it stood when it began (a copy of
+                // the stats the game server keeps until it's done), not the one being recalculated.
+                $snapshotTable = null;
+                if ($params['variant'] === null && \App\Libraries\TomYumPpRework::forRuleset($mode) !== null) {
+                    $candidate = 'tomyum_snapshot_'.(new $class())->getTable();
+                    $snapshotTable = DB::getSchemaBuilder()->hasTable($candidate) ? $candidate : null;
+                }
+                $stats = ($snapshotTable === null ? $class::query() : $class::from($snapshotTable))
+                    ->with(['user', 'user.country', 'user.team'])->where('rank_score', '>', 0)
                     // TomYum: restricted, banned and deleted players aren't ranked (osu! zeroes their stats
                     // elsewhere; here they're kept, so an unrestricted player comes back as they were).
                     ->whereHas('user', fn ($user) => $user->default());
@@ -327,7 +340,7 @@ class RankingController extends Controller
                 }
 
                 if (isset($forceIndex)) {
-                    $table = (new $class())->getTable();
+                    $table = $snapshotTable ?? (new $class())->getTable();
                     $stats->from(DB::raw("{$table} FORCE INDEX ({$forceIndex[$params['sort']]})"));
                 }
                 break;

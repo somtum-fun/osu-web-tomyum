@@ -215,7 +215,7 @@ class BnSetsController extends Controller
             $message .= " Recalculated {$recalculated} score(s) of {$players} player(s).";
         }
         if (in_array($status, ['ranked', 'approved', 'qualified', 'loved'], true) && count($changed) > 0) {
-            $this->announce($setId, $status);
+            static::announce($setId, $status);
         }
 
         return $this->back($setId, 'success', $message);
@@ -226,7 +226,7 @@ class BnSetsController extends Controller
      * the mapper's profile when they play here), as osu! writes it. Written here rather than with
      * Event::generate, which needs the mapper to have an account: most imported sets' don't.
      */
-    private function announce(int $setId, string $status): void
+    public static function announce(int $setId, string $status): void
     {
         $set = Beatmapset::find($setId);
         if ($set === null) {

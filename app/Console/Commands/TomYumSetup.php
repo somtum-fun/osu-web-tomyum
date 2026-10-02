@@ -52,7 +52,7 @@ class TomYumSetup extends Command
         'nat' => 'Look after the Beatmap Nominators: they review applications and members, and step in when a nomination is disputed.',
         'bng' => 'Mod maps and nominate them for ranking, each in their own modes. A map needs two nominations to be qualified.',
         'bng_limited' => 'New Beatmap Nominators on probation: they can nominate maps, but not give one its final nomination.',
-        'loved' => 'Pick the maps for each [Project Loved](/community/loved) round and run its votes, each in their own modes.',
+        'loved' => 'Decide which maps players ask for get [Loved](/community/loved), each in their own modes.',
         'spt' => 'Answer support tickets: account problems, appeals and questions sent to the support addresses.',
         'alumni' => 'People who helped run the server before. Thank you!',
         'featured_artist' => 'Artists whose music is featured on the server.',
@@ -260,10 +260,6 @@ class TomYumSetup extends Command
             }
         }
         $this->line('Forums: '.count($forums).' present, with posting rights.');
-
-        // Project Loved's polls (also made when the first round opens voting, on sites set up before it).
-        $loved = \App\Libraries\TomYumLoved::forum();
-        $this->line("Project Loved forum: #{$loved->getKey()} present.");
     }
 
     private function userPageForum(): void

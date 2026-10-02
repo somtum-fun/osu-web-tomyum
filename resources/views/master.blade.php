@@ -92,6 +92,20 @@
             ])
         @endif
 
+        {{-- TomYum: a pp rework (the admin panel, or a pp library update): its modes' rankings wait. --}}
+        @foreach (App\Libraries\TomYumPpRework::active() as $tomyumRework)
+            @include('objects._notification_banner', [
+                'type' => 'warning',
+                'label' => 'Performance points',
+                'title' => App\Libraries\TomYumPpRework::modeNames($tomyumRework['modes'] ?? []),
+                'message' => e(
+                    'pp is being recalculated'.(present($tomyumRework['reason'] ?? null) ? ' ('.$tomyumRework['reason'].')' : '')
+                    .'. These rankings are paused, and new scores\' pp is on hold until it\'s done. '
+                    .App\Libraries\TomYumPpRework::progress($tomyumRework).' ('.number_format(App\Libraries\TomYumPpRework::percent($tomyumRework), 0).'%).'
+                ),
+            ])
+        @endforeach
+
         @if (!isset($blank))
             @include("layout.header")
 
