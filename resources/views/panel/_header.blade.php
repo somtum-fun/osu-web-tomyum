@@ -28,6 +28,7 @@
             ['Matches', 'panel.tc.index', ['panel.tc.index', 'panel.tc.matches.']],
             ['Banners', 'panel.tc.tournament-banners.index', ['panel.tc.tournament-banners.']],
             ['Badges', 'panel.tc.badges.index', ['panel.tc.badges.']],
+            ['Assets', 'panel.tc.assets.index', ['panel.tc.assets.']],
         ]],
         'admin' => ['Admin', 'panel.admin.index', PanelController::canUseAdmin($user), [
             ['Overview', 'panel.admin.index', ['panel.admin.index', 'panel.admin.recalculate']],
@@ -36,6 +37,7 @@
             ['Ranked Play', 'panel.admin.matchmaking.index', ['panel.admin.matchmaking.']],
             ['Ranked mods', 'panel.admin.mods.index', ['panel.admin.mods.']],
             ['Badges', 'panel.admin.badges.index', ['panel.admin.badges.']],
+            ['Assets', 'panel.admin.assets.index', ['panel.admin.assets.']],
             ['Titles', 'panel.admin.titles.index', ['panel.admin.titles.']],
             ['Banners', 'panel.admin.tournament-banners.index', ['panel.admin.tournament-banners.']],
             ['News', 'panel.admin.news.index', ['panel.admin.news.']],

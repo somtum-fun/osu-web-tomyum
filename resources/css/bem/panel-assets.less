@@ -1,0 +1,386 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
+// See the LICENCE file in the repository root for full licence text.
+
+// TomYum: the admin and TC panels' assets page (badges, tournament banners, medal icons as pairs).
+.panel-assets {
+  &__roots {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+
+  &__root {
+    .link-plain();
+    .link-white();
+    align-items: center;
+    background: hsl(var(--hsl-b5));
+    border-radius: @border-radius-large;
+    display: flex;
+    gap: 12px;
+    padding: 10px 14px;
+
+    > span {
+      display: grid;
+      font-size: @font-size--normal;
+    }
+
+    .fas {
+      color: hsl(var(--hsl-h1));
+      font-size: 18px;
+      width: 22px;
+    }
+
+    &:hover {
+      background: hsl(var(--hsl-b3));
+    }
+
+    &--active {
+      box-shadow: inset 0 0 0 2px hsl(var(--hsl-h1));
+    }
+  }
+
+  &__crumbs {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+
+    .fa-angle-right {
+      color: hsl(var(--hsl-c2));
+      font-size: 10px;
+    }
+  }
+
+  &__path {
+    color: hsl(var(--hsl-c2));
+    font-size: @font-size--normal;
+    margin-left: auto;
+  }
+
+  &__folders {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  &__folder {
+    .link-plain();
+    .link-white();
+    background: hsl(var(--hsl-b5));
+    border-radius: 10000px;
+    font-size: @font-size--normal;
+    font-weight: 600;
+    padding: 6px 14px;
+
+    .fas {
+      color: hsl(var(--hsl-c2));
+      margin-right: 6px;
+    }
+
+    &:hover {
+      background: hsl(var(--hsl-b3));
+    }
+  }
+
+  &__grid {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  }
+
+  &__item {
+    align-content: start;
+    background: hsl(var(--hsl-b5));
+    border-radius: @border-radius-large;
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    padding: 10px;
+  }
+
+  // The pair side by side, on a checkerboard so transparent edges show.
+  &__previews {
+    display: grid;
+    gap: 6px;
+    grid-template-columns: 1fr 1fr;
+
+    &--wide {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__preview {
+    align-items: center;
+    background:
+      repeating-conic-gradient(hsla(0, 0%, 100%, 0.06) 0% 25%, transparent 0% 50%) 0 0 / 12px 12px,
+      hsl(var(--hsl-b6));
+    border-radius: 6px;
+    display: flex;
+    justify-content: center;
+    min-height: 60px;
+    overflow: hidden;
+    padding: 6px;
+
+    img {
+      max-height: 90px;
+      max-width: 100%;
+    }
+  }
+
+  &__missing {
+    color: hsl(var(--hsl-c2));
+    font-size: 11px;
+  }
+
+  &__name {
+    font-size: @font-size--normal;
+    font-weight: 700;
+  }
+
+  &__meta {
+    color: hsl(var(--hsl-c2));
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 11px;
+    gap: 2px 10px;
+    justify-content: space-between;
+  }
+
+  &__actions {
+    font-size: @font-size--normal;
+
+    > summary {
+      color: hsl(var(--hsl-c2));
+      cursor: pointer;
+      list-style: none;
+
+      &::-webkit-details-marker {
+        display: none;
+      }
+
+      &:hover {
+        color: hsl(var(--hsl-c1));
+      }
+    }
+
+    &[open] {
+      display: grid;
+      gap: 6px;
+    }
+  }
+
+  &__link {
+    background: hsl(var(--hsl-b6));
+    border-radius: 6px;
+    font-size: 11px;
+    height: 28px;
+    padding: 0 8px;
+    width: 100%;
+  }
+
+  &__inline {
+    display: flex;
+    gap: 6px;
+
+    .input-text {
+      background: hsl(var(--hsl-b6));
+      border-radius: 6px;
+      flex: 1;
+      height: 30px;
+      min-width: 0;
+      padding: 0 8px;
+    }
+  }
+
+  &__form {
+    display: grid;
+    gap: 10px;
+  }
+
+  &__links {
+    font-family: monospace;
+    font-size: @font-size--normal;
+    height: auto;
+    padding: 8px 10px;
+    resize: vertical;
+  }
+}
+
+// TomYum: the tournament banners page (a tournament's folder of images, each given to players).
+.panel-banners {
+  &__form {
+    align-items: end;
+    display: grid;
+    gap: 10px 12px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    @media @mobile {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__wide {
+    grid-column: 1 / -1;
+  }
+
+  &__card--hidden {
+    opacity: 0.6;
+  }
+
+  &__buttons {
+    display: flex;
+    gap: 8px;
+  }
+
+  &__image {
+    border-radius: 8px;
+    display: block;
+    margin-bottom: 12px;
+    max-height: 120px;
+    object-fit: cover;
+    width: 100%;
+  }
+
+  &__folder {
+    font-size: @font-size--normal;
+    margin: 0 0 10px;
+
+    .fas {
+      margin-right: 6px;
+    }
+  }
+
+  &__images {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    margin-bottom: 12px;
+  }
+
+  &__variant {
+    background: hsl(var(--hsl-b5));
+    border-radius: @border-radius-large;
+    margin: 0;
+    overflow: hidden;
+
+    img {
+      aspect-ratio: 1000 / 60;
+      display: block;
+      object-fit: cover;
+      width: 100%;
+    }
+
+    figcaption {
+      align-items: center;
+      display: flex;
+      flex-wrap: wrap;
+      font-size: @font-size--normal;
+      gap: 4px 10px;
+      padding: 6px 10px;
+
+      .tomyum-panel__muted {
+        margin-left: auto;
+      }
+    }
+  }
+
+  &__add {
+    margin-bottom: 12px;
+
+    > summary {
+      color: hsl(var(--hsl-c2));
+      cursor: pointer;
+      font-size: @font-size--normal;
+      list-style: none;
+
+      &::-webkit-details-marker {
+        display: none;
+      }
+
+      &:hover {
+        color: hsl(var(--hsl-c1));
+      }
+    }
+  }
+
+  &__add-forms {
+    background: hsl(var(--hsl-b5));
+    border-radius: @border-radius-large;
+    display: grid;
+    gap: 14px;
+    margin-top: 8px;
+    padding: 12px;
+  }
+
+  &__links {
+    font-family: monospace;
+    font-size: @font-size--normal;
+    height: auto;
+    padding: 24px 10px 8px;
+    resize: vertical;
+  }
+
+  &__move {
+    display: grid;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  &__inline {
+    display: flex;
+    gap: 8px;
+
+    .input-text {
+      background: hsl(var(--hsl-b5));
+      border-radius: 10000px;
+      flex: 1;
+      min-width: 0;
+      padding: 0 15px;
+    }
+  }
+
+  &__give {
+    align-items: end;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+
+    @media @mobile {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__holders {
+    display: flex;
+    flex-wrap: wrap;
+    font-size: @font-size--normal;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  &__holder {
+    align-items: center;
+    display: inline-flex;
+    gap: 6px;
+
+    a {
+      color: inherit;
+    }
+
+    form {
+      display: inline;
+    }
+
+    button {
+      .reset-input();
+      color: inherit;
+      cursor: pointer;
+    }
+  }
+
+  &__holder-image {
+    opacity: 0.7;
+  }
+}

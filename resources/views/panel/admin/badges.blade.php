@@ -130,11 +130,26 @@
             <div class="tomyum-panel__card">
                 <h2><i class="fas fa-plus"></i>Give {{ $user->username }} a badge</h2>
                 <div class="panel-badges__give">
-                    <form method="POST" action="{{ route($panelPrefix.'badges.store', ['user' => $user->getKey()]) }}" class="panel-badges__give-form js-panel-badges-give" data-prefix="{{ $badgePrefix }}">
+                    <form method="POST" action="{{ route($panelPrefix.'badges.store', ['user' => $user->getKey()]) }}" class="panel-badges__give-form js-panel-badges-give" data-prefix="{{ $badgePrefix }}" enctype="multipart/form-data">
                         @csrf
+                        <div class="panel-badges__pair">
+                            <label class="tomyum-panel__field">
+                                Upload the image: @2x, 172×80 (the 86×40 one is made from it)
+                                <input type="file" name="retina_file" accept="image/png,image/gif,image/*" class="js-panel-badges-file">
+                            </label>
+                            <label class="input-container">
+                                <span class="input-container__label">Its name, like ndc-2023</span>
+                                <input class="input-text" type="text" name="name" maxlength="80" placeholder="ndc-2023">
+                            </label>
+                        </div>
                         <label class="input-container">
-                            <span class="input-container__label">Image: a link to any image (fitted to 86×40), or an osu! badge's file name</span>
-                            <input class="input-text" type="text" name="image" required placeholder="https://… or contributor.png">
+                            <span class="input-container__label">…or a badge image already here or on osu! (its file name), or a link to any image</span>
+                            <input class="input-text" type="text" name="image" placeholder="contributor.png, or https://…" list="panel-badges-images">
+                            <datalist id="panel-badges-images">
+                                @foreach ($images as $image)
+                                    <option value="{{ $image }}"></option>
+                                @endforeach
+                            </datalist>
                         </label>
                         <label class="input-container">
                             <span class="input-container__label">Tooltip</span>
@@ -161,7 +176,7 @@
                         </div>
                         <div class="panel-badges__preview-tooltip js-panel-badges-preview-tooltip" hidden></div>
                         <div class="panel-badges__meta js-panel-badges-preview-date"></div>
-                        <p class="tomyum-panel__hint">A link is fitted to 86×40 when it's given, so it can look a little different.</p>
+                        <p class="tomyum-panel__hint">Shown at 86×40, like on profiles. A link's image is fitted to that size; all of them are kept at their names, with @2x.</p>
                     </div>
                 </div>
             </div>
@@ -187,6 +202,9 @@
             if (form == null) return;
 
             const image = form.querySelector('[name=image]');
+            const file = form.querySelector('.js-panel-badges-file');
+            const name = form.querySelector('[name=name]');
+            let fileUrl = null;
             const description = form.querySelector('[name=description]');
             const awarded = form.querySelector('[name=awarded]');
             const preview = document.querySelector('.js-panel-badges-preview-image');
@@ -196,7 +214,7 @@
 
             const update = () => {
                 const value = image.value.trim();
-                const src = value === '' ? '' : (/^https?:\/\//i.test(value) ? value : form.dataset.prefix + value);
+                const src = fileUrl ?? (value === '' ? '' : (/^https?:\/\//i.test(value) ? value : form.dataset.prefix + value));
                 if ((preview.getAttribute('src') ?? '') !== src) {
                     preview.hidden = true;
                     empty.hidden = false;
@@ -210,6 +228,16 @@
             preview.addEventListener('load', () => { preview.hidden = false; empty.hidden = true; });
             preview.addEventListener('error', () => { if (preview.getAttribute('src') == null) return; preview.hidden = true; empty.hidden = false; empty.textContent = 'No image there'; });
             [image, description, awarded].forEach((input) => input.addEventListener('input', update));
+            file.addEventListener('change', () => {
+                if (fileUrl !== null) URL.revokeObjectURL(fileUrl);
+                const chosen = file.files?.[0];
+                fileUrl = chosen == null ? null : URL.createObjectURL(chosen);
+                // The file's name as the badge's, unless one's given.
+                if (chosen != null && name.value.trim() === '') {
+                    name.value = chosen.name.replace(/\.[^.]+$/, '').replace(/@2x$/i, '').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9_-]/g, '');
+                }
+                update();
+            });
             update();
         })();
     </script>

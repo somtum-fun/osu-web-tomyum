@@ -10,6 +10,14 @@ return [
     // The server's name where the website speaks for it (support ticket mail, the maintenance notice).
     'server_name' => presence(env('TOMYUM_SERVER_NAME')) ?? 'TomYum',
 
+    // The assets host (badges, tournament banners, medal icons; the game server keeps them), from the
+    // badge images' address: https://assets.<domain>/profile-badges/ → https://assets.<domain>.
+    'assets_url' => rtrim(presence(env('TOMYUM_ASSETS_URL')) ?? preg_replace(
+        '#/profile-badges/?$#',
+        '',
+        env('USER_BADGE_IMAGE_PREFIX', 'https://assets.ppy.sh/profile-badges/'),
+    ), '/'),
+
     // osu! sets' audio previews (the play buttons), {set} the set's id: TomYum's b.<domain> (the
     // website at osu.<domain>), which keeps them from catboy.best or osu! and serves them with their
     // length; without an osu. host, osu!'s own.

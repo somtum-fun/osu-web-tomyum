@@ -101,6 +101,11 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('matches/{match}/abort', 'TcController@abort')->name('matches.abort');
             Route::post('matches/{match}/close', 'TcController@close')->name('matches.close');
             Route::post('matches/{match}/message', 'TcController@message')->name('matches.message');
+            Route::get('assets', 'AssetsController@index')->name('assets.index');
+            Route::post('assets', 'AssetsController@store')->name('assets.store');
+            Route::post('assets/import', 'AssetsController@import')->name('assets.import');
+            Route::post('assets/rename', 'AssetsController@rename')->name('assets.rename');
+            Route::post('assets/remove', 'AssetsController@destroy')->name('assets.destroy');
             Route::get('badges', 'BadgesController@index')->name('badges.index');
             Route::post('badges/{user}', 'BadgesController@store')->name('badges.store');
             Route::post('badges/{user}/remove', 'BadgesController@destroy')->name('badges.destroy');
@@ -109,7 +114,9 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('tournament-banners', 'TournamentBannersController@store')->name('tournament-banners.store');
             Route::post('tournament-banners/{banner}/toggle', 'TournamentBannersController@toggle')->name('tournament-banners.toggle');
             Route::post('tournament-banners/{banner}/remove', 'TournamentBannersController@destroy')->name('tournament-banners.destroy');
-            Route::post('tournament-banners/{banner}/image', 'TournamentBannersController@replace')->name('tournament-banners.replace');
+            Route::post('tournament-banners/{banner}/upload', 'TournamentBannersController@upload')->name('tournament-banners.upload');
+            Route::post('tournament-banners/{banner}/copy', 'TournamentBannersController@copy')->name('tournament-banners.copy');
+            Route::post('tournament-banners/{banner}/move', 'TournamentBannersController@move')->name('tournament-banners.move');
             Route::post('tournament-banners/{banner}/give', 'TournamentBannersController@give')->name('tournament-banners.give');
             Route::post('tournament-banners/{banner}/take/{user}', 'TournamentBannersController@take')->name('tournament-banners.take');
         });
@@ -157,6 +164,11 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('seasonal-backgrounds/settings', 'SeasonalBackgroundsController@settings')->name('seasonal-backgrounds.settings');
             Route::post('seasonal-backgrounds/{entry}/toggle', 'SeasonalBackgroundsController@toggle')->name('seasonal-backgrounds.toggle');
             Route::post('seasonal-backgrounds/{entry}/remove', 'SeasonalBackgroundsController@destroy')->name('seasonal-backgrounds.destroy');
+            Route::get('assets', 'AssetsController@index')->name('assets.index');
+            Route::post('assets', 'AssetsController@store')->name('assets.store');
+            Route::post('assets/import', 'AssetsController@import')->name('assets.import');
+            Route::post('assets/rename', 'AssetsController@rename')->name('assets.rename');
+            Route::post('assets/remove', 'AssetsController@destroy')->name('assets.destroy');
             Route::get('badges', 'BadgesController@index')->name('badges.index');
             Route::post('badges/{user}', 'BadgesController@store')->name('badges.store');
             Route::post('badges/{user}/remove', 'BadgesController@destroy')->name('badges.destroy');
@@ -165,7 +177,9 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('tournament-banners', 'TournamentBannersController@store')->name('tournament-banners.store');
             Route::post('tournament-banners/{banner}/toggle', 'TournamentBannersController@toggle')->name('tournament-banners.toggle');
             Route::post('tournament-banners/{banner}/remove', 'TournamentBannersController@destroy')->name('tournament-banners.destroy');
-            Route::post('tournament-banners/{banner}/image', 'TournamentBannersController@replace')->name('tournament-banners.replace');
+            Route::post('tournament-banners/{banner}/upload', 'TournamentBannersController@upload')->name('tournament-banners.upload');
+            Route::post('tournament-banners/{banner}/copy', 'TournamentBannersController@copy')->name('tournament-banners.copy');
+            Route::post('tournament-banners/{banner}/move', 'TournamentBannersController@move')->name('tournament-banners.move');
             Route::post('tournament-banners/{banner}/give', 'TournamentBannersController@give')->name('tournament-banners.give');
             Route::post('tournament-banners/{banner}/take/{user}', 'TournamentBannersController@take')->name('tournament-banners.take');
             Route::get('titles', 'TitlesController@index')->name('titles.index');
