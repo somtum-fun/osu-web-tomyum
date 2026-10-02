@@ -25,7 +25,7 @@ class TomYumModeScores
     /**
      * Relax/Autopilot plays are TomYum's, numbered apart from the website's scores. lazer only knows
      * a score by its id (it fetches /scores/{id} and /scores/{id}/download), so they're given ids from
-     * here up, which ScoresController hands back to TomYum.
+     * here up, which ScoresController hands back to TomYum. lazer plays use their website score id instead.
      */
     public const ID_OFFSET = 1_000_000_000_000;
 
@@ -182,8 +182,14 @@ class TomYumModeScores
             $beatmap->playmode = $rulesetId;
         }
 
+        // TomYum: a lazer play keeps the website's own score id, which its replay carries, so lazer
+        // matches the downloaded replay to it. Stable plays (and any without one) use ID_OFFSET.
+        $id = !($score['stable'] ?? true) && isset($score['osuWebScoreId'])
+            ? (int) $score['osuWebScoreId']
+            : static::ID_OFFSET + $score['id'];
+
         return [
-            'id' => static::ID_OFFSET + $score['id'],
+            'id' => $id,
             // Not a website score: nothing may report, pin or link to it as one.
             'type' => 'tomyum_score',
             'user_id' => $user->getKey(),
@@ -192,7 +198,7 @@ class TomYumModeScores
             'beatmap_id' => $beatmap->getKey(),
             'beatmapset' => json_item($beatmap->beatmapset, new BeatmapsetCompactTransformer()),
             // Its own best (TomYum keeps one per map): the site shows pp only for bests.
-            'best_id' => static::ID_OFFSET + $score['id'],
+            'best_id' => $id,
             'build_id' => null,
             'classic_total_score' => $score['score'],
             'current_user_attributes' => ['pin' => null],

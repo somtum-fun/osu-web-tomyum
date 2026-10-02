@@ -10,6 +10,7 @@ import { observer } from 'mobx-react';
 import modNames from 'mod-names.json';
 import core from 'osu-core-singleton';
 import * as React from 'react';
+import { shouldShowPp } from 'utils/beatmap-helper';
 import { classWithModifiers } from 'utils/css';
 import { trans } from 'utils/lang';
 import { SwitchError } from 'utils/switch-never';
@@ -220,11 +221,15 @@ export default class Main extends React.Component<Props> {
   }
 
   private renderScores() {
+    // TomYum: top cards show pp when sorted by pp on a map that gives pp.
+    const byPp = this.controller.sort === 'pp' && shouldShowPp(this.controller.beatmap);
+
     return (
       <div>
         <div className='beatmap-scoreboard-top'>
           <TopCard
             beatmap={this.controller.beatmap}
+            byPp={byPp}
             position={1}
             score={this.data.scores[0]}
           />
@@ -232,6 +237,7 @@ export default class Main extends React.Component<Props> {
           {this.data.user_score != null && this.data.scores[0].user.id !== this.data.user_score.score.user.id &&
             <TopCard
               beatmap={this.controller.beatmap}
+              byPp={byPp}
               position={this.data.user_score.position}
               score={this.data.user_score.score}
             />

@@ -22,6 +22,12 @@ interface Props {
 export default class Table extends React.Component<Props> {
   @observable private readonly activeKeyState = new ActiveKeyState<number>();
 
+  // TomYum: sorted by pp on a map that gives pp, so the score column shows pp.
+  @computed
+  get byPp() {
+    return this.props.controller.sort === 'pp' && this.showPp;
+  }
+
   @computed
   get showPp() {
     return shouldShowPp(this.props.controller.beatmap);
@@ -45,7 +51,7 @@ export default class Table extends React.Component<Props> {
                 </th>
                 <th className={`${bn}__header ${bn}__header--grade`} />
                 <th className={`${bn}__header ${bn}__header--score`}>
-                  {trans('beatmapsets.show.scoreboard.headers.score')}
+                  {trans(`beatmapsets.show.scoreboard.headers.${this.byPp ? 'pp' : 'score'}`)}
                 </th>
                 <th className={`${bn}__header ${bn}__header--accuracy`}>
                   {trans('beatmapsets.show.scoreboard.headers.accuracy')}
@@ -67,7 +73,7 @@ export default class Table extends React.Component<Props> {
                       {stat.label.short}
                     </th>
                   ))}
-                {this.showPp &&
+                {this.showPp && !this.byPp &&
                   <th className={`${bn}__header ${bn}__header--pp`}>
                     {trans('beatmapsets.show.scoreboard.headers.pp')}
                   </th>
@@ -87,10 +93,11 @@ export default class Table extends React.Component<Props> {
                   <TableRow
                     activated={this.activeKeyState.value === index}
                     beatmap={this.props.controller.beatmap}
+                    byPp={this.byPp}
                     highlightFriends={this.props.controller.currentType !== 'friend'}
                     index={index}
                     score={score}
-                    showPp={this.showPp}
+                    showPp={this.showPp && !this.byPp}
                   />
                 </KeyContext.Provider>
               ))}

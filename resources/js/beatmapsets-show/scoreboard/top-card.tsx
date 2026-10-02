@@ -26,6 +26,7 @@ import { accuracy, displayMods, isPerfectCombo, calculateStatisticsFor, rank } f
 
 interface Props {
   beatmap: BeatmapJson;
+  byPp?: boolean; // TomYum: pp in the big slot, total score in the small one
   modifiers?: Modifiers;
   position?: number;
   score: ScoreJsonForBeatmap;
@@ -124,10 +125,10 @@ export default class TopCard extends React.PureComponent<Props> {
 
               <div className='beatmap-score-top__stat'>
                 <div className='beatmap-score-top__stat-header beatmap-score-top__stat-header--wider'>
-                  {trans('beatmapsets.show.scoreboard.headers.score_total')}
+                  {trans(`beatmapsets.show.scoreboard.headers.${this.props.byPp ? 'pp' : 'score_total'}`)}
                 </div>
                 <div className='beatmap-score-top__stat-value beatmap-score-top__stat-value--score'>
-                  <ScoreValue score={this.props.score} />
+                  {this.props.byPp ? <PpValue score={this.props.score} suffix='pp' /> : <ScoreValue score={this.props.score} />}
                 </div>
               </div>
             </div>
@@ -172,7 +173,17 @@ export default class TopCard extends React.PureComponent<Props> {
                 </div>
               ))}
 
-              {shouldShowPp(this.props.beatmap) && (
+              {/* TomYum: total score moves here when pp takes the big slot */}
+              {this.props.byPp ? (
+                <div className='beatmap-score-top__stat'>
+                  <div className='beatmap-score-top__stat-header'>
+                    {trans('beatmapsets.show.scoreboard.headers.score_total')}
+                  </div>
+                  <div className='beatmap-score-top__stat-value beatmap-score-top__stat-value--smaller u-hover'>
+                    <ScoreValue score={this.props.score} />
+                  </div>
+                </div>
+              ) : shouldShowPp(this.props.beatmap) && (
                 <div className='beatmap-score-top__stat'>
                   <div className='beatmap-score-top__stat-header'>
                     {trans('beatmapsets.show.scoreboard.headers.pp')}
