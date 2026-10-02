@@ -121,6 +121,12 @@
     @media @mobile {
       grid-template-columns: 1fr;
     }
+
+    // the player's card at its own height, not stretched to the facts beside it (its React
+    // wrapper is display: contents, so the card is the grid item)
+    .user-card {
+      align-self: start;
+    }
   }
 
   &__facts {
