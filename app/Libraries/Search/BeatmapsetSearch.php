@@ -173,7 +173,7 @@ class BeatmapsetSearch extends RecordSearch
         }
     }
 
-    // TomYum: sets uploaded to this server ("production only"), numbered from BnController::CUSTOM_ID_FLOOR.
+    // TomYum: sets uploaded to this server ("Uploaded here only"), numbered from BnController::CUSTOM_ID_FLOOR.
     private function addProdFilter($query)
     {
         if ($this->params->showProd) {
