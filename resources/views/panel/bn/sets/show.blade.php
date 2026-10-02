@@ -112,8 +112,9 @@
                 @if ($canSetNominators)
                     <p class="tomyum-panel__hint">
                         For a set ranked here by hand, or a bancho map that wasn't ranked there: the beatmap page shows these players
-                        under "Nominated by", and the set's history records their nominations. It doesn't change the set's status.
-                        BNs nominating on the discussion page work as on osu!. Leave it empty to clear them.
+                        under "Nominated by", and the set's history records their nominations. On a pending set, enough of them
+                        ({{ $GLOBALS['cfg']['osu']['beatmapset']['required_nominations'] }}) qualify it, as BNs nominating on the
+                        discussion page do. Leave it empty to clear them.
                     </p>
                     <form method="POST" action="{{ route('panel.bn.sets.nominators', ['set' => $setId]) }}" class="tomyum-panel__row">
                         @csrf

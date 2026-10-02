@@ -282,11 +282,36 @@ class BnSetsController extends Controller
             $beatmapset->refreshCache(true);
         });
 
+        // Enough of them qualify a pending set, as the last BN nomination does (from here no hype or
+        // open issues are asked for: an admin decided). qualify() passes the status on to TomYum.
+        $beatmapset = $beatmapset->fresh();
+        $required = $GLOBALS['cfg']['osu']['beatmapset']['required_nominations'];
+        $qualified = false;
+        if ($beatmapset->isPending() && count($users) >= $required) {
+            try {
+                $beatmapset->qualify($admin);
+                $qualified = true;
+            } catch (\Throwable $e) {
+                log_error($e);
+            }
+        }
+
         $list = implode(', ', array_map(fn ($user) => $user->username, $users));
         $summary = count($users) === 0 ? 'Cleared the nominators' : "Set the nominators to {$list}";
-        $this->staffLog('beatmapset.nominators', $setId, "{$summary} (set {$setId})");
+        $this->staffLog('beatmapset.nominators', $setId, "{$summary} (set {$setId})", $qualified ? 'qualified' : 'nominators');
 
-        return $this->back($setId, 'success', count($users) === 0 ? 'Nobody is shown as nominating it now.' : "Nominated by {$list} now.");
+        if (count($users) === 0) {
+            return $this->back($setId, 'success', 'Nobody is shown as nominating it now.');
+        }
+
+        $message = "Nominated by {$list} now.";
+        if ($qualified) {
+            $message .= ' That qualified it: it ranks after the qualified period.';
+        } elseif ($beatmapset->isPending()) {
+            $message .= " It needs {$required} to qualify.";
+        }
+
+        return $this->back($setId, 'success', $message);
     }
 
     private function back(int $setId, string $type, string $message)

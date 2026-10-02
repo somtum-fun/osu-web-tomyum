@@ -11,6 +11,7 @@
         'uploaded' => ['Uploaded', 'good'],
         'updated' => ['Updated', 'good'],
         'rejected' => ['Refused', 'bad'],
+        'nominators' => ['Nominators', 'info'], // TomYum: set by hand (BnSetsController@nominators)
     ];
 @endphp
 <div class="tomyum-panel__scroll">
