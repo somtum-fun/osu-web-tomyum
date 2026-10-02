@@ -13,7 +13,7 @@ import * as React from 'react';
 import { classWithModifiers } from 'utils/css';
 import { trans } from 'utils/lang';
 import { SwitchError } from 'utils/switch-never';
-import Controller, { ScoreboardVariant, variantsByRuleset } from './controller';
+import Controller, { ScoreboardSort, ScoreboardVariant, variantsByRuleset } from './controller';
 import Mod from './mod';
 import { scoreboardTypes } from './scoreboard-type';
 import Tab from './tab';
@@ -29,6 +29,8 @@ const legacyMods = {
 };
 const maniaConvertMods = new Set(['1K', '2K', '3K', '4K', '5K', '6K', '7K', '8K', '9K', '10K', 'DS']);
 const variantLabels: Record<ScoreboardVariant, string> = { ap: 'Autopilot', rx: 'Relax', vn: 'Vanilla' };
+const sorts: ScoreboardSort[] = ['pp', 'score'];
+const sortLabels: Record<ScoreboardSort, string> = { pp: 'By pp', score: 'By score' };
 
 interface Props {
   beatmap: BeatmapExtendedJson;
@@ -91,6 +93,8 @@ export default class Main extends React.Component<Props> {
           ))}
         </div>
 
+        {this.renderSorts()}
+
         {this.controller.beatmap.is_scoreable &&
           <div className={classWithModifiers('beatmapset-scoreboard__mods', { initial: this.controller.enabledMods.size === 0 })}>
             {this.mods.map((mod) => <Mod key={mod} controller={this.controller} mod={mod} />)}
@@ -110,6 +114,10 @@ export default class Main extends React.Component<Props> {
     const variant = e.currentTarget.dataset.variant as ScoreboardVariant;
     // The mod lists differ (lazer's on Vanilla, stable's on Relax/Autopilot): start without a filter.
     this.controller.setCurrent({ resetMods: true, variant });
+  };
+
+  private readonly onClickSort = (e: React.MouseEvent<HTMLDivElement>) => {
+    this.controller.setCurrent({ sort: e.currentTarget.dataset.sort as ScoreboardSort });
   };
 
   private readonly onClickRetryButton = () => {
@@ -182,6 +190,28 @@ export default class Main extends React.Component<Props> {
           >
             <span className='fake-bold' data-content={variantLabels[variant]}>
               {variantLabels[variant]}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // TomYum: by pp or by score.
+  private renderSorts() {
+    if (!this.controller.beatmap.is_scoreable) return null;
+
+    return (
+      <div className='page-tabs'>
+        {sorts.map((sort) => (
+          <div
+            key={sort}
+            className={classWithModifiers('page-tabs__tab', { active: this.controller.sort === sort })}
+            data-sort={sort}
+            onClick={this.onClickSort}
+          >
+            <span className='fake-bold' data-content={sortLabels[sort]}>
+              {sortLabels[sort]}
             </span>
           </div>
         ))}

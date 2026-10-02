@@ -11,6 +11,7 @@ import ScoreboardType, { supporterTypes } from './scoreboard-type';
 interface SetOptions {
   forceReload?: boolean;
   resetMods?: boolean;
+  sort?: ScoreboardSort;
   toggleMod?: string | null;
   type?: ScoreboardType;
   variant?: ScoreboardVariant;
@@ -18,6 +19,11 @@ interface SetOptions {
 
 // TomYum: Relax/Autopilot leaderboards (the game server's, by pp) next to the website's own.
 export type ScoreboardVariant = 'vn' | 'rx' | 'ap';
+
+// TomYum: a board ordered by pp or by score. Relax/Autopilot start by pp, Vanilla by score.
+export type ScoreboardSort = 'pp' | 'score';
+
+export const defaultSort = (variant: ScoreboardVariant): ScoreboardSort => variant === 'vn' ? 'score' : 'pp';
 
 export const variantsByRuleset: Partial<Record<string, ScoreboardVariant[]>> = {
   fruits: ['vn', 'rx'],
@@ -42,12 +48,14 @@ interface StoredState {
   allData: Partial<Record<string, BeatmapScoresJson>>;
   currentType: ScoreboardType;
   enabledMods: string[];
+  sort?: ScoreboardSort;
   variant?: ScoreboardVariant;
 }
 
 export default class Controller {
   @observable currentType: ScoreboardType = 'global';
   @observable enabledMods = new Set<string>();
+  @observable sort: ScoreboardSort = 'score';
   @observable variant: ScoreboardVariant = 'vn';
 
   @observable private allData: Partial<Record<string, BeatmapScoresJson>> = {};
@@ -63,7 +71,7 @@ export default class Controller {
   get currentDataKey() {
     const beatmap = this.beatmap;
 
-    return `${beatmap.id}-${beatmap.mode}-${[...this.enabledMods].sort().join(':')}-${this.currentType}-${this.variant}`;
+    return `${beatmap.id}-${beatmap.mode}-${[...this.enabledMods].sort().join(':')}-${this.currentType}-${this.variant}-${this.sort}`;
   }
 
   @computed
@@ -104,6 +112,7 @@ export default class Controller {
       this.allData = storedState.allData;
       this.enabledMods = new Set(storedState.enabledMods);
       this.variant = storedState.variant ?? 'vn';
+      this.sort = storedState.sort ?? defaultSort(this.variant);
     }
 
     makeObservable(this);
@@ -156,7 +165,15 @@ export default class Controller {
     }
 
     if (options.variant != null) {
+      // Each board starts in its own order (pp for Relax/Autopilot, score for Vanilla).
+      if (options.variant !== this.variant) {
+        this.sort = defaultSort(options.variant);
+      }
       this.variant = options.variant;
+    }
+
+    if (options.sort != null) {
+      this.sort = options.sort;
     }
 
     const beatmap = this.beatmap;
@@ -172,6 +189,7 @@ export default class Controller {
       data: {
         mode: beatmap.mode,
         mods: [...this.enabledMods],
+        sort: this.sort,
         type: this.currentType,
         variant: this.variant === 'vn' ? undefined : this.variant,
       },
@@ -191,6 +209,7 @@ export default class Controller {
       allData: this.allData,
       currentType: this.currentType,
       enabledMods: [...this.enabledMods],
+      sort: this.sort,
       variant: this.variant,
     };
 

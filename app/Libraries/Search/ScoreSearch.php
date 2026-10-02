@@ -98,6 +98,18 @@ class ScoreSearch extends RecordSearch
                 break;
         }
 
+        // TomYum: on a board sorted by pp, the plays ahead are those with more pp (then older ones).
+        if ($this->params->rankByPp && $this->params->beforeScore !== null) {
+            $beforePp = $this->params->beforeScore->pp ?? 0;
+            $query->filter((new BoolQuery())->shouldMatch(1)
+                ->should((new BoolQuery())->filter(['range' => ['pp' => ['gt' => $beforePp]]]))
+                ->should((new BoolQuery())
+                    ->filter(['range' => ['id' => ['lt' => $this->params->beforeScore->getKey()]]])
+                    ->filter(['term' => ['pp' => $beforePp]])));
+
+            return $query;
+        }
+
         $beforeTotalScore = $this->params->beforeTotalScore;
         if ($beforeTotalScore === null && $this->params->beforeScore !== null) {
             $beforeTotalScore = $this->params->isLegacy

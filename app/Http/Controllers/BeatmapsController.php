@@ -56,6 +56,7 @@ class BeatmapsController extends Controller
             'limit:int',
             'mode',
             'mods:string[]',
+            'sort:string',
             'type:string',
         ], ['null_missing' => true]);
 
@@ -72,6 +73,8 @@ class BeatmapsController extends Controller
             'limit' => $params['limit'],
             'mods' => $mods,
             'ruleset_id' => $rulesetId,
+            // TomYum: by score (the default) or by pp.
+            'sort' => $params['sort'] === 'pp' ? 'pp_desc' : 'score_desc',
             'type' => $type,
             'user' => $currentUser,
         ]);
@@ -418,6 +421,8 @@ class BeatmapsController extends Controller
                 $variant,
                 array_values(array_filter(get_arr(request('mods'), 'get_string') ?? [])),
                 $type,
+                // TomYum: by pp (the default here) or by score.
+                get_string(request('sort')) === 'score' ? 'score' : 'pp',
             );
         }
 
