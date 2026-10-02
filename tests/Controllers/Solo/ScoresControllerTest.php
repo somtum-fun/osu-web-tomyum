@@ -16,6 +16,14 @@ use Tests\TestCase;
 
 class ScoresControllerTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // TomYum: the ranked mods list is cached a minute; each test starts from the database's.
+        \Cache::forget('tomyum_ranked_mods:0');
+    }
+
     public function testStore()
     {
         $build = Build::factory()->create(['allow_ranking' => true]);
@@ -59,10 +67,16 @@ class ScoresControllerTest extends TestCase
     public static function dataProviderForTestStoreRelaxIsNotRanked(): array
     {
         return [
+            // Without the ranked mods list: only Relax and Autopilot are left out.
             'no mods' => [[], true],
             'DT' => [[['acronym' => 'DT']], true],
             'RX' => [[['acronym' => 'RX']], false],
             'AP' => [[['acronym' => 'AP']], false],
+            // With the ranked mods list: osu!'s and staff's are ranked, the rest aren't.
+            'DT, ranked by osu!' => [[['acronym' => 'DT']], true, true],
+            'DA, not ranked' => [[['acronym' => 'DA']], false, true],
+            'DA, ranked by staff' => [[['acronym' => 'DA']], true, true, ['DA']],
+            'HD and DA' => [[['acronym' => 'HD'], ['acronym' => 'DA']], false, true],
         ];
     }
 
@@ -71,8 +85,26 @@ class ScoresControllerTest extends TestCase
      * vanilla grade counts and ranked score) they don't count.
      */
     #[DataProvider('dataProviderForTestStoreRelaxIsNotRanked')]
-    public function testStoreRelaxIsNotRanked(array $mods, bool $ranked)
+    public function testStoreRelaxIsNotRanked(array $mods, bool $ranked, bool $withList = false, array $staffRanked = [])
     {
+        // The score processor makes this table; the test database has it from here on (its rows are
+        // each test's own: they're emptied first, and rolled back after).
+        if (!\Schema::hasTable('tomyum_ranked_mods')) {
+            \DB::statement('CREATE TABLE tomyum_ranked_mods (ruleset_id tinyint unsigned NOT NULL, acronym varchar(8) NOT NULL, osu_ranked tinyint(1) NOT NULL DEFAULT 0, ranked tinyint(1) NOT NULL DEFAULT 0, applied tinyint(1) NOT NULL DEFAULT 0, PRIMARY KEY (ruleset_id, acronym))');
+        }
+        \DB::table('tomyum_ranked_mods')->delete();
+        \Cache::forget('tomyum_ranked_mods:0');
+        if ($withList) {
+            foreach (['DT' => true, 'HD' => true, 'DA' => false, 'RX' => false] as $acronym => $osuRanked) {
+                \DB::table('tomyum_ranked_mods')->insert([
+                    'ruleset_id' => 0,
+                    'acronym' => $acronym,
+                    'osu_ranked' => $osuRanked,
+                    'ranked' => in_array($acronym, $staffRanked, true),
+                ]);
+            }
+        }
+
         $build = Build::factory()->create(['allow_ranking' => true]);
         $scoreToken = ScoreToken::factory()->create([
             'beatmap_id' => Beatmap::factory()->ranked()->state(['playmode' => 0]),

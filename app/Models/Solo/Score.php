@@ -118,6 +118,34 @@ class Score extends Model implements Traits\ReportableInterface
         return count(array_intersect(array_column($mods, 'acronym'), ['RX', 'AP'])) > 0;
     }
 
+    /**
+     * TomYum: whether every mod of a play is ranked here: by osu!, or by staff (Admin panel > Ranked
+     * mods), as tomyum_ranked_mods has them (the score processor's list, which gives pp by it too).
+     * Relax and Autopilot never are (they have TomYum's relax leaderboards). Without the list (the
+     * processor hasn't made it yet), only those two are left out.
+     */
+    public static function allModsRanked(int $rulesetId, array $mods): bool
+    {
+        if (static::hasRelaxMod($mods)) {
+            return false;
+        }
+
+        // Kept a minute (the site's workers live long; staff changes apply within it). false: no list.
+        $ranked = \Cache::remember("tomyum_ranked_mods:{$rulesetId}", 60, function () use ($rulesetId) {
+            try {
+                $rows = \DB::table('tomyum_ranked_mods')->where('ruleset_id', $rulesetId)->get(['acronym', 'osu_ranked', 'ranked']);
+            } catch (\Throwable) {
+                return false;
+            }
+
+            return $rows->isEmpty()
+                ? false
+                : $rows->filter(fn ($row) => $row->osu_ranked || $row->ranked)->pluck('acronym')->all();
+        });
+
+        return $ranked === false || count(array_diff(array_column($mods, 'acronym'), $ranked)) === 0;
+    }
+
     public static function extractParams(array $rawParams, ScoreToken|MultiplayerScoreLink $scoreToken): array
     {
         $params = get_params($rawParams, null, [
@@ -149,10 +177,11 @@ class Score extends Model implements Traits\ReportableInterface
 
         $beatmap = $scoreToken->beatmap;
         // anything that have leaderboard
-        // TomYum: Relax and Autopilot have their own leaderboards (TomYum's), so they stay out of the
-        // vanilla ones and the vanilla grade counts and ranked score (ppy's processor counts ranked plays).
+        // TomYum: a play with a mod that isn't ranked here (Relax and Autopilot among them: they have
+        // TomYum's own leaderboards) gets no pp, so it stays out of the leaderboards, grade counts and
+        // ranked score too (ppy's processor counts every ranked play there).
         $params['ranked'] = $params['passed'] && $beatmap !== null && $beatmap->approved > 0
-            && !static::hasRelaxMod($params['mods']);
+            && static::allModsRanked($scoreToken->ruleset_id, $params['mods']);
 
         return $params;
     }
