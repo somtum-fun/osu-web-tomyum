@@ -37,6 +37,33 @@ class TomYumArtistsImport
     }
 
     /**
+     * Only osu! profile links, for osu!'s artists here without one (artists imported before they were
+     * kept): their pages are read again, and nothing else changes. The number filled in.
+     */
+    public function fillProfiles(): int
+    {
+        $ids = DB::table('artists')
+            ->whereNull('osu_profile_url')
+            ->where('id', '<', \App\Http\Controllers\Panel\ArtistsController::OWN_ID_FLOOR['artists'])
+            ->orderBy('id')
+            ->pluck('id');
+        $filled = 0;
+        foreach ($ids as $index => $id) {
+            $this->artists[$id] = ['id' => $id];
+            $this->readArtistPage($id);
+            $url = $this->artists[$id]['osu_profile_url'] ?? null;
+            if ($url !== null) {
+                $filled += DB::table('artists')->where('id', $id)->whereNull('osu_profile_url')->update(['osu_profile_url' => $url]);
+            }
+            if (($index + 1) % 50 === 0) {
+                ($this->log)('Profiles: '.($index + 1).' of '.count($ids)." read, {$filled} filled in");
+            }
+        }
+
+        return $filled;
+    }
+
+    /**
      * Reads the track listing, then goes artist by artist: each one (its page read when it's new, or
      * with --update) is saved with its albums and tracks straight away, so a run that stops keeps
      * what it got, and the next one carries on. $limit: only that many artists (a trial run).
@@ -190,8 +217,12 @@ class TomYumArtistsImport
         $artist['video_url'] = $video instanceof DOMElement ? presence($video->getAttribute('src')) : null;
 
         foreach ($xpath->query('//a[contains(@class, "artist-link-button--")]') as $link) {
+            $href = $link->getAttribute('href');
             if (preg_match('/artist-link-button--([a-z]+)/', $link->getAttribute('class'), $m) && in_array($m[1], static::LINK_COLUMNS, true)) {
-                $artist[$m[1]] = $link->getAttribute('href');
+                $artist[$m[1]] = $href;
+            } elseif (preg_match('#^https://osu\.ppy\.sh/users/\d+$#', $href)) {
+                // Their osu! profile (osu!'s user ids are other people here, so it stays a link to osu!).
+                $artist['osu_profile_url'] = $href;
             }
         }
 
@@ -211,7 +242,7 @@ class TomYumArtistsImport
                 'updated_at' => now(),
             ], $rows);
             // Every row has the same columns, for the inserts in bulk.
-            $columns = ['id', 'name', 'description', 'visible', 'use_for_linking', 'header_url', 'cover_url', 'video_url', ...static::LINK_COLUMNS, 'created_at', 'updated_at'];
+            $columns = ['id', 'name', 'description', 'visible', 'use_for_linking', 'header_url', 'cover_url', 'video_url', 'osu_profile_url', ...static::LINK_COLUMNS, 'created_at', 'updated_at'];
             $rows = array_map(fn ($row) => array_merge(array_fill_keys($columns, null), array_intersect_key($row, array_flip($columns))), $rows);
         }
 

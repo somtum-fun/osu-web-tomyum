@@ -20,6 +20,7 @@ use App\Traits\Memoizes;
  * @property Label $label
  * @property int|null $label_id
  * @property string $name
+ * @property string|null $osu_profile_url TomYum: their osu! profile (user_id is one here)
  * @property string|null $patreon
  * @property string|null $soundcloud
  * @property string|null $spotify

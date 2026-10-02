@@ -8,6 +8,7 @@ namespace App\Http\Controllers\Panel;
 use App\Models\Artist;
 use App\Models\ArtistAlbum;
 use App\Models\ArtistTrack;
+use App\Models\User;
 use Auth;
 use DB;
 use Illuminate\Http\UploadedFile;
@@ -122,10 +123,23 @@ class ArtistsController extends Controller
             'description' => (string) Request::input('description'),
             'visible' => Request::boolean('visible'),
         ];
-        foreach ([...array_keys(static::LINKS), 'video_url'] as $column) {
+        // Their profile here: a player's name or id (empty: none).
+        $profile = trim((string) Request::input('profile'));
+        $fields['user_id'] = null;
+        if ($profile !== '') {
+            $user = ctype_digit($profile) ? User::find((int) $profile) : User::lookup($profile, 'username');
+            if ($user === null) {
+                return $this->back($artist, 'error', "There's no player called \"{$profile}\".");
+            }
+            $fields['user_id'] = $user->getKey();
+        }
+
+        foreach ([...array_keys(static::LINKS), 'video_url', 'osu_profile_url'] as $column) {
             [$fields[$column], $problem] = static::url(Request::input($column));
             if ($problem !== null) {
-                return $this->back($artist, 'error', (static::LINKS[$column][0] ?? 'Video').": {$problem}");
+                $label = static::LINKS[$column][0] ?? ($column === 'video_url' ? 'Video' : 'osu! profile');
+
+                return $this->back($artist, 'error', "{$label}: {$problem}");
             }
         }
         foreach (['header_url' => 'header', 'cover_url' => 'cover'] as $column => $name) {

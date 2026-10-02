@@ -70,6 +70,16 @@
                     </div>
                 @endforeach
 
+                <p class="tomyum-panel__section-title panel-artists__wide">Profile</p>
+                <label class="input-container">
+                    <span class="input-container__label"><i class="fas fa-user"></i> Their profile on this server (a player's name or id)</span>
+                    <input class="input-text" type="text" name="profile" maxlength="255" value="{{ $artist->user_id === null ? '' : (App\Models\User::find($artist->user_id)?->username ?? $artist->user_id) }}" placeholder="none">
+                </label>
+                <label class="input-container">
+                    <span class="input-container__label"><i class="fas fa-user"></i> Their osu! profile (shown when there's none here)</span>
+                    <input class="input-text" type="text" name="osu_profile_url" maxlength="512" value="{{ $artist->osu_profile_url }}" placeholder="https://osu.ppy.sh/users/…">
+                </label>
+
                 <p class="tomyum-panel__section-title panel-artists__wide">Links (empty: none)</p>
                 @foreach ($links as $column => [$label, $icon])
                     <label class="input-container">

@@ -55,6 +55,8 @@ class ArtistsControllerTest extends TestCase
                 'website' => 'https://artist.example',
                 'twitter' => '',
                 'cover_url' => 'https://assets.ppy.sh/artists/1/the tea party house/cover.jpg',
+                'profile' => $this->admin->username,
+                'osu_profile_url' => 'https://osu.ppy.sh/users/102',
             ])
             ->assertRedirect()
             ->assertSessionHas('panel_status.type', 'success');
@@ -65,11 +67,30 @@ class ArtistsControllerTest extends TestCase
         $this->assertSame('https://artist.example', $artist->website);
         $this->assertNull($artist->twitter);
         $this->assertSame('https://assets.ppy.sh/artists/1/the tea party house/cover.jpg', $artist->cover_url);
+        $this->assertSame($this->admin->getKey(), $artist->user_id);
+        $this->assertSame('https://osu.ppy.sh/users/102', $artist->osu_profile_url);
 
         $this->actAsUser($this->admin, true)
             ->get(route('panel.admin.artists.show', ['artist' => $artist->getKey()]))
             ->assertSuccessful()
             ->assertSee('Renamed');
+    }
+
+    public function testTheArtistPageLinksTheirProfile_HereFirst(): void
+    {
+        $artist = $this->artist();
+        $artist->forceFill(['osu_profile_url' => 'https://osu.ppy.sh/users/102'])->save();
+        $this->get(route('artists.show', ['artist' => $artist->getKey()]))->assertSee('https://osu.ppy.sh/users/102', false);
+
+        $artist->forceFill(['user_id' => $this->admin->getKey()])->save();
+        $this->get(route('artists.show', ['artist' => $artist->getKey()]))
+            ->assertSee(route('users.show', $this->admin->getKey()), false)
+            ->assertDontSee('https://osu.ppy.sh/users/102', false);
+
+        // A player who isn't here is refused.
+        $this->actAsUser($this->admin, true)
+            ->post(route('panel.admin.artists.update', ['artist' => $artist->getKey()]), ['name' => 'x', 'profile' => 'nobody-called-this'])
+            ->assertSessionHas('panel_status.type', 'error');
     }
 
     public function testBadLinksAreRefused(): void

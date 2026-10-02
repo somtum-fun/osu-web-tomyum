@@ -72,10 +72,11 @@ class ArtistsController extends Controller
         // should probably move services to a separate model if the number increases further (HA HA HA)
         $links = [];
 
-        if ($artist->user_id) {
+        // TomYum: their profile here, else their osu! one (osu!'s user ids are other people here).
+        if ($artist->user_id || present($artist->osu_profile_url)) {
             $links[] = [
                 'title' => osu_trans('artist.links.osu'),
-                'url' => route('users.show', $artist->user_id),
+                'url' => $artist->user_id ? route('users.show', $artist->user_id) : $artist->osu_profile_url,
                 'icon' => 'fas fa-user',
                 'class' => 'osu',
             ];

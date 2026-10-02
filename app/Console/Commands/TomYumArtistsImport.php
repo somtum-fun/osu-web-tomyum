@@ -15,7 +15,7 @@ use Illuminate\Console\Command;
  */
 class TomYumArtistsImport extends Command
 {
-    protected $signature = 'tomyum:artists-import {--update : Take osu!\'s details again for artists, albums and tracks already here} {--delay=1500 : Milliseconds between requests to osu! (it refuses many more)} {--limit= : Only this many artists (a trial run)}';
+    protected $signature = 'tomyum:artists-import {--update : Take osu!\'s details again for artists, albums and tracks already here} {--delay=1500 : Milliseconds between requests to osu! (it refuses many more)} {--limit= : Only this many artists (a trial run)} {--profiles : Only fill in osu! profile links missing from osu!\'s artists here (nothing else changes)}';
 
     protected $description = 'Copies osu!\'s featured artists, albums and tracks in (new ones; --update for all).';
 
@@ -26,6 +26,12 @@ class TomYumArtistsImport extends Command
             delayMs: max(500, (int) $this->option('delay')),
             log: fn (string $line) => $this->line($line),
         );
+
+        if ($this->option('profiles')) {
+            $this->info('osu! profiles filled in: '.$import->fillProfiles());
+
+            return;
+        }
 
         $limit = $this->option('limit');
         $counts = $import->run($limit === null ? null : (int) $limit);

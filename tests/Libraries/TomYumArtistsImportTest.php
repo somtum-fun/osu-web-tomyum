@@ -98,6 +98,7 @@ class TomYumArtistsImportTest extends TestCase
         $this->assertSame('https://artist.example', $artist->website);
         $this->assertSame('https://twitter.com/artist', $artist->twitter);
         $this->assertNull($artist->user_id); // osu!'s user 102 isn't this server's user 102
+        $this->assertSame('https://osu.ppy.sh/users/102', $artist->osu_profile_url);
 
         $album = ArtistAlbum::findOrFail(9002);
         $this->assertSame('The Album (romanized)', $album->title_romanized);
@@ -125,6 +126,21 @@ class TomYumArtistsImportTest extends TestCase
         (new TomYumArtistsImport(true, 0, $quiet))->run();
         $this->assertSame('Test Artist', Artist::findOrFail(9001)->name);
         $this->assertSame('Track 90011', ArtistTrack::findOrFail(90011)->title);
+    }
+
+    public function testMissingOsuProfilesAreFilledIn_AndNothingElse(): void
+    {
+        $this->fakeOsu();
+        $quiet = fn () => null;
+        (new TomYumArtistsImport(false, 0, $quiet))->run();
+        Artist::where('id', 9001)->update(['osu_profile_url' => null, 'name' => 'Renamed here']);
+
+        $this->assertSame(1, (new TomYumArtistsImport(false, 0, $quiet))->fillProfiles());
+
+        $artist = Artist::findOrFail(9001);
+        $this->assertSame('https://osu.ppy.sh/users/102', $artist->osu_profile_url);
+        $this->assertSame('Renamed here', $artist->name);
+        $this->assertSame(0, (new TomYumArtistsImport(false, 0, $quiet))->fillProfiles());
     }
 
     public function testLengths(): void
