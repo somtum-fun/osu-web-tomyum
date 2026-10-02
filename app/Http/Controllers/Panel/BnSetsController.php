@@ -287,8 +287,14 @@ class BnSetsController extends Controller
         $beatmapset = $beatmapset->fresh();
         $required = $GLOBALS['cfg']['osu']['beatmapset']['required_nominations'];
         $qualified = false;
-        if ($beatmapset->isPending() && count($users) >= $required) {
+        // A graveyard or WIP set (as bancho has it) counts as pending here: it's pending first.
+        $unranked = $beatmapset->isPending() || in_array($beatmapset->approved, [Beatmapset::STATES['graveyard'], Beatmapset::STATES['wip']], true);
+        if ($unranked && count($users) >= $required) {
             try {
+                if (!$beatmapset->isPending()) {
+                    $beatmapset->setApproved('pending', $admin);
+                    $beatmapset = $beatmapset->fresh();
+                }
                 $beatmapset->qualify($admin);
                 $qualified = true;
             } catch (\Throwable $e) {
