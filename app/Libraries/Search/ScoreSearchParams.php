@@ -16,6 +16,7 @@ use App\Models\UserProfileCustomization;
 class ScoreSearchParams extends SearchParams
 {
     const DEFAULT_TYPE = 'global';
+    const RELAX_MODS = ['RX', 'AP']; // TomYum: kept off the vanilla leaderboards (fromArray)
     const SUPPORTER_TYPES = ['country', 'friend'];
     const VALID_TYPES = ['global', 'country', 'friend', 'team'];
 
@@ -44,6 +45,12 @@ class ScoreSearchParams extends SearchParams
         $params->excludeWithoutPp = $rawParams['exclude_without_pp'] ?? $params->excludeWithoutPp;
         $params->isLegacy = $rawParams['is_legacy'] ?? null;
         $params->mods = $rawParams['mods'] ?? null;
+
+        // TomYum: a map's leaderboard (and ranks and #1s on it) is the vanilla one: Relax and
+        // Autopilot plays have their own (TomYum's relax system), unless the mods filter asks for them.
+        if ($params->beatmapIds !== null && array_intersect(static::RELAX_MODS, $params->mods ?? []) === []) {
+            $params->excludeMods = array_values(array_unique([...($params->excludeMods ?? []), ...static::RELAX_MODS]));
+        }
         $params->rulesetId = $rawParams['ruleset_id'] ?? null;
         $params->userId = $rawParams['user_id'] ?? null;
 
