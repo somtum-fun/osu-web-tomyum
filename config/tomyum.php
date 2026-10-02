@@ -10,9 +10,17 @@ return [
     // The server's name where the website speaks for it (support ticket mail, the maintenance notice).
     'server_name' => presence(env('TOMYUM_SERVER_NAME')) ?? 'TomYum',
 
-    // osu! sets' audio previews (the play buttons), by one of the set's difficulties' ids ({beatmap});
-    // empty: osu!'s own (b.ppy.sh, by the set's id).
-    'audio_preview_url' => presence(env('TOMYUM_AUDIO_PREVIEW_URL', 'https://catboy.best/preview/audio/{beatmap}')),
+    // osu! sets' audio previews (the play buttons), {set} the set's id: TomYum's b.<domain> (the
+    // website at osu.<domain>), which keeps them from catboy.best or osu! and serves them with their
+    // length; without an osu. host, osu!'s own.
+    'audio_preview_url' => presence(env('TOMYUM_AUDIO_PREVIEW_URL')) ?? (function () {
+        $url = parse_url((string) env('APP_URL'));
+        $host = $url['host'] ?? '';
+
+        return str_starts_with($host, 'osu.')
+            ? ($url['scheme'] ?? 'https').'://b.'.substr($host, 4).'/preview/{set}.mp3'
+            : null;
+    })(),
 
     // The osu!store (supporter, paid through payments-service below). Off, every store page says
     // it isn't available (TomYumStoreUnavailable) and the menus don't link to it.
