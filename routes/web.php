@@ -124,6 +124,7 @@ Route::group(['middleware' => ['web']], function () {
         Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
             Route::get('/', 'AdminController@index')->name('index');
             Route::post('pp-rework', 'AdminController@ppRework')->name('pp-rework');
+            Route::post('pp-library', 'AdminController@ppLibrary')->name('pp-library');
             Route::post('maintenance', 'AdminController@maintenance')->name('maintenance');
             Route::post('alert', 'AdminController@alert')->name('alert');
             Route::get('users', 'AdminController@users')->name('users.index');

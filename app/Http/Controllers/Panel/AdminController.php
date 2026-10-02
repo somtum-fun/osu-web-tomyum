@@ -658,6 +658,27 @@ class AdminController extends Controller
     }
 
     /** Recalculates every score's pp on the game server (after a pp update), which also updates this site. */
+    /** TomYum: asks the host's pp updater to check for newer pp libraries, or to update one (a pp rework follows). */
+    public function ppLibrary()
+    {
+        if (Request::input('action') === 'check') {
+            $response = $this->tomyum()->post('/pp-libraries/check');
+
+            return $response->successful()
+                ? $this->backToIndex('success', 'Checking for newer pp libraries: reload in a few seconds.')
+                : $this->backToIndex('error', $response->json('error') ?? "Couldn't ask (HTTP {$response->status()}).");
+        }
+
+        $library = Request::input('library');
+        $response = $this->tomyum()->post('/pp-libraries/update', ['library' => $library]);
+        if (!$response->successful()) {
+            return $this->backToIndex('error', $response->json('error') ?? "Couldn't ask (HTTP {$response->status()}).");
+        }
+        $this->staffLog('pp.library_update', null, "Asked to update the {$library} pp library");
+
+        return $this->backToIndex('success', 'Updating the pp library: the steps show below as it goes. Once it is live, a pp rework starts by itself.');
+    }
+
     /** TomYum: starts a pp rework in the chosen modes, or cancels one (the game server runs it). */
     public function ppRework()
     {

@@ -112,6 +112,18 @@ class TomYumPpRework
         return min(100, ($hasWebsite ? 90 : 100) * (($rework['done'] ?? 0) / $total));
     }
 
+    /** The pp libraries as the host's pp updater reports them: ['status' => ..., 'job' => ...] (admin panel; not cached). */
+    public static function libraries(): array
+    {
+        try {
+            $response = (new TomYumAdmin(\Auth::user() ?? static::actor()))->get('/pp-libraries');
+
+            return $response->successful() ? $response->json() : ['status' => null, 'job' => null];
+        } catch (\Throwable $e) {
+            return ['status' => null, 'job' => null];
+        }
+    }
+
     private static function actor(): ?User
     {
         return User::find($GLOBALS['cfg']['osu']['legacy']['bancho_bot_user_id']);

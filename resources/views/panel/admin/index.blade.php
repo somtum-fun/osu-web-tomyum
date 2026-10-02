@@ -159,6 +159,80 @@
                 </div>
             @endforeach
 
+            @php
+                $ppLibraries = App\Libraries\TomYumPpRework::libraries();
+                $ppStatus = $ppLibraries['status'] ?? null;
+                $ppJob = $ppLibraries['job'] ?? null;
+                $shortRef = fn (?string $ref) => $ref === null ? '' : substr($ref, 0, 7);
+            @endphp
+            <h3>pp libraries</h3>
+            @if ($ppStatus === null)
+                <p class="tomyum-panel__muted">The pp updater hasn't reported yet (it runs on the server itself: deploy/pp-updater).</p>
+            @else
+                <table class="tomyum-panel__table">
+                    <tr><th>Library</th><th>Running</th><th>Newest</th><th></th></tr>
+                    @foreach (['vanilla' => 'Vanilla', 'akatsuki' => 'Relax / Autopilot'] as $key => $label)
+                        @php $library = $ppStatus[$key] ?? []; @endphp
+                        <tr>
+                            <td>
+                                <strong>{{ $label }}</strong><br>
+                                <span class="tomyum-panel__muted">{{ $library['library'] ?? '' }}</span>
+                            </td>
+                            <td>
+                                {{ $library['current'] ?? '?' }}
+                                @if ($key === 'akatsuki') <span class="tomyum-panel__muted">({{ $shortRef($library['commit'] ?? null) }})</span>
+                                @else <span class="tomyum-panel__muted">(processor {{ $shortRef($library['processorRef'] ?? null) }})</span> @endif
+                            </td>
+                            <td>
+                                @if (isset($library['error']))
+                                    <span class="tomyum-panel__pill tomyum-panel__pill--bad">couldn't check</span>
+                                @else
+                                    {{ $library['latest'] ?? '?' }}
+                                    @if ($key === 'akatsuki') <span class="tomyum-panel__muted">({{ $shortRef($library['latestCommit'] ?? null) }})</span>
+                                    @else <span class="tomyum-panel__muted">(processor {{ $shortRef($library['latestProcessorRef'] ?? null) }})</span> @endif
+                                    @if ($key === 'vanilla' && isset($library['osuRelease']) && $library['osuRelease'] !== ($library['latest'] ?? null))
+                                        <br><span class="tomyum-panel__muted">osu! released {{ $library['osuRelease'] }}; ppy's score processor isn't on it yet (vanilla pp must match it).</span>
+                                    @endif
+                                @endif
+                            </td>
+                            <td>
+                                @if ($library['available'] ?? false)
+                                    <form method="POST" action="{{ route('panel.admin.pp-library') }}"
+                                        onsubmit="return confirm({{ json_encode('Update the '.$label.' pp library? The server rebuilds with it, then reworks '.App\Libraries\TomYumPpRework::modeNames($library['modes'] ?? []).': those rankings pause and new pp waits until it is done.') }})">
+                                        @csrf
+                                        <input type="hidden" name="action" value="update">
+                                        <input type="hidden" name="library" value="{{ $key }}">
+                                        <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-download"></i>Update</button>
+                                    </form>
+                                @elseif (!isset($library['error']))
+                                    <span class="tomyum-panel__pill tomyum-panel__pill--good">up to date</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </table>
+                <form method="POST" action="{{ route('panel.admin.pp-library') }}" class="tomyum-panel__row" style="align-items: center; margin-top: 6px">
+                    @csrf
+                    <input type="hidden" name="action" value="check">
+                    <span class="tomyum-panel__muted">Checked {!! isset($ppStatus['checkedAt']) ? timeago(Carbon\Carbon::parse($ppStatus['checkedAt'])) : 'never' !!} (every 6 hours).</span>
+                    <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Check now</button>
+                </form>
+            @endif
+            @if ($ppJob !== null)
+                <div class="tomyum-panel__item" style="margin-top: 8px">
+                    <strong>{{ $ppJob['library'] === 'vanilla' ? 'Vanilla' : 'Relax / Autopilot' }} update:</strong>
+                    <span class="{{ class_with_modifiers('tomyum-panel__pill', [($ppJob['state'] ?? '') === 'failed' ? 'bad' : (($ppJob['state'] ?? '') === 'done' ? 'good' : 'info')]) }}">{{ $ppJob['state'] ?? '?' }}</span>
+                    <ul class="tomyum-panel__muted" style="margin: 4px 0 0 18px">
+                        @foreach (array_slice($ppJob['steps'] ?? [], -6) as $step)
+                            <li>{{ $step['text'] }}</li>
+                        @endforeach
+                    </ul>
+                    @if (present($ppJob['error'] ?? null))
+                        <pre class="tomyum-panel__muted" style="white-space: pre-wrap">{{ $ppJob['error'] }}</pre>
+                    @endif
+                </div>
+            @endif
+            <h3 style="margin-top: 12px">Rework by hand</h3>
             <form method="POST" action="{{ route('panel.admin.pp-rework') }}" onsubmit="return confirm('Start a pp rework? Rankings in these modes pause until it is done.')">
                 @csrf
                 <input type="hidden" name="action" value="start">
