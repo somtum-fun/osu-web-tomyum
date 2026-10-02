@@ -22,8 +22,8 @@
             <p class="tomyum-panel__hint">
                 Like osu!'s: a tournament's banners are the images in its folder on the assets host
                 (<code>tournament-banners/official/owc2025/profile/</code>), each at 1000×60 and @2x 2000×120, named like
-                <code>winner_CA</code>, <code>supporter_CA</code> or just <code>banner</code>. Everyone you give it gets one of them under their
-                header, linking to the tournament's page.
+                <code>winner_CA</code>, <code>supporter_CA</code> or just <code>banner</code>. Everyone you give it gets theirs under their header
+                (a player can have several, of one tournament too), linking to the tournament's page.
             </p>
             <form method="POST" action="{{ route($panelPrefix.'tournament-banners.store') }}" class="panel-banners__form">
                 @csrf
@@ -200,6 +200,7 @@
                                 @endif
                                 <form method="POST" action="{{ route($panelPrefix.'tournament-banners.take', ['banner' => $banner->getKey(), 'user' => $holder->user_id]) }}">
                                     @csrf
+                                    <input type="hidden" name="image" value="{{ $holder->country_acronym }}">
                                     <button type="submit" title="Take it away"><i class="fas fa-times"></i></button>
                                 </form>
                             </span>

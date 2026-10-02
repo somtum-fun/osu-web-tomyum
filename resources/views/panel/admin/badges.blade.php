@@ -142,8 +142,21 @@
                                 <input class="input-text" type="text" name="name" maxlength="80" placeholder="ndc-2023">
                             </label>
                         </div>
+                        @if (count($images) > 0)
+                            <div class="panel-badges__picker-wrap">
+                                <span class="tomyum-panel__muted">…or pick one of the badge images here (Assets page)</span>
+                                <div class="panel-badges__picker">
+                                    @foreach ($images as $image)
+                                        <button type="button" class="panel-badges__pick js-panel-badges-pick" data-image="{{ $image }}" title="{{ $image }}">
+                                            <img src="{{ $badgePrefix.$image }}" srcset="{{ $badgePrefix.App\Libraries\TomYumAssets::retina($image) }} 2x" alt="{{ $image }}" loading="lazy">
+                                            <span class="u-ellipsis-overflow">{{ pathinfo($image, PATHINFO_FILENAME) }}</span>
+                                        </button>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
                         <label class="input-container">
-                            <span class="input-container__label">…or a badge image already here or on osu! (its file name), or a link to any image</span>
+                            <span class="input-container__label">…or a badge image's file name (here or osu!'s), or a link to any image</span>
                             <input class="input-text" type="text" name="image" placeholder="contributor.png, or https://…" list="panel-badges-images">
                             <datalist id="panel-badges-images">
                                 @foreach ($images as $image)
@@ -228,6 +241,16 @@
             preview.addEventListener('load', () => { preview.hidden = false; empty.hidden = true; });
             preview.addEventListener('error', () => { if (preview.getAttribute('src') == null) return; preview.hidden = true; empty.hidden = false; empty.textContent = 'No image there'; });
             [image, description, awarded].forEach((input) => input.addEventListener('input', update));
+            // Picking one of the images here: it's the image (and an upload chosen before is dropped).
+            form.querySelectorAll('.js-panel-badges-pick').forEach((button) => button.addEventListener('click', () => {
+                form.querySelectorAll('.js-panel-badges-pick').forEach((other) => other.classList.toggle('panel-badges__pick--active', other === button));
+                image.value = button.dataset.image;
+                file.value = '';
+                if (fileUrl !== null) URL.revokeObjectURL(fileUrl);
+                fileUrl = null;
+                update();
+            }));
+            image.addEventListener('input', () => form.querySelectorAll('.js-panel-badges-pick').forEach((other) => other.classList.toggle('panel-badges__pick--active', other.dataset.image === image.value.trim())));
             file.addEventListener('change', () => {
                 if (fileUrl !== null) URL.revokeObjectURL(fileUrl);
                 const chosen = file.files?.[0];

@@ -279,15 +279,12 @@ class TournamentBannersController extends Controller
             }
         }
 
-        $existing = ProfileBanner::where('tournament_id', $row->getKey())->where('user_id', $user->getKey())->first();
-        if ($existing !== null) {
-            if ($existing->country_acronym === $variant) {
-                return $this->back('success', "{$user->username} already has it.", "banner-{$row->getKey()}");
-            }
-            $existing->update(['country_acronym' => $variant]);
-        } else {
-            ProfileBanner::create(['user_id' => $user->getKey(), 'tournament_id' => $row->getKey(), 'country_acronym' => $variant]);
+        // A player can have several (their profile shows them all), of this tournament too (winner and supporter).
+        $has = ProfileBanner::where('tournament_id', $row->getKey())->where('user_id', $user->getKey())->where('country_acronym', $variant)->exists();
+        if ($has) {
+            return $this->back('success', "{$user->username} already has it.", "banner-{$row->getKey()}");
         }
+        ProfileBanner::create(['user_id' => $user->getKey(), 'tournament_id' => $row->getKey(), 'country_acronym' => $variant]);
         $which = $variant === '' ? '' : " ({$variant})";
         $this->staffLog('user.banner_add', $user->getKey(), "Gave {$user->username} the tournament banner \"{$row->tournament?->name}\"{$which}");
 
@@ -298,8 +295,11 @@ class TournamentBannersController extends Controller
     {
         $row = TournamentBanner::with('tournament')->findOrFail((int) $banner);
         $target = User::findOrFail((int) $user);
-        ProfileBanner::where('tournament_id', $row->getKey())->where('user_id', $target->getKey())->delete();
-        $this->staffLog('user.banner_remove', $target->getKey(), "Took the tournament banner \"{$row->tournament?->name}\" from {$target->username}");
+        // That one of theirs (they may have others of the tournament).
+        $variant = (string) Request::input('image');
+        ProfileBanner::where('tournament_id', $row->getKey())->where('user_id', $target->getKey())->where('country_acronym', $variant)->delete();
+        $which = $variant === '' ? '' : " ({$variant})";
+        $this->staffLog('user.banner_remove', $target->getKey(), "Took the tournament banner \"{$row->tournament?->name}\"{$which} from {$target->username}");
 
         return $this->back('success', "Took it from {$target->username}.", "banner-{$row->getKey()}");
     }

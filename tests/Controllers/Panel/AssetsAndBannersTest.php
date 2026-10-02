@@ -127,11 +127,15 @@ class AssetsAndBannersTest extends TestCase
         $this->assertSame("supporter_{$country}", $given->country_acronym);
         $this->assertSame(TomYumAssets::baseUrl()."/tournament-banners/official/owc2025/profile/supporter_{$country}.jpg", $given->image());
 
-        // Another of its images for them: theirs changes (one banner per tournament).
+        // Another of its images for them: they have both (winner and supporter).
         $this->actAsUser($this->admin, true)
             ->post(route('panel.admin.tournament-banners.give', ['banner' => $banner->getKey()]), ['user' => $player->username, 'image' => 'winner_PL']);
-        $this->assertSame('winner_PL', $given->fresh()->country_acronym);
-        $this->assertSame(1, ProfileBanner::where('user_id', $player->getKey())->count());
+        $this->assertSame(2, ProfileBanner::where('user_id', $player->getKey())->count());
+
+        // Taking one away leaves the other.
+        $this->actAsUser($this->admin, true)
+            ->post(route('panel.admin.tournament-banners.take', ['banner' => $banner->getKey(), 'user' => $player->getKey()]), ['image' => 'winner_PL']);
+        $this->assertSame(["supporter_{$country}"], ProfileBanner::where('user_id', $player->getKey())->pluck('country_acronym')->all());
 
         // One that isn't in its folder isn't given.
         $this->actAsUser($this->admin, true)

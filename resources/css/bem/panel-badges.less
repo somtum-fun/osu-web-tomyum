@@ -179,6 +179,55 @@
     gap: 6px;
   }
 
+  // The badge images here, to pick from when giving one.
+  &__picker-wrap {
+    display: grid;
+    font-size: @font-size--normal;
+    gap: 6px;
+  }
+
+  &__picker {
+    display: grid;
+    gap: 6px;
+    grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+    max-height: 230px;
+    overflow-y: auto;
+  }
+
+  &__pick {
+    .reset-input();
+    align-items: center;
+    background: hsl(var(--hsl-b5));
+    border-radius: @border-radius-large;
+    color: hsl(var(--hsl-c2));
+    cursor: pointer;
+    display: grid;
+    font-size: 11px;
+    gap: 4px;
+    justify-items: center;
+    min-width: 0;
+    padding: 8px 6px 6px;
+
+    img {
+      height: 40px;
+      width: 86px;
+    }
+
+    > span {
+      max-width: 100%;
+    }
+
+    &:hover {
+      background: hsl(var(--hsl-b3));
+      color: hsl(var(--hsl-c1));
+    }
+
+    &--active {
+      box-shadow: inset 0 0 0 2px hsl(var(--hsl-h1));
+      color: hsl(var(--hsl-c1));
+    }
+  }
+
   // Giving one: the form, and the badge as it'll look beside it.
   &__give {
     display: grid;
