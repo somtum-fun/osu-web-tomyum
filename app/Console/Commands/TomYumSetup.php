@@ -37,7 +37,8 @@ class TomYumSetup extends Command
         'loved' => ['Project Loved', 'LVD', 'FFD1DC', 7, true],
         'spt' => ['Support Team', 'SPT', 'EB8C47', 8, true],
         'alumni' => ['osu! Alumni', 'ALM', '999999', 9, true],
-        'bot' => ['Chat Bots', 'BOT', 'D3D3D3', 10, true],
+        'featured_artist' => ['Featured Artist', 'FA', '00FFFF', 10, true],
+        'bot' => ['Chat Bots', 'BOT', 'D3D3D3', 11, true],
         // Permission only (chat announcements): no badge, no listing, like on osu.ppy.sh.
         'announce' => ['Announcers', 'ANN', 'FFD966', null, false],
     ];

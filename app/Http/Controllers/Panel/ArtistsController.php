@@ -150,7 +150,9 @@ class ArtistsController extends Controller
         }
 
         $visibilityChanged = (bool) $artist->visible !== $fields['visible'];
+        $previousUserId = $artist->user_id;
         $artist->forceFill($fields)->save();
+        $this->featuredArtistGroup($previousUserId, $artist->user_id);
         if ($visibilityChanged) {
             static::reindex($artist->tracks()->get());
         }
@@ -163,6 +165,7 @@ class ArtistsController extends Controller
     {
         $artist = Artist::findOrFail((int) $artist);
         $name = $artist->name;
+        $userId = $artist->user_id;
         DB::transaction(function () use ($artist) {
             $trackIds = $artist->tracks()->pluck('id');
             DB::table('osu_beatmapsets')->whereIn('track_id', $trackIds)->update(['track_id' => null]);
@@ -173,6 +176,7 @@ class ArtistsController extends Controller
             $artist->albums()->delete();
             $artist->delete();
         });
+        $this->featuredArtistGroup($userId, null);
         $this->staffLog('artist.remove', $artist->getKey(), "Removed the featured artist {$name}");
 
         return $this->backToIndex('success', "Removed {$name}, with their albums and tracks.");
@@ -259,6 +263,33 @@ class ArtistsController extends Controller
         $this->staffLog('artist.track_remove', $artist->getKey(), "Removed the track {$track->title} from {$artist->name}");
 
         return $this->back($artist, 'success', "Removed the track {$track->title}.");
+    }
+
+    /**
+     * The Featured Artist group (FA, like osu!'s) follows the artists' profiles: the new one gets it,
+     * with its "Featured Artist" title when they have none; the old one loses both unless they're
+     * still another artist's (and the title only if it's still that one). Their colour is their main group's.
+     */
+    private function featuredArtistGroup(?int $before, ?int $after): void
+    {
+        $group = app('groups')->byIdentifier('featured_artist');
+        if ($group === null || $before === $after) {
+            return;
+        }
+
+        if ($after !== null && ($user = User::find($after)) !== null && $user->findUserGroup($group) === null) {
+            $user->addToGroup($group, null, Auth::user());
+            AdminController::mainGroup($user);
+            AdminController::groupTitle($user, $group, true);
+            $this->staffLog('admin.groups', $user->getKey(), "Added {$user->username} to Featured Artist (an artist's profile)");
+        }
+
+        if ($before !== null && ($user = User::find($before)) !== null && $user->findUserGroup($group) !== null
+            && Artist::where('user_id', $before)->doesntExist()) {
+            $user->removeFromGroup($group, Auth::user());
+            AdminController::groupTitle($user, $group, false);
+            $this->staffLog('admin.groups', $user->getKey(), "Removed {$user->username} from Featured Artist (no artist's profile now)");
+        }
     }
 
     /** The album form into the album; the problem, if any. */

@@ -12,6 +12,8 @@ use App\Models\Artist;
 use App\Models\ArtistAlbum;
 use App\Models\ArtistTrack;
 use App\Models\Beatmapset;
+use App\Models\Group;
+use App\Models\Rank;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
@@ -91,6 +93,40 @@ class ArtistsControllerTest extends TestCase
         $this->actAsUser($this->admin, true)
             ->post(route('panel.admin.artists.update', ['artist' => $artist->getKey()]), ['name' => 'x', 'profile' => 'nobody-called-this'])
             ->assertSessionHas('panel_status.type', 'error');
+    }
+
+    public function testTheArtistsProfile_IsAFeaturedArtist(): void
+    {
+        $artist = $this->artist();
+        $player = User::factory()->create();
+        $other = User::factory()->create();
+        // Tests make the groups they use (the test database starts without them).
+        $group = Group::firstOrCreate(['identifier' => 'featured_artist'], [
+            'group_name' => 'Featured Artist', 'short_name' => 'FA', 'colour' => '00FFFF', 'group_colour' => '00FFFF',
+            'group_desc' => '', 'group_type' => 1, 'display_order' => 10,
+        ]);
+        app('groups')->resetMemoized();
+        $title = Rank::firstOrCreate(['rank_special' => 1, 'rank_title' => 'Featured Artist'], ['rank_image' => '', 'rank_min' => 0]);
+        $save = fn (string $profile) => $this->actAsUser($this->admin, true)
+            ->post(route('panel.admin.artists.update', ['artist' => $artist->getKey()]), ['name' => $artist->name, 'profile' => $profile])
+            ->assertSessionHas('panel_status.type', 'success');
+
+        $save($player->username);
+        $this->assertNotNull($player->fresh()->findUserGroup($group));
+        $this->assertSame($group->getKey(), $player->fresh()->group_id); // their colour: FA's
+        $this->assertSame($title->getKey(), (int) $player->fresh()->user_rank); // and its title
+
+        // Someone else instead: the first one isn't an artist's profile any more.
+        $save((string) $other->getKey());
+        $this->assertNull($player->fresh()->findUserGroup($group));
+        $this->assertNotNull($other->fresh()->findUserGroup($group));
+        $this->assertSame(0, (int) $player->fresh()->user_rank);
+
+        // Still another artist's profile: they keep it when this one lets go.
+        $second = $this->artist();
+        $second->forceFill(['user_id' => $other->getKey()])->save();
+        $save('');
+        $this->assertNotNull($other->fresh()->findUserGroup($group));
     }
 
     public function testBadLinksAreRefused(): void

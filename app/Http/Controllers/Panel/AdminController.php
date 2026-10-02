@@ -35,7 +35,7 @@ class AdminController extends Controller
     private const UNASSIGNABLE_GROUPS = ['default', 'bot'];
 
     // TomYum: groups that come with a title (see groupTitle): identifier => the title.
-    private const GROUP_TITLES = ['tc' => 'Tournament Committee'];
+    private const GROUP_TITLES = ['tc' => 'Tournament Committee', 'featured_artist' => 'Featured Artist'];
 
     private const PLAYMODES = ['osu' => 'osu!', 'taiko' => 'osu!taiko', 'fruits' => 'osu!catch', 'mania' => 'osu!mania'];
 
@@ -292,7 +292,7 @@ class AdminController extends Controller
         // TomYum: their colour is their main group's: a staff group, not "default", once they have one.
         $this->mainGroup($target);
         foreach ($titleChanges as [$group, $isAdded]) {
-            $this->groupTitle($target, $group, $isAdded);
+            static::groupTitle($target, $group, $isAdded);
         }
 
         if (count($added) + count($removed) === 0) {
@@ -326,7 +326,8 @@ class AdminController extends Controller
             return;
         }
 
-        $title = $target->user_rank;
+        // The stored title (0 for none: the model reads 0 as no rank, which can't be written back).
+        $title = (int) User::whereKey($target->getKey())->value('user_rank');
         $target->setDefaultGroup($main, Auth::user());
         User::whereKey($target->getKey())->update(['user_rank' => $title]);
         $target->refresh();
@@ -336,7 +337,7 @@ class AdminController extends Controller
      * TomYum: a group that comes with a title (the Tournament Committee's "Tournament Committee"):
      * given with the group when they have no title, taken with it when it's still theirs.
      */
-    private function groupTitle(User $target, Group $group, bool $added): void
+    public static function groupTitle(User $target, Group $group, bool $added): void
     {
         $title = static::GROUP_TITLES[$group->identifier] ?? null;
         if ($title === null) {

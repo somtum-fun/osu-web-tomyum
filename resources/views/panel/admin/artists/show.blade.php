@@ -72,7 +72,7 @@
 
                 <p class="tomyum-panel__section-title panel-artists__wide">Profile</p>
                 <label class="input-container">
-                    <span class="input-container__label"><i class="fas fa-user"></i> Their profile on this server (a player's name or id)</span>
+                    <span class="input-container__label"><i class="fas fa-user"></i> Their profile on this server (a player's name or id; they get the FA badge)</span>
                     <input class="input-text" type="text" name="profile" maxlength="255" value="{{ $artist->user_id === null ? '' : (App\Models\User::find($artist->user_id)?->username ?? $artist->user_id) }}" placeholder="none">
                 </label>
                 <label class="input-container">
