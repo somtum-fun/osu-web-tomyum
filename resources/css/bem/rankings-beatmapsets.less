@@ -7,7 +7,8 @@
 
   display: grid;
   gap: 10px;
-  grid-template-columns: 1fr 1fr;
+  // TomYum: equal halves (a plain 1fr grows to fit a long title, and the other card shrank)
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 
   @media @mobile {
     grid-template-columns: 1fr;
