@@ -3,33 +3,29 @@
     See the LICENCE file in the repository root for full licence text.
 --}}
 {{--
-    Project Loved's header: Overview, the round (the one shown, else the latest) and Requests as tabs,
-    and the mode on the right when the page is about one ($urlFn: a mode's url on this page).
-    $current: 'overview', 'requests' or the round shown.
+    Project Loved's header: the requests by status and the blacklist as tabs, and the mode on the right
+    when the page lists one ($urlFn: a mode's url on this page). $current: a status, 'blacklist' or null.
 --}}
 @php
-    use App\Models\TomYumLovedRound;
+    use App\Libraries\TomYumLoved;
+    use App\Models\TomYumLovedRequest;
 
-    $shownRound = $current instanceof TomYumLovedRound ? $current : TomYumLovedRound::public()->latest('id')->first();
     $mode = $ruleset ?? null;
-    $links = [[
-        'active' => $current === 'overview',
-        'title' => 'Overview',
-        'url' => route('loved.index'),
-    ]];
-    if ($shownRound !== null) {
-        $links[] = [
-            'active' => $current instanceof TomYumLovedRound,
-            'title' => $shownRound->name,
-            'url' => route('loved.rounds.show', ['round' => $shownRound->getKey(), 'mode' => $mode]),
-        ];
-    }
-    $links[] = [
-        'active' => $current === 'requests',
-        'count' => App\Models\TomYumLovedRequest::where('status', 'open')->count(),
-        'title' => 'Requests',
-        'url' => route('loved.requests', ['mode' => $mode]),
+    $tab = fn (string $title, string $status, ?int $count = null) => [
+        'active' => $current === $status,
+        'count' => $count,
+        'title' => $title,
+        'url' => route('loved.index', array_filter(['status' => $status === 'open' ? null : $status, 'mode' => $mode])),
     ];
+    $links = [
+        $tab('Requests', 'open', TomYumLovedRequest::where('status', 'open')->count()),
+        $tab('Loved', 'loved'),
+        $tab('Rejected', 'rejected'),
+    ];
+    if (TomYumLoved::isTeam(Auth::user())) {
+        $links[] = $tab('Removed', 'removed');
+    }
+    $links[] = ['active' => $current === 'blacklist', 'title' => 'Blacklist', 'url' => route('loved.blacklist')];
 @endphp
 @component('layout._page_header_v4', ['params' => [
     'links' => $links,

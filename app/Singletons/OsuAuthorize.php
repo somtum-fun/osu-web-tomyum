@@ -1512,16 +1512,7 @@ class OsuAuthorize
         $this->ensureLoggedIn($user);
         $this->ensureCleanRecord($user);
 
-        // TomYum: the Project Loved team and the staff post the Project Loved forum's poll topics
-        // (from the Project Loved site, one per nomination) however much they've played. Membership
-        // is checked directly: the site posts with their OAuth token, where isGroup() is always false.
-        $lovedForumTeam = $forum->forum_id === $GLOBALS['cfg']['tomyum']['loved_forum_id']
-            && collect(['loved', 'admin', 'dev', 'gmt'])->contains(
-                fn ($identifier) => ($group = app('groups')->byIdentifier($identifier)) !== null
-                    && $user->findUserGroup($group) !== null
-            );
-
-        if (!$user->isBot() && !$lovedForumTeam) {
+        if (!$user->isBot()) {
             $plays = $user->playCount();
             $posts = $user->user_posts;
             $forInitialHelpForum = in_array($forum->forum_id, $GLOBALS['cfg']['osu']['forum']['initial_help_forum_ids'], true);

@@ -3,186 +3,182 @@
     See the LICENCE file in the repository root for full licence text.
 --}}
 {{--
-    TomYum: Project Loved's overview (LovedController@index): what it is, the latest round in short,
-    the most wanted requests, past rounds and the team (bem/tomyum-loved.less).
+    TomYum: Project Loved (LovedController@index): ask for a map, and the requests in one status, open
+    ones by their reviews' score (bem/tomyum-loved.less).
 --}}
 @php
     use App\Libraries\TomYumLoved;
     use App\Models\Beatmap;
 
-    $latestCounts = $latestNominations->countBy('ruleset_id');
+    $statusTitles = [
+        'open' => 'Requests',
+        'loved' => 'Loved by the team',
+        'rejected' => 'Rejected',
+        'removed' => 'Removed',
+    ];
+    $loveStatus = session('loved_status');
+    $user = Auth::user();
+    $modeName = $ruleset === null ? null : TomYumLoved::MODE_NAMES[Beatmap::MODES[$ruleset]];
 @endphp
-@extends('master')
+@extends('master', ['titlePrepend' => $status === 'open' ? null : $statusTitles[$status]])
 
 @section('content')
-    @include('loved._header', ['current' => 'overview'])
+    @include('loved._header', [
+        'current' => $status,
+        'urlFn' => fn ($mode) => route('loved.index', array_filter([
+            'status' => $status === 'open' ? null : $status,
+            'mode' => $mode === $ruleset ? null : $mode,
+        ])),
+    ])
 
     <div class="osu-page osu-page--generic-compact tomyum-loved">
-        <div class="page-extra">
-            <h2 class="title title--page-extra">About Project Loved</h2>
-            <div class="tomyum-loved__about">
-                <div>
-                    <p>
-                        Some maps will never be ranked: they're too long, too hard, too strange, or their mapper moved on.
-                        Project Loved gives the ones players love a leaderboard anyway. Loved maps keep scores and
-                        leaderboards like ranked ones, but give no pp.
-                    </p>
-                    <p>
-                        Got a map in mind? <a href="{{ route('loved.requests') }}">Request it</a>, or support
-                        what others asked for: the team picks each round's maps from the requests.
-                        Every map loved so far is in the <a href="{{ route('beatmapsets.index', ['s' => 'loved']) }}">beatmap listing</a>.
-                    </p>
-                </div>
-                <ol class="tomyum-loved__steps">
-                    <li><strong>Picking</strong> The Loved team chooses maps for each mode and writes why they deserve it.</li>
-                    <li><strong>Voting</strong> Everyone votes yes or no on each map, here or in its forum topic.</li>
-                    <li><strong>Results</strong> Maps with enough yes votes are Loved when the round closes.</li>
-                </ol>
-            </div>
-        </div>
-
-        <div class="page-extra">
-            <h2 class="title title--page-extra">Questions</h2>
-            @include('loved._faq')
-        </div>
-
-        <div class="page-extra">
-            @if ($latest === null)
-                <h2 class="title title--page-extra">Latest round</h2>
-                <p class="tomyum-loved__muted">No round has started yet. The next one will show up here.</p>
-            @else
-                <div class="tomyum-loved__section-head">
-                    <h2 class="title title--page-extra">{{ $latest->name }}</h2>
-                    <a class="btn-osu-big btn-osu-big--rounded-thin" href="{{ route('loved.rounds.show', ['round' => $latest->getKey()]) }}">
-                        @if ($latest->isVoting())
-                            <i class="fas fa-vote-yea"></i> Vote now
-                        @else
-                            <i class="fas fa-list"></i> See the results
+        @if ($status === 'open')
+            <div class="page-extra" id="ask">
+                <h2 class="title title--page-extra">Project Loved</h2>
+                <div class="tomyum-loved__about">
+                    <div>
+                        <p>
+                            Some maps will never be ranked: they're too long, too hard, too strange, or their mapper moved on.
+                            Loved gives the ones players love a leaderboard anyway (scores, but no pp).
+                        </p>
+                        <ol class="tomyum-loved__steps">
+                            <li><strong>Ask</strong> Paste a map's link, pick the mode and say why it deserves Loved.</li>
+                            <li><strong>Review</strong> Others say if they're for or against it, and why. The best-liked requests rise to the top.</li>
+                            <li><strong>Decide</strong> The Loved team loves the map, or rejects it with a reason.</li>
+                        </ol>
+                    </div>
+                    <div>
+                        @if ($loveStatus !== null)
+                            <div class="{{ class_with_modifiers('tomyum-loved__alert', [$loveStatus['type']]) }}">{{ $loveStatus['message'] }}</div>
                         @endif
-                    </a>
+                        @if ($user === null)
+                            <p><a class="js-user-link" href="#">Sign in</a> to ask for maps and review requests.</p>
+                        @else
+                            <form method="POST" action="{{ route('loved.requests.store') }}" class="tomyum-loved__form">
+                                @csrf
+                                <div class="tomyum-loved__form-row">
+                                    <label class="input-container tomyum-loved__form-set">
+                                        <span class="input-container__label">Beatmap set (link or id)</span>
+                                        <input class="input-text" type="text" name="beatmapset" required value="{{ old('beatmapset') }}" placeholder="https://osu.ppy.sh/beatmapsets/…">
+                                    </label>
+                                    <label class="input-container input-container--select">
+                                        <span class="input-container__label">Mode</span>
+                                        <select class="input-text" name="mode">
+                                            @foreach (TomYumLoved::MODE_NAMES as $id => $name)
+                                                <option value="{{ $id }}" @selected((int) old('mode', Beatmap::MODES[$ruleset ?? default_mode()] ?? 0) === $id)>{{ $name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </label>
+                                </div>
+                                <label class="input-container">
+                                    <span class="input-container__label">Why it deserves Loved</span>
+                                    <textarea class="input-text" name="reason" rows="3" required minlength="10" maxlength="1000" placeholder="A classic from 2014 people still play">{{ old('reason') }}</textarea>
+                                </label>
+                                <p class="tomyum-loved__muted">
+                                    Graveyard, WIP and pending maps only, one request per map and mode, up to {{ TomYumLoved::REQUESTS_PER_DAY }} a day.
+                                    If someone asked for it already, you'll be sent to their request to review it.
+                                </p>
+                                <div><button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-heart"></i> Ask for it</button></div>
+                            </form>
+                        @endif
+                    </div>
                 </div>
-                <div class="tomyum-loved__status">
-                    @if ($latest->isVoting())
-                        <span class="tomyum-loved__status-item tomyum-loved__status-item--live">
-                            <i class="fas fa-circle"></i> Voting ends {!! timeago($latest->voting_ends_at) !!}
-                        </span>
-                    @else
-                        <span class="tomyum-loved__status-item">Closed {!! timeago($latest->closed_at) !!}</span>
-                        <span class="tomyum-loved__status-item tomyum-loved__status-item--loved">
-                            <i class="fas fa-heart"></i> {{ $latest->loved_count }} of {{ $latest->nominations_count }} maps Loved
-                        </span>
-                    @endif
-                    <span class="tomyum-loved__status-item">
-                        @foreach (Beatmap::MODES as $mode => $modeId)
-                            <a href="{{ route('loved.rounds.show', ['round' => $latest->getKey(), 'mode' => $mode]) }}"
-                                class="tomyum-loved__mode-count" title="{{ TomYumLoved::MODE_NAMES[$modeId] }}">
-                                <span class="fal fa-extra-mode-{{ $mode }}"></span> {{ $latestCounts[$modeId] ?? 0 }}
-                            </a>
-                        @endforeach
-                    </span>
-                </div>
+            </div>
+        @elseif ($loveStatus !== null)
+            <div class="{{ class_with_modifiers('tomyum-loved__alert', [$loveStatus['type']]) }}">{{ $loveStatus['message'] }}</div>
+        @endif
 
-                <div class="tomyum-loved__tiles">
-                    @foreach ($latestNominations as $nomination)
-                        @php
-                            $set = $nomination->beatmapset;
-                            $passed = $latest->isClosed() ? $nomination->passed : null;
-                        @endphp
-                        <a
-                            class="{{ class_with_modifiers('tomyum-loved-tile', ['loved' => $passed === true, 'failed' => $passed === false]) }}"
-                            href="{{ route('loved.rounds.show', ['round' => $latest->getKey(), 'mode' => Beatmap::modeStr($nomination->ruleset_id)]) }}#nomination-{{ $nomination->getKey() }}"
-                            style="background-image: url('{{ $set->coverURL('card') }}')"
-                        >
-                            <span class="tomyum-loved-tile__mode fal fa-extra-mode-{{ Beatmap::modeStr($nomination->ruleset_id) }}"
-                                title="{{ TomYumLoved::MODE_NAMES[$nomination->ruleset_id] }}"></span>
-                            @if ($passed === true)
-                                <span class="tomyum-loved-tile__badge"><i class="fas fa-heart"></i> Loved</span>
-                            @endif
-                            <span class="tomyum-loved-tile__text">
-                                <span class="tomyum-loved-tile__title u-ellipsis-overflow">{{ $set->title }}</span>
-                                <span class="tomyum-loved-tile__artist u-ellipsis-overflow">{{ $set->artist }} · {{ $set->creator }}</span>
-                            </span>
+        <div class="page-extra">
+            <h2 class="title title--page-extra">{{ $statusTitles[$status] }}{{ $modeName === null ? '' : " · {$modeName}" }}</h2>
+            <div class="tomyum-loved__status">
+                <span class="tomyum-loved__status-item">{{ $status === 'open' ? 'The best-reviewed first' : 'The latest first' }}</span>
+                <span class="tomyum-loved__status-item">
+                    @foreach (Beatmap::MODES as $mode => $modeId)
+                        <a href="{{ route('loved.index', array_filter(['status' => $status === 'open' ? null : $status, 'mode' => $mode])) }}"
+                            class="{{ class_with_modifiers('tomyum-loved__mode-count', ['active' => $mode === $ruleset]) }}"
+                            title="{{ TomYumLoved::MODE_NAMES[$modeId] }}">
+                            <span class="fal fa-extra-mode-{{ $mode }}"></span> {{ $counts[$modeId] ?? 0 }}
                         </a>
                     @endforeach
+                </span>
+            </div>
+
+            @if ($items->isEmpty())
+                <p class="tomyum-loved__muted">
+                    {{ $status === 'open' ? 'Nobody asked for a map here yet. Be the first!' : 'Nothing here yet.' }}
+                </p>
+            @else
+                <div class="tomyum-loved__entries">
+                    @foreach ($items as $item)
+                        @php
+                            $request = $item['request'];
+                            $url = route('loved.requests.show', ['request' => $request->getKey()]);
+                        @endphp
+                        <div class="tomyum-loved-entry" id="request-{{ $request->getKey() }}">
+                            <div
+                                class="js-react u-contents"
+                                data-beatmapset-panel="{{ json_encode(['beatmapset' => $item['beatmapsetJson']]) }}"
+                                data-react="beatmapset-panel"
+                            >
+                                <div class="beatmapset-panel beatmapset-panel--size-normal"></div>
+                            </div>
+                            <div class="tomyum-loved-entry__body">
+                                <div class="tomyum-loved-entry__writeup">
+                                    <div class="tomyum-loved-entry__captain">
+                                        <span class="fal fa-extra-mode-{{ Beatmap::modeStr($request->ruleset_id) }}" title="{{ TomYumLoved::MODE_NAMES[$request->ruleset_id] }}"></span>
+                                        Asked by
+                                        @if ($request->user !== null)
+                                            <a class="js-usercard" data-user-id="{{ $request->user_id }}" href="{{ route('users.show', ['user' => $request->user_id]) }}">{{ $request->user->username }}</a>
+                                        @else
+                                            someone
+                                        @endif
+                                        {!! timeago($request->created_at) !!}
+                                    </div>
+                                    <div class="tomyum-loved-entry__description">{{ $request->reason }}</div>
+                                    @if ($status !== 'open' && present($request->decision_reason))
+                                        <div class="tomyum-loved-entry__captain">
+                                            <strong>{{ $request->handler?->username ?? 'The team' }}:</strong> {{ $request->decision_reason }}
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="tomyum-loved-entry__support">
+                                    <span title="{{ $request->reviews_for + 1 }} for, {{ $request->reviews_against }} against">
+                                        <strong>{{ $request->score > 0 ? '+' : '' }}{{ i18n_number_format($request->score) }}</strong>
+                                        · {{ $request->reviews_for + 1 }} for · {{ $request->reviews_against }} against
+                                    </span>
+                                    <a class="{{ class_with_modifiers('tomyum-loved-entry__vote', ['support' => true]) }}" href="{{ $url }}">
+                                        @if ($status === 'open')
+                                            <i class="fas fa-comment"></i> Review
+                                        @else
+                                            <i class="fas fa-eye"></i> Open
+                                        @endif
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
+                @include('objects._pagination_v2', ['object' => $requests])
             @endif
         </div>
 
-        <div class="tomyum-loved__columns">
+        @if ($status === 'open')
             <div class="page-extra">
-                <div class="tomyum-loved__section-head">
-                    <h2 class="title title--page-extra">Most wanted</h2>
-                    <a href="{{ route('loved.requests') }}">All requests <i class="fas fa-angle-right"></i></a>
-                </div>
-                @if ($topRequests->isEmpty())
-                    <p class="tomyum-loved__muted">No requests yet. <a href="{{ route('loved.requests') }}">Ask for a map</a>!</p>
-                @else
-                    <ul class="tomyum-loved-list">
-                        @foreach ($topRequests as $request)
-                            @php
-                                $set = $request->beatmapset;
-                                $mode = Beatmap::modeStr($request->ruleset_id);
-                            @endphp
-                            <li>
-                                <a class="tomyum-loved-list__item" href="{{ route('loved.requests', ['mode' => $mode]) }}#request-{{ $request->getKey() }}">
-                                    <span class="tomyum-loved-list__cover" style="background-image: url('{{ $set->coverURL('list') }}')"></span>
-                                    <span class="tomyum-loved-list__text">
-                                        <span class="tomyum-loved-list__title u-ellipsis-overflow">{{ $set->title }}</span>
-                                        <span class="tomyum-loved-list__meta u-ellipsis-overflow">
-                                            <span class="fal fa-extra-mode-{{ $mode }}"></span> {{ $set->artist }} · {{ $set->creator }}
-                                        </span>
-                                    </span>
-                                    <span class="tomyum-loved-list__value" title="Supporters"><i class="fas fa-heart"></i> {{ i18n_number_format($request->supporters_count) }}</span>
-                                </a>
-                            </li>
-                        @endforeach
-                    </ul>
-                @endif
+                <h2 class="title title--page-extra">Questions</h2>
+                @include('loved._faq')
             </div>
 
-            <div class="page-extra">
-                <h2 class="title title--page-extra">Rounds</h2>
-                @if ($rounds->isEmpty())
-                    <p class="tomyum-loved__muted">None yet.</p>
-                @else
-                    <ul class="tomyum-loved-list">
-                        @foreach ($rounds as $round)
-                            <li>
-                                <a class="tomyum-loved-list__item" href="{{ route('loved.rounds.show', ['round' => $round->getKey()]) }}">
-                                    <span class="tomyum-loved-list__text">
-                                        <span class="tomyum-loved-list__title">{{ $round->name }}</span>
-                                        <span class="tomyum-loved-list__meta">
-                                            @if ($round->isVoting())
-                                                <span class="tomyum-loved__live">Voting now</span>, ends {!! timeago($round->voting_ends_at) !!}
-                                            @else
-                                                Closed {!! timeago($round->closed_at) !!}
-                                            @endif
-                                            · {{ $round->nominations_count }} {{ $round->nominations_count === 1 ? 'map' : 'maps' }}
-                                        </span>
-                                    </span>
-                                    @if ($round->isClosed())
-                                        <span class="tomyum-loved-list__value tomyum-loved-list__value--loved" title="Loved">
-                                            <i class="fas fa-heart"></i> {{ $round->loved_count }}
-                                        </span>
-                                    @endif
-                                </a>
-                            </li>
+            @if (count($team) > 0)
+                <div class="page-extra">
+                    <h2 class="title title--page-extra">The Loved team</h2>
+                    <p class="tomyum-loved__muted">They decide on the requests; their badge shows the modes they decide for.</p>
+                    <div class="tomyum-loved__team">
+                        @foreach ($team as $memberJson)
+                            <div class="js-react u-contents" data-react="user-card" data-user="{{ json_encode($memberJson) }}"></div>
                         @endforeach
-                    </ul>
-                @endif
-            </div>
-        </div>
-
-        @if (count($team) > 0)
-            <div class="page-extra">
-                <h2 class="title title--page-extra">The Loved team</h2>
-                <p class="tomyum-loved__muted">They pick the maps for each round; their badge shows the modes they pick for.</p>
-                <div class="tomyum-loved__team">
-                    @foreach ($team as $memberJson)
-                        <div class="js-react u-contents" data-react="user-card" data-user="{{ json_encode($memberJson) }}"></div>
-                    @endforeach
+                    </div>
                 </div>
-            </div>
+            @endif
         @endif
     </div>
 @endsection

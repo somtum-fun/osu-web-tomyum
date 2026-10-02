@@ -52,7 +52,7 @@ class TomYumSetup extends Command
         'nat' => 'Look after the Beatmap Nominators: they review applications and members, and step in when a nomination is disputed.',
         'bng' => 'Mod maps and nominate them for ranking, each in their own modes. A map needs two nominations to be qualified.',
         'bng_limited' => 'New Beatmap Nominators on probation: they can nominate maps, but not give one its final nomination.',
-        'loved' => 'Pick the maps for each [Project Loved](/community/loved) round and run its votes, each in their own modes.',
+        'loved' => 'Decide which maps players ask for get [Loved](/community/loved), each in their own modes.',
         'spt' => 'Answer support tickets: account problems, appeals and questions sent to the support addresses.',
         'alumni' => 'People who helped run the server before. Thank you!',
         'featured_artist' => 'Artists whose music is featured on the server.',
@@ -192,8 +192,6 @@ class TomYumSetup extends Command
             41 => [40, 'Mapping', 'Help, tips and works in progress.', 1, true, true],
             42 => [40, 'Beatmap Requests', 'Maps you would like to see ranked or loved.', 1, true, true],
             43 => [40, 'Modding Queues', 'Ask for mods, or offer them.', 1, true, true],
-            // Project Loved's topics and polls (the Project Loved site posts them; osu!'s id).
-            120 => [40, 'Project Loved', 'Vote on the maps nominated for Loved each round.', 1, false, true],
             50 => [0, 'Competitions', 'Tournaments and multiplayer.', 0, false, false],
             51 => [50, 'Tournaments', 'Run or join a tournament.', 1, true, true],
             52 => [50, 'Multiplayer', 'Find people to play with.', 1, true, true],
@@ -261,18 +259,7 @@ class TomYumSetup extends Command
                 }
             }
         }
-        // The Project Loved team starts the Project Loved forum's topics too.
-        $loved = Group::where('identifier', 'loved')->value('group_id');
-        if ($loved !== null) {
-            foreach (['f_post', 'f_reply', 'f_postcount'] as $option) {
-                $grant($loved, 120, $option);
-            }
-        }
         $this->line('Forums: '.count($forums).' present, with posting rights.');
-
-        // Project Loved's polls (also made when the first round opens voting, on sites set up before it).
-        $loved = \App\Libraries\TomYumLoved::forum();
-        $this->line("Project Loved forum: #{$loved->getKey()} present.");
     }
 
     private function userPageForum(): void

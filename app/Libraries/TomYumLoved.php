@@ -9,34 +9,26 @@ namespace App\Libraries;
 
 use App\Models\Beatmap;
 use App\Models\Beatmapset;
-use App\Models\Forum\Forum;
-use App\Models\Forum\Post;
-use App\Models\Forum\Topic;
-use App\Models\Forum\TopicPoll;
-use App\Models\Group;
-use App\Models\TomYumLovedNomination;
 use App\Models\TomYumLovedRequest;
-use App\Models\TomYumLovedRound;
+use App\Models\TomYumLovedReview;
 use App\Models\User;
-use Carbon\CarbonImmutable;
 use DB;
 
 /**
- * TomYum: Project Loved, as on osu!. The Loved team (captains, each for the modes their group
- * membership has) picks maps into a round; opening the round's voting posts a topic per map in the
- * Project Loved forum, as BanchoBot, with a Yes/No poll (osu-web's own polls, so voting rules and
- * changing a vote work as on any poll); closing the round counts the polls, posts the results in
- * each topic and loves the sets that passed (through Beatmapset::love, which tells the game).
+ * TomYum: Project Loved, kept simple (no rounds or polls). Players ask for a map to be Loved in a
+ * mode and say why; others review the request, for or against, with why; open requests are listed
+ * by their score. The Loved team (each member for the modes their group membership has; admins for
+ * all) loves a request, which loves the set's difficulties in that mode (Beatmapset::love, which
+ * tells the game), rejects it, removes it from the list, or blacklists the map. Each with a reason.
  */
 class TomYumLoved
 {
     const MODE_NAMES = [0 => 'osu!', 1 => 'osu!taiko', 2 => 'osu!catch', 3 => 'osu!mania'];
 
-    // Index of the poll's options (their poll_option_id).
-    const OPTION_YES = 0;
-    const OPTION_NO = 1;
+    /** How many maps a player may ask for a day. */
+    const REQUESTS_PER_DAY = 5;
 
-    /** The modes (ruleset ids) $user may pick maps for: admins all, the Loved group its modes (all when none are set). */
+    /** The modes (ruleset ids) $user decides for: admins all, the Loved group its modes (all when none are set). */
     public static function captainModes(?User $user): array
     {
         $all = array_keys(static::MODE_NAMES);
@@ -58,231 +50,62 @@ class TomYumLoved
         return array_values(array_filter(array_map(fn ($mode) => Beatmap::MODES[$mode] ?? null, $playmodes), fn ($id) => $id !== null));
     }
 
-    /** Running rounds (opening, closing, settings) is for admins and anyone in the Loved group. */
-    public static function canRunRounds(?User $user): bool
+    /** Anyone on the Loved team (or an admin): sees removed requests and changes the blacklist. */
+    public static function isTeam(?User $user): bool
     {
-        return $user !== null && ($user->isAdmin() || $user->isProjectLoved());
+        return count(static::captainModes($user)) > 0;
+    }
+
+    public static function canDecide(?User $user, TomYumLovedRequest $request): bool
+    {
+        return in_array($request->ruleset_id, static::captainModes($user), true);
+    }
+
+    /** Why $user can't ask for maps or review requests, if they can't. */
+    public static function cannotTakePart(User $user): ?string
+    {
+        return $user->isRestricted() || $user->isSilenced()
+            ? "You can't ask for maps or review requests while restricted or silenced."
+            : null;
     }
 
     /**
-     * The Project Loved forum (under Beatmaps), made when missing: staff and the Loved team may start
-     * topics there, everyone may reply. Placed after the other Beatmaps forums.
-     */
-    public static function forum(): Forum
-    {
-        $forumId = $GLOBALS['cfg']['tomyum']['loved']['forum_id'];
-        $forum = Forum::find($forumId);
-        if ($forum !== null) {
-            return $forum;
-        }
-
-        $parent = Forum::find(40);
-        DB::transaction(function () use ($forumId, $parent) {
-            // After the parent's last forum, the others moved along (phpBB's left/right ordering).
-            $after = $parent === null
-                ? (int) Forum::where('left_id', '<', 1000)->max('right_id')
-                : ((int) Forum::where('parent_id', $parent->getKey())->max('right_id') ?: $parent->left_id);
-            Forum::where('left_id', '>', $after)->where('left_id', '<', 1000)->increment('left_id', 2);
-            Forum::where('right_id', '>', $after)->where('right_id', '<', 1000)->increment('right_id', 2);
-
-            DB::table('phpbb_forums')->insert([
-                'forum_id' => $forumId,
-                'parent_id' => $parent?->getKey() ?? 0,
-                'left_id' => $after + 1,
-                'right_id' => $after + 2,
-                'forum_name' => 'Project Loved',
-                'forum_desc' => 'Vote on the maps of each Project Loved round.',
-                'forum_parents' => $parent === null ? '' : serialize([$parent->getKey() => [$parent->forum_name, $parent->forum_type]]),
-                'forum_rules' => '',
-                'forum_type' => 1,
-                'enable_indexing' => 1,
-            ]);
-
-            $options = [];
-            foreach (['f_post', 'f_reply', 'f_postcount'] as $option) {
-                $options[$option] = DB::table('phpbb_acl_options')->where('auth_option', $option)->value('auth_option_id')
-                    ?? DB::table('phpbb_acl_options')->insertGetId(['auth_option' => $option, 'is_global' => 0, 'is_local' => 1, 'founder_only' => 0]);
-            }
-            $grant = fn (int $groupId, string $option) => DB::table('phpbb_acl_groups')->updateOrInsert([
-                'group_id' => $groupId,
-                'forum_id' => $forumId,
-                'auth_option_id' => $options[$option],
-                'auth_role_id' => 0,
-            ], ['auth_setting' => 1]);
-            foreach (Group::whereIn('identifier', ['admin', 'gmt', 'loved'])->pluck('group_id') as $groupId) {
-                foreach (['f_post', 'f_reply', 'f_postcount'] as $option) {
-                    $grant($groupId, $option);
-                }
-            }
-            $everyone = Group::where('identifier', 'default')->value('group_id');
-            if ($everyone !== null) {
-                $grant($everyone, 'f_reply');
-                $grant($everyone, 'f_postcount');
-            }
-        });
-
-        return Forum::findOrFail($forumId);
-    }
-
-    /** Who posts the topics and results. */
-    public static function poster(): User
-    {
-        return User::findOrFail($GLOBALS['cfg']['osu']['legacy']['bancho_bot_user_id']);
-    }
-
-    /**
-     * Opens voting: a topic with a poll for every nomination without one, open for $days days.
-     * Returns the number of topics made.
-     */
-    public static function openVoting(TomYumLovedRound $round, int $days): int
-    {
-        $forum = static::forum();
-        $poster = static::poster();
-        $made = 0;
-
-        foreach ($round->nominations()->with(['beatmapset', 'captain'])->whereNull('topic_id')->get() as $nomination) {
-            if ($nomination->beatmapset === null) {
-                continue;
-            }
-            $poll = (new TopicPoll())->fill([
-                'hide_results' => false,
-                'length_days' => $days,
-                'max_options' => 1,
-                'options' => ['Yes', 'No'],
-                'title' => 'Should this map be Loved?',
-                'vote_change' => true,
-            ]);
-            $topic = Topic::createNew($forum, [
-                'title' => static::topicTitle($nomination),
-                'user' => $poster,
-                'body' => static::topicBody($nomination),
-            ], $poll);
-            $nomination->update(['topic_id' => $topic->getKey()]);
-            $made++;
-        }
-
-        $round->update([
-            'state' => 'voting',
-            'voting_ends_at' => CarbonImmutable::now()->addDays($days),
-        ]);
-
-        return $made;
-    }
-
-    /** The votes on a nomination's poll: [yes, no], the counted result once its round is closed. */
-    public static function votes(TomYumLovedNomination $nomination): array
-    {
-        if ($nomination->result_yes !== null && $nomination->round->isClosed()) {
-            return [$nomination->result_yes, $nomination->result_no ?? 0];
-        }
-        $totals = $nomination->topic?->pollOptions->pluck('poll_option_total', 'poll_option_id') ?? collect();
-
-        return [(int) ($totals[static::OPTION_YES] ?? 0), (int) ($totals[static::OPTION_NO] ?? 0)];
-    }
-
-    /** Whether [yes, no] passes the round: enough votes, and enough of them yes. */
-    public static function passes(TomYumLovedRound $round, int $yes, int $no): bool
-    {
-        $total = $yes + $no;
-
-        return $total > 0 && $total >= $round->min_votes && $yes * 100 >= $round->threshold * $total;
-    }
-
-    /**
-     * Closes the round: counts the polls, loves the sets that passed (all their difficulties in the
-     * passing modes), and only then ends the polls, records and posts each result and locks the
-     * topics. When a set can't be loved nothing else changes: the round keeps voting, and closing again
-     * retries (sets loved by the earlier try count as loved). Returns what happened:
-     * ['passed' => n, 'failed' => n, 'loved' => [set ids], 'skipped' => [set id => why], 'errors' => [set id => why]].
-     */
-    public static function close(TomYumLovedRound $round, User $actor): array
-    {
-        $now = CarbonImmutable::now();
-        $summary = ['passed' => 0, 'failed' => 0, 'loved' => [], 'skipped' => [], 'errors' => []];
-        $results = [];
-        $toLove = [];
-
-        $nominations = $round->nominations()->with(['beatmapset', 'topic.pollOptions'])->get();
-        foreach ($nominations as $nomination) {
-            [$yes, $no] = static::votes($nomination);
-            $passed = static::passes($round, $yes, $no);
-            $results[$nomination->getKey()] = [$yes, $no, $passed];
-            $summary[$passed ? 'passed' : 'failed']++;
-            if ($passed) {
-                $toLove[$nomination->beatmapset_id] = [...($toLove[$nomination->beatmapset_id] ?? []), ...$nomination->beatmapIds()];
-            }
-        }
-
-        foreach ($toLove as $setId => $beatmapIds) {
-            $set = Beatmapset::find($setId);
-            if ($set === null) {
-                $summary['skipped'][$setId] = 'the set is gone';
-            } elseif ($set->isLoved()) {
-                // Loved by an earlier try at closing (or by hand meanwhile).
-                $summary['loved'][] = $setId;
-            } elseif (!$set->isLoveable()) {
-                $summary['skipped'][$setId] = 'it is '.$set->status().' already';
-            } elseif (count($beatmapIds) === 0) {
-                $summary['skipped'][$setId] = 'it has no difficulties in the passing modes';
-            } else {
-                try {
-                    $result = $set->love($actor, array_values(array_unique($beatmapIds)));
-                    $error = $result['result'] ? null : $result['message'];
-                } catch (\Throwable $e) {
-                    log_error($e);
-                    $error = $e->getMessage();
-                }
-                // Something after the love failed (covers, notifications): it still counts if it's Loved.
-                if ($set->fresh()->isLoved()) {
-                    $summary['loved'][] = $setId;
-                } else {
-                    $summary['errors'][$setId] = $error ?? 'it was not loved';
-                }
-            }
-        }
-
-        if (count($summary['errors']) > 0) {
-            return $summary;
-        }
-
-        $poster = static::poster();
-        foreach ($nominations as $nomination) {
-            [$yes, $no, $passed] = $results[$nomination->getKey()];
-            $nomination->update(['result_yes' => $yes, 'result_no' => $no, 'passed' => $passed]);
-
-            $topic = $nomination->topic;
-            if ($topic === null) {
-                continue;
-            }
-            if ($topic->poll()->isOpen()) {
-                // Ends now (a length of 0 would be forever, so a poll from this very second starts a second earlier).
-                $start = min($topic->poll_start->getTimestamp(), $now->getTimestamp() - 1);
-                $topic->update([
-                    'poll_start' => CarbonImmutable::createFromTimestamp($start),
-                    'poll_length' => $now->getTimestamp() - $start,
-                ]);
-            }
-            $total = $yes + $no;
-            $percent = $total === 0 ? 0 : round($yes * 100 / $total, 2);
-            Post::createNew($topic, $poster, $passed
-                ? "[b][color=#22DD22]Passed[/color][/b] with {$percent}% ({$yes}:{$no}). This map is now Loved!"
-                : "[b][color=#DD2222]Didn't pass[/color][/b] with {$percent}% ({$yes}:{$no}); it needed {$round->threshold}% of at least {$round->min_votes} votes.");
-            $topic->lock();
-        }
-        $round->update(['state' => 'closed', 'closed_at' => $now]);
-
-        return $summary;
-    }
-
-    /** How many maps a player may request a day. */
-    const REQUESTS_PER_DAY = 5;
-
-    /**
-     * $user asks for set $setInput (a link or id; imported from osu! when it isn't on the server yet)
-     * to be Loved in mode $rulesetId, because $reason. When the map is asked for already, $user
-     * supports that request instead. Returns [ok, message, request].
+     * The set from a link or id, imported from osu! when the server doesn't have it yet.
      *
-     * @return array{0: bool, 1: string, 2: ?TomYumLovedRequest}
+     * @return array{0: ?Beatmapset, 1: ?string} the set, or why there's none
+     */
+    public static function findSet(User $user, string $input): array
+    {
+        $setId = \App\Http\Controllers\Panel\BnController::parseSetId($input);
+        if ($setId === null) {
+            return [null, "That isn't a beatmap set link or id (like https://osu.ppy.sh/beatmapsets/123456)."];
+        }
+
+        $set = Beatmapset::find($setId);
+        if ($set !== null) {
+            return [$set, null];
+        }
+
+        try {
+            $response = (new TomYumAdmin($user))->post("/beatmapsets/{$setId}/import");
+        } catch (\Throwable $e) {
+            log_error($e);
+            $response = null;
+        }
+        if ($response?->notFound()) {
+            return [null, "osu! doesn't have a beatmap set {$setId}."];
+        }
+        $set = $response?->successful() ? Beatmapset::find($setId) : null;
+
+        return $set === null ? [null, "Couldn't get that set from osu! right now. Try again in a bit."] : [$set, null];
+    }
+
+    /**
+     * $user asks for set $setInput (a link or id) to be Loved in mode $rulesetId, because $reason.
+     * One request per map and mode: when it's asked for already, $user is pointed at that request
+     * to review it instead. A removed request can be asked for again (it starts over).
+     *
+     * @return array{0: bool, 1: string, 2: ?TomYumLovedRequest} ok, message, the request (made, or the one that exists)
      */
     public static function request(User $user, string $setInput, int $rulesetId, string $reason): array
     {
@@ -293,29 +116,30 @@ class TomYumLoved
         if (mb_strlen($reason) < 10 || mb_strlen($reason) > 1000) {
             return [false, 'Say why it deserves Loved in 10 to 1000 characters.', null];
         }
+
         $setId = \App\Http\Controllers\Panel\BnController::parseSetId($setInput);
-        if ($setId === null) {
-            return [false, "That isn't a beatmap set link or id (like https://osu.ppy.sh/beatmapsets/123456).", null];
+        $blacklisted = $setId === null ? null : DB::table('tomyum_loved_blacklist')->where('beatmapset_id', $setId)->first();
+        if ($blacklisted !== null) {
+            return [false, "This map can't be asked for: {$blacklisted->reason}", null];
+        }
+        if ($setId !== null) {
+            $existing = TomYumLovedRequest::where(['beatmapset_id' => $setId, 'ruleset_id' => $rulesetId])->first();
+            if ($existing !== null && $existing->status !== 'removed') {
+                return [false, match ($existing->status) {
+                    'open' => 'Someone asked for this map in '.static::MODE_NAMES[$rulesetId].' already: review their request instead.',
+                    'loved' => 'This map is Loved already.',
+                    default => 'The Loved team rejected this map for '.static::MODE_NAMES[$rulesetId].": {$existing->decision_reason}",
+                }, $existing];
+            }
         }
 
-        $set = Beatmapset::find($setId);
+        if (TomYumLovedRequest::where('user_id', $user->getKey())->where('created_at', '>', now()->subDay())->count() >= static::REQUESTS_PER_DAY) {
+            return [false, 'You asked for '.static::REQUESTS_PER_DAY.' maps today already. Review others, or come back tomorrow.', null];
+        }
+
+        [$set, $error] = static::findSet($user, $setInput);
         if ($set === null) {
-            if (TomYumLovedRequest::where('user_id', $user->getKey())->where('created_at', '>', now()->subDay())->count() >= static::REQUESTS_PER_DAY) {
-                return [false, 'You asked for '.static::REQUESTS_PER_DAY.' maps today already. Support others, or come back tomorrow.', null];
-            }
-            try {
-                $response = (new TomYumAdmin($user))->post("/beatmapsets/{$setId}/import");
-            } catch (\Throwable $e) {
-                log_error($e);
-                $response = null;
-            }
-            if ($response?->notFound()) {
-                return [false, "osu! doesn't have a beatmap set {$setId}.", null];
-            }
-            $set = $response?->successful() ? Beatmapset::find($setId) : null;
-            if ($set === null) {
-                return [false, "Couldn't get that set from osu! right now. Try again in a bit.", null];
-            }
+            return [false, $error, null];
         }
 
         $name = "{$set->artist} - {$set->title}";
@@ -329,98 +153,165 @@ class TomYumLoved
         if (!$set->beatmaps()->where('playmode', $rulesetId)->exists()) {
             return [false, "{$name} has no {$modeName} difficulties.", null];
         }
-        $inRound = TomYumLovedNomination::where(['beatmapset_id' => $set->getKey(), 'ruleset_id' => $rulesetId])
-            ->whereHas('round', fn ($round) => $round->where('state', '!=', 'closed'))
-            ->exists();
-        if ($inRound) {
-            return [false, "{$name} is in the current round already: vote for it there!", null];
-        }
 
-        $existing = TomYumLovedRequest::where(['beatmapset_id' => $set->getKey(), 'ruleset_id' => $rulesetId])
-            ->whereIn('status', ['open', 'declined'])
-            ->latest('id')
-            ->first();
-        if ($existing?->status === 'declined' && $existing->updated_at > now()->subDays(90)) {
-            return [false, "The Loved team declined {$name} for {$modeName} recently: {$existing->decline_reason}", null];
-        }
-        if ($existing?->isOpen()) {
-            $existing->setSupport($user, true);
-
-            return [true, "{$name} was asked for already, so you support that request now.", $existing];
-        }
-
-        if (TomYumLovedRequest::where('user_id', $user->getKey())->where('created_at', '>', now()->subDay())->count() >= static::REQUESTS_PER_DAY) {
-            return [false, 'You asked for '.static::REQUESTS_PER_DAY.' maps today already. Support others, or come back tomorrow.', null];
-        }
-        $request = TomYumLovedRequest::create([
-            'beatmapset_id' => $set->getKey(),
-            'ruleset_id' => $rulesetId,
-            'user_id' => $user->getKey(),
+        $fields = [
+            'decided_at' => null,
+            'decision_reason' => null,
+            'handled_by' => null,
             'reason' => $reason,
-        ]);
-        $request->setSupport($user, true);
-
-        return [true, "Asked for {$name} in {$modeName}. Others can support your request now.", $request];
-    }
-
-    /** osu!'s colour for a star rating (resources/js/utils/beatmap-helper.ts getDiffColour), as #rrggbb. */
-    public static function difficultyColour(float $rating): string
-    {
-        if ($rating < 0.1) {
-            return '#aaaaaa';
-        }
-        if ($rating >= 9) {
-            return '#000000';
-        }
-        static $stops = [
-            [0.1, '4290fb'], [1.25, '4fc0ff'], [2, '4fffd5'], [2.5, '7cff4f'], [3.3, 'f6f05c'], [4.2, 'ff8068'],
-            [4.9, 'ff4e6f'], [5.8, 'c645b8'], [6.7, '6563de'], [7.7, '18158e'], [9, '000000'],
+            'score' => 1,
+            'status' => 'open',
+            'user_id' => $user->getKey(),
         ];
-        for ($i = 1; $rating > $stops[$i][0]; $i++);
-        [$fromAt, $from] = $stops[$i - 1];
-        [$toAt, $to] = $stops[$i];
-        $t = ($rating - $fromAt) / ($toAt - $fromAt);
-        // Mixed with gamma 2.2, as d3.interpolateRgb.gamma(2.2) does.
-        $channel = function (int $offset) use ($from, $to, $t) {
-            $a = hexdec(substr($from, $offset, 2)) ** 2.2;
-            $b = hexdec(substr($to, $offset, 2)) ** 2.2;
+        $request = DB::transaction(function () use ($set, $rulesetId, $fields) {
+            $request = TomYumLovedRequest::firstOrNew(['beatmapset_id' => $set->getKey(), 'ruleset_id' => $rulesetId]);
+            // A removed request starts over.
+            $request->reviews()->delete();
+            $request->fill($fields)->save();
 
-            return sprintf('%02x', (int) round(($a + ($b - $a) * $t) ** (1 / 2.2)));
-        };
+            return $request;
+        });
 
-        return '#'.$channel(0).$channel(2).$channel(4);
+        return [true, "Asked for {$name} in {$modeName}. Others can review your request now.", $request];
     }
 
-    public static function topicTitle(TomYumLovedNomination $nomination): string
+    /**
+     * $user's review of an open request: for ($score 1) or against (-1), because $comment. Saving
+     * again changes it. The asker's reason is their review.
+     *
+     * @return array{0: bool, 1: string} ok, message
+     */
+    public static function review(User $user, TomYumLovedRequest $request, int $score, string $comment): array
     {
-        $set = $nomination->beatmapset;
-        $title = '['.static::MODE_NAMES[$nomination->ruleset_id]."] {$set->artist} - {$set->title} by {$set->creator}";
+        if (!$request->isOpen()) {
+            return [false, "This request is {$request->status}: it can't be reviewed any more."];
+        }
+        if ($request->user_id === $user->getKey()) {
+            return [false, 'You asked for this map: your reason counts as your review.'];
+        }
+        if ($score !== 1 && $score !== -1) {
+            return [false, 'Pick for or against.'];
+        }
+        $comment = trim($comment);
+        if (mb_strlen($comment) < 3 || mb_strlen($comment) > 1000) {
+            return [false, 'Say why, in 3 to 1000 characters.'];
+        }
 
-        return mb_strlen($title) > 100 ? mb_substr($title, 0, 99).'…' : $title;
+        DB::transaction(function () use ($user, $request, $score, $comment) {
+            TomYumLovedReview::updateOrCreate(
+                ['request_id' => $request->getKey(), 'user_id' => $user->getKey()],
+                ['score' => $score, 'comment' => $comment],
+            );
+            $request->refreshScore();
+        });
+
+        return [true, 'Your review is saved.'];
     }
 
-    public static function topicBody(TomYumLovedNomination $nomination): string
+    public static function deleteReview(User $user, TomYumLovedRequest $request): void
     {
-        $set = $nomination->beatmapset;
-        $setUrl = route('beatmapsets.show', ['beatmapset' => $set->getKey()]);
-        $mapper = $set->user_id > 0 && User::find($set->user_id) !== null
-            ? '[url='.route('users.show', ['user' => $set->user_id])."]{$set->creator}[/url]"
-            : $set->creator;
-        $captain = $nomination->captain === null ? null
-            : '[url='.route('users.show', ['user' => $nomination->captain_id])."]{$nomination->captain->username}[/url]";
+        DB::transaction(function () use ($user, $request) {
+            $request->reviews()->where('user_id', $user->getKey())->delete();
+            $request->refreshScore();
+        });
+    }
 
-        $body = "[centre][url={$setUrl}][img]{$set->coverURL('cover')}[/img][/url][/centre]\n"
-            ."[size=150][b][url={$setUrl}]{$set->artist} - {$set->title}[/url][/b][/size]\n"
-            .'mapped by '.$mapper.' · '.static::MODE_NAMES[$nomination->ruleset_id]."\n\n";
-        if (present($nomination->description)) {
-            $body .= $nomination->description."\n\n";
+    /**
+     * The team's decision on a request, with $reason (shown to players): 'love' loves the set's
+     * difficulties in the request's mode, 'reject', 'remove' (off the list; it can be asked for
+     * again), or 'reopen' (no reason needed).
+     *
+     * @return array{0: bool, 1: string} ok, message
+     */
+    public static function decide(User $user, TomYumLovedRequest $request, string $action, string $reason): array
+    {
+        $reason = trim($reason);
+        if (!in_array($action, ['love', 'reject', 'remove', 'reopen'], true)) {
+            return [false, 'Unknown action.'];
         }
-        if ($captain !== null) {
-            $body .= "[i]Picked by {$captain}.[/i]\n";
+        if ($action === 'reopen') {
+            if ($request->status === 'loved') {
+                return [false, "It's Loved: an admin can take the map out of Loved on its page."];
+            }
+            $request->update(['status' => 'open', 'handled_by' => null, 'decided_at' => null, 'decision_reason' => null]);
+
+            return [true, 'The request is open again.'];
+        }
+        if (!$request->isOpen()) {
+            return [false, "This request is {$request->status} already."];
+        }
+        if (mb_strlen($reason) < 3) {
+            return [false, 'Give a reason (players see it).'];
         }
 
-        $roundUrl = route('loved.rounds.show', ['round' => $nomination->round_id, 'mode' => Beatmap::modeStr($nomination->ruleset_id)]);
+        if ($action === 'love') {
+            $set = $request->beatmapset;
+            if ($set === null) {
+                return [false, 'The map is gone from the server.'];
+            }
+            if (!$set->isLoved()) {
+                if (!$set->isLoveable()) {
+                    return [false, "It's {$set->status()} now, so it can't be Loved."];
+                }
+                $beatmapIds = $set->beatmaps()->where('playmode', $request->ruleset_id)->pluck('beatmap_id')->all();
+                try {
+                    $result = $set->love($user, $beatmapIds);
+                } catch (\Throwable $e) {
+                    log_error($e);
+                    $result = ['result' => false, 'message' => $e->getMessage()];
+                }
+                // Something after the love failed (covers, notifications): it still counts if it's Loved.
+                if (!$set->fresh()->isLoved()) {
+                    return [false, "Couldn't love it: ".($result['message'] ?? 'it was not loved')];
+                }
+            }
+        }
 
-        return $body."Vote in the poll above, or on [url={$roundUrl}]the round's page[/url].";
+        $status = ['love' => 'loved', 'reject' => 'rejected', 'remove' => 'removed'][$action];
+        $request->update([
+            'status' => $status,
+            'handled_by' => $user->getKey(),
+            'decided_at' => now(),
+            'decision_reason' => mb_substr($reason, 0, 2000),
+        ]);
+
+        return [true, match ($status) {
+            'loved' => 'Loved! Its '.static::MODE_NAMES[$request->ruleset_id].' difficulties are Loved now.',
+            'rejected' => 'The request is rejected.',
+            'removed' => "The request is off the list. It can be asked for again.",
+        }];
+    }
+
+    /**
+     * Blacklists set $setInput: nobody can ask for it, and its open requests are removed with the
+     * reason.
+     *
+     * @return array{0: bool, 1: string} ok, message
+     */
+    public static function blacklist(User $user, string $setInput, string $reason): array
+    {
+        $reason = trim($reason);
+        if (mb_strlen($reason) < 3) {
+            return [false, 'Give a reason.'];
+        }
+        [$set, $error] = static::findSet($user, $setInput);
+        if ($set === null) {
+            return [false, $error];
+        }
+
+        DB::transaction(function () use ($user, $set, $reason) {
+            DB::table('tomyum_loved_blacklist')->updateOrInsert(
+                ['beatmapset_id' => $set->getKey()],
+                ['reason' => mb_substr($reason, 0, 2000), 'user_id' => $user->getKey(), 'created_at' => now()],
+            );
+            TomYumLovedRequest::where(['beatmapset_id' => $set->getKey(), 'status' => 'open'])->update([
+                'status' => 'removed',
+                'handled_by' => $user->getKey(),
+                'decided_at' => now(),
+                'decision_reason' => "Blacklisted: {$reason}",
+            ]);
+        });
+
+        return [true, "{$set->artist} - {$set->title} is blacklisted."];
     }
 }

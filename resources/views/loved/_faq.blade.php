@@ -2,24 +2,21 @@
     Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
     See the LICENCE file in the repository root for full licence text.
 --}}
-{{-- Project Loved's questions, on the overview. $latest: the latest round (for its pass rule), if any. --}}
+{{-- Project Loved's questions, on the requests page. --}}
 @php
     use App\Libraries\TomYumLoved;
 
-    $threshold = $latest?->threshold ?? 70;
-    $minPlays = $GLOBALS['cfg']['osu']['forum']['minimum_plays'];
     $admins = app('groups')->byIdentifier('admin');
 
     $questions = [
-        'What\'s the difference between Ranked and Loved?' => 'Ranked maps go through the Beatmap Nominators and award pp. Loved maps skip that: the community votes them in. They get leaderboards and keep everyone\'s scores, but give no pp.',
-        'Why would a map be Loved instead of ranked?' => 'Some maps can\'t or won\'t ever be ranked. They might be too long, too hard, use something the ranking rules don\'t allow, or their mapper stopped updating them. If people love playing them anyway, Loved gives them a leaderboard.',
-        'Which maps can be Loved?' => 'Graveyard, WIP and pending maps. Ranked, qualified and already-Loved maps can\'t be.',
-        'How do I suggest a map?' => 'On the <a href="'.e(route('loved.requests')).'">requests page</a>: paste the set\'s link (from here or osu.ppy.sh), pick the mode and say why. If someone asked for it already, you support their request instead. You can make up to '.TomYumLoved::REQUESTS_PER_DAY.' requests a day.',
-        'Who decides which maps go into a round?' => 'The Loved team below. Each member picks for their own modes, mostly from the most-supported requests. A declined request shows the team\'s reason and can\'t be asked for again for 90 days.',
-        'How does voting work?' => 'Each map gets a Yes/No poll, on the round\'s page and in its forum topic. You get one vote per map and can change it until voting ends. A map is Loved if it reaches the round\'s share of yes votes (like '.$threshold.'%) from at least the round\'s fewest votes. Both are shown on the round\'s page.',
-        'Why can\'t I vote?' => 'Voting follows the forum\'s rules: you need to be signed in, not restricted'.($minPlays > 0 ? ', and have played at least '.i18n_number_format($minPlays).' times' : '').'.',
+        'What\'s the difference between Ranked and Loved?' => 'Ranked maps go through the Beatmap Nominators and award pp. Loved maps skip that: players ask for them and the Loved team loves them. They get leaderboards and keep everyone\'s scores, but give no pp.',
+        'Which maps can be Loved?' => 'Graveyard, WIP and pending maps. Ranked, qualified and already-Loved maps can\'t be, and neither can maps on the <a href="'.e(route('loved.blacklist')).'">blacklist</a>.',
+        'How do I ask for a map?' => 'Paste the set\'s link (from here or osu.ppy.sh) above, pick the mode and say why. One request per map and mode: if someone asked for it already, review their request instead. You can ask for up to '.TomYumLoved::REQUESTS_PER_DAY.' maps a day.',
+        'How do reviews work?' => 'Open a request and say whether you\'re for or against it, and why. You can change or remove your review while the request is open. A request\'s score is its fors minus its againsts (the person who asked counts as a for), and the best-scored requests are listed first.',
+        'Who decides?' => 'The Loved team below, each for the modes on their badge. They read the requests, best-scored first, and love the map or reject the request, always with a reason. Loving a map makes its difficulties in that mode Loved straight away.',
+        'What happens to rejected or removed requests?' => 'A rejected map can\'t be asked for again in that mode (the team can open the request again). A removed request is taken off the list and can be asked for again later. Blacklisted maps can\'t be asked for at all.',
         'Can a Loved map be changed or unloved?' => 'Its mapper can\'t update it any more. Only an admin can take a map out of Loved.',
-        'I made a map and don\'t want it Loved.' => 'Tell someone on the Loved team and they\'ll leave it out of the rounds.',
+        'I made a map and don\'t want it Loved.' => 'Tell someone on the Loved team and they\'ll blacklist it.',
         'How do I join the Loved team?' => $admins === null
             ? 'Ask an admin.'
             : 'Ask one of the <a href="'.e(route('groups.show', ['group' => $admins->getKey()])).'">admins</a>.',
