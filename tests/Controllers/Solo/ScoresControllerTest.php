@@ -5,11 +5,13 @@
 
 namespace Tests\Controllers\Solo;
 
+use App\Models\Beatmap;
 use App\Models\Build;
 use App\Models\ScoreToken;
 use App\Models\Solo\Score;
 use App\Models\User;
 use LaravelRedis;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class ScoresControllerTest extends TestCase
@@ -52,6 +54,52 @@ class ScoresControllerTest extends TestCase
         $score = $scoreToken->fresh()->score;
         $this->assertNotNull($score);
         $this->assertSame(1, count($score->data->mods));
+    }
+
+    public static function dataProviderForTestStoreRelaxIsNotRanked(): array
+    {
+        return [
+            'no mods' => [[], true],
+            'DT' => [[['acronym' => 'DT']], true],
+            'RX' => [[['acronym' => 'RX']], false],
+            'AP' => [[['acronym' => 'AP']], false],
+        ];
+    }
+
+    /**
+     * TomYum: Relax and Autopilot have their own leaderboards; on the vanilla ones (and in the
+     * vanilla grade counts and ranked score) they don't count.
+     */
+    #[DataProvider('dataProviderForTestStoreRelaxIsNotRanked')]
+    public function testStoreRelaxIsNotRanked(array $mods, bool $ranked)
+    {
+        $build = Build::factory()->create(['allow_ranking' => true]);
+        $scoreToken = ScoreToken::factory()->create([
+            'beatmap_id' => Beatmap::factory()->ranked()->state(['playmode' => 0]),
+            'build_id' => $build,
+        ]);
+
+        $this->withHeaders(['x-token' => static::createClientToken($build)]);
+        $this->actAsScopedUser($scoreToken->user, ['*']);
+
+        $this->json(
+            'PUT',
+            route('api.beatmaps.solo.scores.store', [
+                'beatmap' => $scoreToken->beatmap->getKey(),
+                'token' => $scoreToken->getKey(),
+            ]),
+            [
+                'accuracy' => 1,
+                'max_combo' => 10,
+                'mods' => $mods,
+                'passed' => true,
+                'rank' => 'A',
+                'statistics' => ['Good' => 1],
+                'total_score' => 10,
+            ]
+        )->assertSuccessful();
+
+        $this->assertSame($ranked, $scoreToken->fresh()->score->ranked);
     }
 
     public function testStoreCompleted()

@@ -112,6 +112,12 @@ class Score extends Model implements Traits\ReportableInterface
         return $score;
     }
 
+    /** TomYum: whether a play uses Relax or Autopilot (lazer's mods, as parsed). */
+    public static function hasRelaxMod(array $mods): bool
+    {
+        return count(array_intersect(array_column($mods, 'acronym'), ['RX', 'AP'])) > 0;
+    }
+
     public static function extractParams(array $rawParams, ScoreToken|MultiplayerScoreLink $scoreToken): array
     {
         $params = get_params($rawParams, null, [
@@ -143,7 +149,10 @@ class Score extends Model implements Traits\ReportableInterface
 
         $beatmap = $scoreToken->beatmap;
         // anything that have leaderboard
-        $params['ranked'] = $params['passed'] && $beatmap !== null && $beatmap->approved > 0;
+        // TomYum: Relax and Autopilot have their own leaderboards (TomYum's), so they stay out of the
+        // vanilla ones and the vanilla grade counts and ranked score (ppy's processor counts ranked plays).
+        $params['ranked'] = $params['passed'] && $beatmap !== null && $beatmap->approved > 0
+            && !static::hasRelaxMod($params['mods']);
 
         return $params;
     }
