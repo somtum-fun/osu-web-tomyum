@@ -5,7 +5,7 @@
 
 namespace App\Console\Commands;
 
-use App\Libraries\Elasticsearch\Indexing;
+use App\Libraries\Elasticsearch\Es;
 use App\Models\Wiki\Page;
 use Illuminate\Console\Command;
 
@@ -20,11 +20,17 @@ class TomYumEsEnsure extends Command
 
     protected $description = 'Builds any missing search index (beatmaps, users, posts, artist tracks, teams, wiki).';
 
+    /** An alias or a plain index (pages viewed before the wiki index was made create a plain one). */
+    private static function exists(string $name): bool
+    {
+        return Es::getClient()->indices()->exists(['index' => $name]);
+    }
+
     public function handle()
     {
         $missing = [];
         foreach (EsIndexDocuments::ALLOWED_TYPES as $name => $types) {
-            if (count(Indexing::getOldIndices($types[0]::esIndexName())) === 0) {
+            if (!static::exists($types[0]::esIndexName())) {
                 $missing[] = $name;
             }
         }
@@ -35,7 +41,7 @@ class TomYumEsEnsure extends Command
         }
 
         // Wiki pages are indexed as they're first viewed; the index only has to exist.
-        $wikiMissing = count(Indexing::getOldIndices(Page::esIndexName())) === 0;
+        $wikiMissing = !static::exists(Page::esIndexName());
         if ($wikiMissing) {
             $this->info('Building the missing wiki index');
             $this->call('es:index-wiki', ['--create-only' => true, '--no-interaction' => true]);
