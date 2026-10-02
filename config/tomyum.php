@@ -28,6 +28,10 @@ return [
         'enabled' => get_bool(env('TOMYUM_STORE_ENABLED')) ?? false,
     ],
 
+    // The Project Loved forum (osu!'s id), where the Project Loved site posts its polls; its team posts
+    // there however much they've played.
+    'loved_forum_id' => get_int(env('TOMYUM_LOVED_FORUM_ID')) ?? 120,
+
     // Ranked status is TomYum's (the osu! API plus the BN panel): don't run modding:rank here.
     'manages_ranking' => get_bool(env('TOMYUM_MANAGES_RANKING')) ?? true,
 

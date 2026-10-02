@@ -860,6 +860,10 @@ Route::group(['prefix' => '_lio', 'middleware' => 'lio', 'as' => 'interop.'], fu
     Route::post('tomyum/beatmapset-extras/{beatmapset}', 'TomYumInterOpController@beatmapsetExtras');
     // TomYum: BN groups as BN Management (QAT) decided them (applications, evaluations, resignations).
     Route::post('tomyum/bn-groups/{user}', 'TomYumInterOpController@bnGroups');
+    // TomYum: the Project Loved site (loved.<domain>): its team from the groups, and maps that passed its votes.
+    Route::get('tomyum/loved-team', 'TomYumInterOpController@lovedTeam');
+    Route::post('tomyum/loved-beatmapsets', 'TomYumInterOpController@lovedBeatmapsets');
+    Route::post('tomyum/import-beatmapset/{beatmapset}', 'TomYumInterOpController@importBeatmapset');
 
     Route::group(['namespace' => 'InterOp'], function () {
         Route::post('artist-tracks/reindex-all', 'ArtistTracksController@reindexAll');

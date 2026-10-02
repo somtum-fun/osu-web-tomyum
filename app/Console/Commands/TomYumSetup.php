@@ -171,6 +171,8 @@ class TomYumSetup extends Command
             41 => [40, 'Mapping', 'Help, tips and works in progress.', 1, true, true],
             42 => [40, 'Beatmap Requests', 'Maps you would like to see ranked or loved.', 1, true, true],
             43 => [40, 'Modding Queues', 'Ask for mods, or offer them.', 1, true, true],
+            // Project Loved's topics and polls (the Project Loved site posts them; osu!'s id).
+            120 => [40, 'Project Loved', 'Vote on the maps nominated for Loved each round.', 1, false, true],
             50 => [0, 'Competitions', 'Tournaments and multiplayer.', 0, false, false],
             51 => [50, 'Tournaments', 'Run or join a tournament.', 1, true, true],
             52 => [50, 'Multiplayer', 'Find people to play with.', 1, true, true],
@@ -236,6 +238,13 @@ class TomYumSetup extends Command
                     $grant($everyone, $id, 'f_reply');
                     $grant($everyone, $id, 'f_postcount');
                 }
+            }
+        }
+        // The Project Loved team starts the Project Loved forum's topics too.
+        $loved = Group::where('identifier', 'loved')->value('group_id');
+        if ($loved !== null) {
+            foreach (['f_post', 'f_reply', 'f_postcount'] as $option) {
+                $grant($loved, 120, $option);
             }
         }
         $this->line('Forums: '.count($forums).' present, with posting rights.');
