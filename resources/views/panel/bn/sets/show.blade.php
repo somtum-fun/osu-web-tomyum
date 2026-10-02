@@ -95,6 +95,38 @@
             </form>
         </div>
 
+        {{-- TomYum: who nominated it; admins can set them by hand (BnSetsController@nominators) --}}
+        @if ($beatmapset !== null)
+            <div class="tomyum-panel__card">
+                <h2><i class="fas fa-thumbs-up"></i>Nominators</h2>
+                <p>
+                    @if ($nominators->isEmpty())
+                        <span class="tomyum-panel__muted">Nobody has nominated it here.</span>
+                    @else
+                        Nominated by
+                        @foreach ($nominators as $nominator)
+                            <a href="{{ route('users.show', ['user' => $nominator->getKey()]) }}">{{ $nominator->username }}</a>@if (!$loop->last), @endif
+                        @endforeach
+                    @endif
+                </p>
+                @if ($canSetNominators)
+                    <p class="tomyum-panel__hint">
+                        For a set ranked here by hand, or a bancho map that wasn't ranked there: the beatmap page shows these players
+                        under "Nominated by", and the set's history records their nominations. It doesn't change the set's status.
+                        BNs nominating on the discussion page work as on osu!. Leave it empty to clear them.
+                    </p>
+                    <form method="POST" action="{{ route('panel.bn.sets.nominators', ['set' => $setId]) }}" class="tomyum-panel__row">
+                        @csrf
+                        <label class="input-container tomyum-panel__field">
+                            <span class="input-container__label">Players, by name or id (comma-separated)</span>
+                            <input class="input-text" type="text" name="nominators" value="{{ $nominators->pluck('username')->implode(', ') }}">
+                        </label>
+                        <div><button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Save</button></div>
+                    </form>
+                @endif
+            </div>
+        @endif
+
         <div class="tomyum-panel__card">
             <h2><i class="fas fa-sync-alt"></i>Refresh from bancho</h2>
             <p class="tomyum-panel__hint">

@@ -103,6 +103,12 @@ class BnSetsController extends Controller
         return ext_view('panel.bn.sets.show', [
             'setId' => $setId,
             'beatmapset' => $beatmapset,
+            // TomYum: who nominated it (the site's nominations), and whether this user may set them.
+            'nominators' => $beatmapset === null ? collect() : User::whereIn(
+                'user_id',
+                $beatmapset->beatmapsetNominations()->current()->select('user_id'),
+            )->orderBy('username')->get(['user_id', 'username']),
+            'canSetNominators' => static::canUseAdmin(Auth::user()),
             'difficulties' => $server->successful() ? $server->json() : [],
             'serverError' => $server->successful() ? null : "Couldn't load the game server's copy (HTTP {$server->status()}).",
             'entries' => $entries,
@@ -214,6 +220,73 @@ class BnSetsController extends Controller
         }
 
         return $this->back($setId, 'success', "Refreshed from bancho: {$response->json('difficulties')} difficulties. Statuses set by staff were kept.");
+    }
+
+    /**
+     * TomYum: admins set who nominated a set by hand (a set they ranked themselves, a bancho map that
+     * wasn't ranked there): its current nominations are reset and these players' are recorded, as
+     * nominations made on the discussion page are (an event each, in the set's history), so the
+     * beatmap page shows them under "Nominated by". It doesn't change the set's status.
+     */
+    public function nominators(string $set)
+    {
+        $this->ensure(static::canUseAdmin(Auth::user()));
+
+        $setId = (int) $set;
+        $beatmapset = Beatmapset::find($setId);
+        if ($beatmapset === null) {
+            return $this->back($setId, 'error', "The website doesn't have this set yet.");
+        }
+
+        $names = array_values(array_unique(array_filter(array_map('trim', preg_split('/[,\n]/', (string) Request::input('nominators'))))));
+        if (count($names) > 10) {
+            return $this->back($setId, 'error', 'Ten nominators at most.');
+        }
+
+        $users = [];
+        $missing = [];
+        foreach ($names as $name) {
+            $user = ctype_digit($name) ? User::find((int) $name) : User::lookup($name, 'username');
+            if ($user === null) {
+                $missing[] = $name;
+            } else {
+                $users[$user->getKey()] = $user;
+            }
+        }
+        if (count($missing) > 0) {
+            return $this->back($setId, 'error', 'No player called '.implode(', ', array_map(fn ($name) => "\"{$name}\"", $missing)).'.');
+        }
+
+        $ruleset = $beatmapset->mainRuleset() ?? Beatmap::modeStr($beatmapset->beatmaps()->value('playmode') ?? 0) ?? 'osu';
+        $admin = Auth::user();
+        $beatmapset->getConnection()->transaction(function () use ($beatmapset, $users, $ruleset, $admin) {
+            $beatmapset->beatmapsetNominations()->current()->update([
+                'reset' => true,
+                'reset_at' => now(),
+                'reset_user_id' => $admin->getKey(),
+            ]);
+
+            foreach ($users as $user) {
+                $event = $beatmapset->events()->create([
+                    'comment' => ['modes' => [$ruleset]],
+                    'type' => \App\Models\BeatmapsetEvent::NOMINATE,
+                    'user_id' => $user->getKey(),
+                ]);
+                $beatmapset->beatmapsetNominations()->create([
+                    'event_id' => $event->getKey(),
+                    'modes' => [$ruleset => 'full'],
+                    'user_id' => $user->getKey(),
+                ]);
+            }
+
+            $beatmapset->refreshCache(true);
+        });
+
+        $list = implode(', ', array_map(fn ($user) => $user->username, $users));
+        $summary = count($users) === 0 ? 'Cleared the nominators' : "Set the nominators to {$list}";
+        $this->staffLog('beatmapset.nominators', $setId, "{$summary} (set {$setId})");
+
+        return $this->back($setId, 'success', count($users) === 0 ? 'Nobody is shown as nominating it now.' : "Nominated by {$list} now.");
     }
 
     private function back(int $setId, string $type, string $message)
