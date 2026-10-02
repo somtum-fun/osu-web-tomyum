@@ -123,7 +123,7 @@ Route::group(['middleware' => ['web']], function () {
 
         Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
             Route::get('/', 'AdminController@index')->name('index');
-            Route::post('recalculate', 'AdminController@recalculate')->name('recalculate');
+            Route::post('pp-rework', 'AdminController@ppRework')->name('pp-rework');
             Route::post('maintenance', 'AdminController@maintenance')->name('maintenance');
             Route::post('alert', 'AdminController@alert')->name('alert');
             Route::get('users', 'AdminController@users')->name('users.index');

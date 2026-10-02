@@ -658,14 +658,35 @@ class AdminController extends Controller
     }
 
     /** Recalculates every score's pp on the game server (after a pp update), which also updates this site. */
-    public function recalculate()
+    /** TomYum: starts a pp rework in the chosen modes, or cancels one (the game server runs it). */
+    public function ppRework()
     {
-        $response = $this->tomyum()->post('/scores/recalculate');
-        $status = $response->successful()
-            ? ['type' => 'success', 'message' => "Recalculated pp on {$response->json('maps')} map(s): {$response->json('changed')} of {$response->json('scores')} score(s) changed."]
-            : ['type' => 'error', 'message' => "Recalculating failed (HTTP {$response->status()})."];
+        if (Request::input('action') === 'cancel') {
+            $id = get_int(Request::input('id'));
+            $response = $this->tomyum()->post("/pp-reworks/{$id}/cancel");
+            \App\Libraries\TomYumPpRework::forget();
 
-        return redirect(route('panel.admin.index'))->with('panel_status', $status + ['link' => null]);
+            return $response->successful()
+                ? $this->backToIndex('success', "pp rework #{$id} is cancelled: the pp stays as it was.")
+                : $this->backToIndex('error', "Couldn't cancel it (HTTP {$response->status()}).");
+        }
+
+        $modes = array_values(array_filter(array_map('get_int', (array) Request::input('modes', [])), fn ($mode) => $mode !== null));
+        if (count($modes) === 0) {
+            return $this->backToIndex('error', 'Pick the modes to rework.');
+        }
+        $reason = trim(Request::input('reason') ?? '');
+        $response = $this->tomyum()->post('/pp-reworks', [
+            'modes' => $modes,
+            'library' => 'manual',
+            'reason' => $reason === '' ? null : mb_substr($reason, 0, 200),
+        ]);
+        \App\Libraries\TomYumPpRework::forget();
+        if (!$response->successful()) {
+            return $this->backToIndex('error', $response->json('error') ?? "Couldn't start it (HTTP {$response->status()}).");
+        }
+
+        return $this->backToIndex('success', 'pp rework #'.$response->json('id').' started for '.\App\Libraries\TomYumPpRework::modeNames($modes).'.');
     }
 
     private function done(User $target, string $action, string $summary, ?string $message = null)

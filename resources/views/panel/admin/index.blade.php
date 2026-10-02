@@ -127,16 +127,68 @@
             </form>
         </div>
 
+        @php
+            $ppReworks = App\Libraries\TomYumPpRework::status();
+        @endphp
         <div class="tomyum-panel__card">
-            <h2><i class="fas fa-calculator"></i>Performance points</h2>
+            <h2><i class="fas fa-calculator"></i>pp rework</h2>
             <p class="tomyum-panel__hint">
-                After a pp update: recalculates every score's pp, the players' stats and rankings, in-game and here.
-                Takes a while on a big server.
+                Works out every score's pp again in the modes you pick, as osu! does when its pp changes. While it runs, those modes'
+                rankings stay as they were and new scores' pp waits; then everything switches over at once. Vanilla modes then wait
+                for the website's score processor too.
             </p>
-            <form method="POST" action="{{ route('panel.admin.recalculate') }}">
+            @foreach ($ppReworks['active'] ?? [] as $rework)
+                <div class="tomyum-panel__item">
+                    <strong>#{{ $rework['id'] }}: {{ App\Libraries\TomYumPpRework::modeNames($rework['modes'] ?? []) }}</strong>
+                    @if (present($rework['reason'] ?? null)) <span class="tomyum-panel__muted">· {{ $rework['reason'] }}</span> @endif
+                    @if (present($rework['toVersion'] ?? null))
+                        <span class="tomyum-panel__muted">· {{ $rework['library'] }} {{ $rework['fromVersion'] }} → {{ $rework['toVersion'] }}</span>
+                    @endif
+                    <div class="tomyum-panel__progress" style="margin: 6px 0"><div style="width: {{ App\Libraries\TomYumPpRework::percent($rework) }}%"></div></div>
+                    <div class="tomyum-panel__muted">
+                        {{ App\Libraries\TomYumPpRework::progress($rework) }} ·
+                        {{ i18n_number_format(max(0, ($rework['total'] ?? 0) - ($rework['done'] ?? 0))) }} score(s) left to recalculate ·
+                        started {!! timeago(Carbon\Carbon::parse($rework['startedAt'])) !!}
+                    </div>
+                    <form method="POST" action="{{ route('panel.admin.pp-rework') }}" onsubmit="return confirm('Stop this rework? The pp stays as it was.')">
+                        @csrf
+                        <input type="hidden" name="action" value="cancel">
+                        <input type="hidden" name="id" value="{{ $rework['id'] }}">
+                        <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit" style="margin-top: 6px">Cancel</button>
+                    </form>
+                </div>
+            @endforeach
+
+            <form method="POST" action="{{ route('panel.admin.pp-rework') }}" onsubmit="return confirm('Start a pp rework? Rankings in these modes pause until it is done.')">
                 @csrf
-                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Recalculate all pp</button>
+                <input type="hidden" name="action" value="start">
+                <div class="tomyum-panel__row" style="flex-wrap: wrap; gap: 4px 12px; margin-bottom: 8px">
+                    @foreach (App\Libraries\TomYumPpRework::MODES as $mode => [, , $name])
+                        <label class="tomyum-panel__check"><input type="checkbox" name="modes[]" value="{{ $mode }}"> {{ $name }}</label>
+                    @endforeach
+                </div>
+                <label class="input-container">
+                    <span class="input-container__label">Reason (shown on the website)</span>
+                    <input class="input-text" type="text" name="reason" maxlength="200" placeholder="e.g. Relax now uses Akatsuki's formula">
+                </label>
+                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit" style="margin-top: 8px"><i class="fas fa-play"></i>Start rework</button>
             </form>
+
+            @if (count($ppReworks['recent'] ?? []) > 0)
+                <h3 style="margin-top: 12px">Recent</h3>
+                <table class="tomyum-panel__table">
+                    <tr><th>#</th><th>Modes</th><th>State</th><th>Scores</th><th>Finished</th></tr>
+                    @foreach ($ppReworks['recent'] as $rework)
+                        <tr>
+                            <td>{{ $rework['id'] }}</td>
+                            <td>{{ App\Libraries\TomYumPpRework::modeNames($rework['modes'] ?? []) }}</td>
+                            <td>{{ $rework['state'] }}</td>
+                            <td>{{ i18n_number_format($rework['done'] ?? 0) }}</td>
+                            <td>{!! isset($rework['finishedAt']) ? timeago(Carbon\Carbon::parse($rework['finishedAt'])) : '' !!}</td>
+                        </tr>
+                    @endforeach
+                </table>
+            @endif
         </div>
 
         <div class="tomyum-panel__card js-tomyum-live">
