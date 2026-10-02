@@ -37,7 +37,7 @@ class ArtistsController extends Controller
 
     private const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
     private const MAX_AUDIO_BYTES = 15 * 1024 * 1024;
-    private const MAX_OSZ_BYTES = 100 * 1024 * 1024;
+    private const MAX_OSZ_BYTES = 30 * 1024 * 1024; // the website takes up to 32 MB a request (osu-web-nginx.conf)
 
     public function __construct()
     {
