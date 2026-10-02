@@ -40,6 +40,7 @@
             ['Banners', 'panel.admin.tournament-banners.index', ['panel.admin.tournament-banners.']],
             ['News', 'panel.admin.news.index', ['panel.admin.news.']],
             ['Backgrounds', 'panel.admin.seasonal-backgrounds.index', ['panel.admin.seasonal-backgrounds.']],
+            ['Artists', 'panel.admin.artists.index', ['panel.admin.artists.']],
         ]],
     ];
 

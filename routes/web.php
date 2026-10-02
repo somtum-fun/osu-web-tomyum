@@ -140,6 +140,17 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('daily-challenge', 'DailyChallengeController@store')->name('daily-challenge.store');
             Route::post('daily-challenge/{item}/move', 'DailyChallengeController@move')->name('daily-challenge.move');
             Route::post('daily-challenge/{item}/remove', 'DailyChallengeController@destroy')->name('daily-challenge.destroy');
+            Route::get('artists', 'ArtistsController@index')->name('artists.index');
+            Route::post('artists', 'ArtistsController@store')->name('artists.store');
+            Route::get('artists/{artist}', 'ArtistsController@show')->name('artists.show');
+            Route::post('artists/{artist}', 'ArtistsController@update')->name('artists.update');
+            Route::post('artists/{artist}/remove', 'ArtistsController@destroy')->name('artists.destroy');
+            Route::post('artists/{artist}/albums', 'ArtistsController@albumStore')->name('artists.albums.store');
+            Route::post('artists/{artist}/albums/{album}', 'ArtistsController@albumUpdate')->name('artists.albums.update');
+            Route::post('artists/{artist}/albums/{album}/remove', 'ArtistsController@albumDestroy')->name('artists.albums.destroy');
+            Route::post('artists/{artist}/tracks', 'ArtistsController@trackStore')->name('artists.tracks.store');
+            Route::post('artists/{artist}/tracks/{track}', 'ArtistsController@trackUpdate')->name('artists.tracks.update');
+            Route::post('artists/{artist}/tracks/{track}/remove', 'ArtistsController@trackDestroy')->name('artists.tracks.destroy');
             Route::get('seasonal-backgrounds', 'SeasonalBackgroundsController@index')->name('seasonal-backgrounds.index');
             Route::post('seasonal-backgrounds', 'SeasonalBackgroundsController@store')->name('seasonal-backgrounds.store');
             Route::post('seasonal-backgrounds/settings', 'SeasonalBackgroundsController@settings')->name('seasonal-backgrounds.settings');
