@@ -537,6 +537,18 @@ class Beatmapset extends Model implements AfterCommit, CommentableInterface, Ind
             return $GLOBALS['cfg']['app']['url']."/uploads/default/beatmaps/{$this->getKey()}/preview.mp3";
         }
 
+        // TomYum: the mirror's preview (tomyum.audio_preview_url), which goes by a difficulty's id; the
+        // set's difficulties share the audio. Lists have them loaded already.
+        $template = $GLOBALS['cfg']['tomyum']['audio_preview_url'] ?? null;
+        if ($template !== null) {
+            $beatmapId = $this->relationLoaded('beatmaps')
+                ? $this->beatmaps->min('beatmap_id')
+                : $this->beatmaps()->min('beatmap_id');
+            if ($beatmapId !== null) {
+                return str_replace('{beatmap}', (string) $beatmapId, $template);
+            }
+        }
+
         return "https://b.ppy.sh/preview/{$this->getKey()}.mp3";
     }
 

@@ -10,6 +10,10 @@ return [
     // The server's name where the website speaks for it (support ticket mail, the maintenance notice).
     'server_name' => presence(env('TOMYUM_SERVER_NAME')) ?? 'TomYum',
 
+    // osu! sets' audio previews (the play buttons), by one of the set's difficulties' ids ({beatmap});
+    // empty: osu!'s own (b.ppy.sh, by the set's id).
+    'audio_preview_url' => presence(env('TOMYUM_AUDIO_PREVIEW_URL', 'https://catboy.best/preview/audio/{beatmap}')),
+
     // The osu!store (supporter, paid through payments-service below). Off, every store page says
     // it isn't available (TomYumStoreUnavailable) and the menus don't link to it.
     'store' => [
