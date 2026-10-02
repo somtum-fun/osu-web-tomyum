@@ -1,0 +1,264 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
+// See the LICENCE file in the repository root for full licence text.
+
+// TomYum: the badges page of the admin and TC panels (inside .tomyum-panel cards).
+.panel-badges {
+  &__search {
+    display: flex;
+    gap: 8px;
+    flex: 0 1 340px;
+
+    .input-text {
+      background: hsl(var(--hsl-b5));
+      border-radius: 10000px;
+      flex: 1;
+      min-width: 0;
+      padding: 0 15px;
+    }
+  }
+
+  &__holders {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  }
+
+  &__holder {
+    .link-plain();
+    .link-white();
+    align-items: center;
+    background: hsl(var(--hsl-b5));
+    border-radius: 10000px;
+    display: flex;
+    gap: 8px;
+    min-width: 0;
+    padding: 4px 10px 4px 4px;
+    font-size: @font-size--normal;
+    font-weight: 600;
+
+    > .u-ellipsis-overflow {
+      flex: 1;
+    }
+
+    &:hover {
+      background: hsl(var(--hsl-b3));
+    }
+
+    &--active {
+      box-shadow: inset 0 0 0 2px hsl(var(--hsl-h1));
+    }
+  }
+
+  &__avatar {
+    background: hsl(var(--hsl-b6)) center / cover no-repeat;
+    border-radius: 50%;
+    flex: none;
+    height: 26px;
+    width: 26px;
+
+    &--big {
+      border-radius: @border-radius-large;
+      height: 32px;
+      margin-right: 4px;
+      width: 32px;
+    }
+  }
+
+  // The badges as the profile lines them up.
+  &__strip {
+    background: hsl(var(--hsl-b5));
+    border-radius: @border-radius-large;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 15px;
+    padding: 10px;
+
+    img {
+      height: 40px;
+      width: 86px;
+    }
+  }
+
+  &__list {
+    display: grid;
+    gap: 8px;
+  }
+
+  &__item {
+    background: hsl(var(--hsl-b5));
+    border-radius: @border-radius-large;
+    padding: 10px 12px;
+  }
+
+  &__item-main {
+    align-items: center;
+    display: flex;
+    gap: 14px;
+
+    @media @mobile {
+      flex-wrap: wrap;
+    }
+  }
+
+  &__image {
+    flex: none;
+    height: 40px;
+    object-fit: contain;
+    width: 86px;
+  }
+
+  &__item-text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__tooltip {
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  &__meta {
+    color: hsl(var(--hsl-c2));
+    display: flex;
+    flex-wrap: wrap;
+    font-size: @font-size--normal;
+    gap: 4px 14px;
+    margin-top: 2px;
+    min-width: 0;
+
+    .fas,
+    .far {
+      margin-right: 5px;
+    }
+  }
+
+  &__actions {
+    align-items: stretch;
+    display: flex;
+    flex: none;
+    gap: 6px;
+
+    form {
+      display: flex;
+    }
+
+    .btn-osu-big {
+      min-height: 30px;
+    }
+
+    @media @mobile {
+      justify-content: flex-end;
+      width: 100%;
+    }
+  }
+
+  &__edit {
+    border-top: 1px solid hsl(var(--hsl-b3));
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 1fr 180px;
+    margin-top: 10px;
+    padding-top: 12px;
+
+    &[hidden] {
+      display: none;
+    }
+
+    @media @mobile {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__wide {
+    grid-column: 1 / -1;
+  }
+
+  &__buttons {
+    display: flex;
+    gap: 6px;
+  }
+
+  // Giving one: the form, and the badge as it'll look beside it.
+  &__give {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: 1fr 240px;
+
+    @media @mobile {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__give-form {
+    display: grid;
+    gap: 10px;
+  }
+
+  &__pair {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 1fr 180px;
+
+    @media @mobile {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__preview {
+    align-content: start;
+    background: hsl(var(--hsl-b5));
+    border-radius: @border-radius-large;
+    display: grid;
+    gap: 8px;
+    justify-items: center;
+    padding: 15px;
+    text-align: center;
+
+    .tomyum-panel__hint {
+      margin: 4px 0 0;
+    }
+  }
+
+  &__preview-label {
+    color: hsl(var(--hsl-c2));
+    font-size: @font-size--normal;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  &__preview-box {
+    align-items: center;
+    display: flex;
+    height: 40px;
+    justify-content: center;
+    width: 86px;
+  }
+
+  &__preview-empty {
+    border: 1px dashed hsl(var(--hsl-c2));
+    border-radius: 4px;
+    color: hsl(var(--hsl-c2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    height: 100%;
+    width: 100%;
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  // Like the profile's tooltip on a badge.
+  &__preview-tooltip {
+    background: hsl(var(--hsl-b6));
+    border-radius: 4px;
+    font-size: @font-size--normal;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    padding: 4px 10px;
+  }
+}

@@ -103,6 +103,7 @@ Route::group(['middleware' => ['web']], function () {
             Route::get('badges', 'BadgesController@index')->name('badges.index');
             Route::post('badges/{user}', 'BadgesController@store')->name('badges.store');
             Route::post('badges/{user}/remove', 'BadgesController@destroy')->name('badges.destroy');
+            Route::post('badges/{user}/update', 'BadgesController@update')->name('badges.update');
             Route::get('tournament-banners', 'TournamentBannersController@index')->name('tournament-banners.index');
             Route::post('tournament-banners', 'TournamentBannersController@store')->name('tournament-banners.store');
             Route::post('tournament-banners/{banner}/toggle', 'TournamentBannersController@toggle')->name('tournament-banners.toggle');
@@ -147,6 +148,7 @@ Route::group(['middleware' => ['web']], function () {
             Route::get('badges', 'BadgesController@index')->name('badges.index');
             Route::post('badges/{user}', 'BadgesController@store')->name('badges.store');
             Route::post('badges/{user}/remove', 'BadgesController@destroy')->name('badges.destroy');
+            Route::post('badges/{user}/update', 'BadgesController@update')->name('badges.update');
             Route::get('tournament-banners', 'TournamentBannersController@index')->name('tournament-banners.index');
             Route::post('tournament-banners', 'TournamentBannersController@store')->name('tournament-banners.store');
             Route::post('tournament-banners/{banner}/toggle', 'TournamentBannersController@toggle')->name('tournament-banners.toggle');
