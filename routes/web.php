@@ -80,6 +80,7 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('sets/{set}/status', 'BnSetsController@status')->name('sets.status');
             Route::post('sets/{set}/refresh', 'BnSetsController@refresh')->name('sets.refresh');
             Route::post('sets/{set}/nominators', 'BnSetsController@nominators')->name('sets.nominators');
+            Route::post('sets/{set}/track', 'BnSetsController@track')->name('sets.track');
         });
 
         Route::group(['as' => 'gmt.', 'prefix' => 'gmt'], function () {

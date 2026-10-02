@@ -5,6 +5,7 @@
 
 namespace App\Http\Controllers\Panel;
 
+use App\Models\ArtistTrack;
 use App\Models\Beatmap;
 use App\Models\Beatmapset;
 use App\Models\Event;
@@ -113,7 +114,62 @@ class BnSetsController extends Controller
             'serverError' => $server->successful() ? null : "Couldn't load the game server's copy (HTTP {$server->status()}).",
             'entries' => $entries,
             'actors' => BnController::actorNames($entries),
+            // TomYum: an uploaded set's featured artist track (osu!'s sets get theirs from osu!).
+            'isCustom' => $setId >= BnController::CUSTOM_ID_FLOOR,
+            'track' => $beatmapset?->track()->with('artist')->first(),
+            'trackQuery' => $trackQuery = trim((string) Request::input('track_q')),
+            'trackResults' => $trackQuery === '' ? collect() : static::findTracks($trackQuery),
         ]);
+    }
+
+    /**
+     * TomYum: an uploaded set's featured artist track (the FA badge on its page, and its artist's
+     * Beatmaps button), picked here or taken off. osu!'s sets get theirs from osu! (TomYum's sync).
+     */
+    public function track(string $set)
+    {
+        $setId = (int) $set;
+        if ($setId < BnController::CUSTOM_ID_FLOOR) {
+            return $this->back($setId, 'error', "osu!'s sets get their featured artist track from osu!.");
+        }
+        $beatmapset = Beatmapset::findOrFail($setId);
+
+        $trackId = get_int(Request::input('track_id'));
+        $track = $trackId === null ? null : ArtistTrack::with('artist')->find($trackId);
+        if ($trackId !== null && $track === null) {
+            return $this->back($setId, 'error', 'There\'s no such track.');
+        }
+
+        $beatmapset->update(['track_id' => $track?->getKey()]);
+        try {
+            $beatmapset->fresh()->esIndexDocument();
+        } catch (\Throwable $e) {
+            log_error($e);
+        }
+
+        $name = "{$beatmapset->artist} - {$beatmapset->title}";
+        $summary = $track === null
+            ? "Took the featured artist track off {$name}"
+            : "Set {$name}'s featured artist track to {$track->artist?->name} - {$track->title}";
+        $this->staffLog('beatmapset.track', $setId, $summary, $track === null ? 'none' : 'track');
+
+        return $this->back($setId, 'success', $track === null ? 'It\'s not a featured artist set any more.' : 'It\'s a featured artist set now.');
+    }
+
+    /** Tracks whose title, or whose artist's name, has the words (up to 15, artists A to Z). */
+    private static function findTracks(string $query)
+    {
+        $like = '%'.addcslashes($query, '%_\\').'%';
+
+        return ArtistTrack::with('artist')
+            ->where(fn ($q) => $q
+                ->where('title', 'like', $like)
+                ->orWhere('title_romanized', 'like', $like)
+                ->orWhereHas('artist', fn ($a) => $a->where('name', 'like', $like)))
+            ->orderBy('artist_id')
+            ->orderBy('title')
+            ->limit(15)
+            ->get();
     }
 
     public function status(string $set)

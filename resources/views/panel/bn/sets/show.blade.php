@@ -128,6 +128,63 @@
             </div>
         @endif
 
+        @if ($isCustom && $beatmapset !== null)
+            {{-- TomYum: an uploaded set's featured artist track. --}}
+            <div class="tomyum-panel__card" id="track">
+                <h2><i class="fas fa-music"></i>Featured artist track</h2>
+                <p class="tomyum-panel__hint">
+                    The song's track, when it's a featured artist's: the set gets the featured artist badge, and shows
+                    under the artist's Beatmaps button.
+                </p>
+                @if ($track !== null)
+                    <div class="panel-track">
+                        <span class="panel-track__cover" style="background-image: url('{{ $track->cover_url }}')"></span>
+                        <span class="panel-track__text">
+                            <strong>{{ $track->title }}</strong>
+                            <span class="tomyum-panel__muted">by {{ $track->artist?->name }} · {{ $track->genre }} · {{ round($track->bpm) }} BPM</span>
+                        </span>
+                        <form method="POST" action="{{ route('panel.bn.sets.track', ['set' => $setId]) }}">
+                            @csrf
+                            <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--panel-secondary" type="submit">Take it off</button>
+                        </form>
+                    </div>
+                @else
+                    <p class="tomyum-panel__muted">None: it isn't a featured artist set.</p>
+                @endif
+
+                <form method="GET" action="{{ route('panel.bn.sets.show', ['set' => $setId]) }}#track" class="panel-track__search">
+                    <input class="input-text" type="text" name="track_q" value="{{ $trackQuery }}" placeholder="A track's title or its artist" aria-label="Find a track">
+                    <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-search"></i>Find</button>
+                </form>
+                @if ($trackQuery !== '')
+                    @if (count($trackResults) === 0)
+                        <p class="tomyum-panel__empty">No track matches "{{ $trackQuery }}".</p>
+                    @else
+                        <div class="panel-track__results">
+                            @foreach ($trackResults as $result)
+                                <div class="panel-track">
+                                    <span class="panel-track__cover" style="background-image: url('{{ $result->cover_url }}')"></span>
+                                    <span class="panel-track__text">
+                                        <strong>{{ $result->title }}</strong>
+                                        <span class="tomyum-panel__muted">by {{ $result->artist?->name }} · {{ $result->genre }} · {{ round($result->bpm) }} BPM · {{ sprintf('%d:%02d', intdiv($result->length, 60), $result->length % 60) }}</span>
+                                    </span>
+                                    @if ($track?->getKey() === $result->getKey())
+                                        <span class="tomyum-panel__pill tomyum-panel__pill--good">This one</span>
+                                    @else
+                                        <form method="POST" action="{{ route('panel.bn.sets.track', ['set' => $setId]) }}">
+                                            @csrf
+                                            <input type="hidden" name="track_id" value="{{ $result->getKey() }}">
+                                            <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Use this</button>
+                                        </form>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                @endif
+            </div>
+        @endif
+
         <div class="tomyum-panel__card">
             <h2><i class="fas fa-sync-alt"></i>Refresh from bancho</h2>
             <p class="tomyum-panel__hint">
