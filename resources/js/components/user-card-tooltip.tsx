@@ -4,7 +4,7 @@
 import Reportable from 'interfaces/reportable';
 import UserJson from 'interfaces/user-json';
 import * as _ from 'lodash';
-import { autorun, makeObservable, observable, runInAction } from 'mobx';
+import { action, autorun, makeObservable, observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react';
 import { userNotFoundJson } from 'models/user';
 import core from 'osu-core-singleton';
@@ -24,6 +24,10 @@ interface Props {
 }
 
 const userCardTooltipClass = 'qtip--user-card';
+
+// TomYum: players looked up for hover cards, so hovering one again shows straight away.
+const lookupCacheMs = 60_000;
+const lookupCache = new Map<string, { at: number; user: UserJson }>();
 let inCard = false;
 let tooltipWithActiveMenu: string | null = null;
 
@@ -219,8 +223,13 @@ export function startListening() {
 export class UserCardTooltip extends React.PureComponent<Props> {
   @observable private readonly activeKeyState = new ActiveKeyState<string>();
   private readonly disposer?: () => void;
+  @observable private loaded = false;
   @observable private user?: UserJson;
   private xhr?;
+
+  private get expanded() {
+    return this.props.container.dataset.cardSize !== 'compact';
+  }
 
   private get reportable() {
     const dataString = this.props.container.dataset.reportable;
@@ -234,20 +243,27 @@ export class UserCardTooltip extends React.PureComponent<Props> {
     super(props);
     makeObservable(this);
 
-    // TomYum: the hover card is the expanded player card, with numbers the page's own user doesn't
-    // have: shown straight away for yourself, and filled in when they arrive.
-    const currentUser = core.currentUser;
-    if (currentUser != null && this.props.lookup === currentUser.id.toString()) {
-      this.user = currentUser;
+    // TomYum: the hover card is the expanded player card, whose numbers come with the lookup: it
+    // shows once they're here, at its full size (it showed small, then grew), and a player looked up
+    // in the last minute shows straight away.
+    const cached = lookupCache.get(this.props.lookup);
+    if (cached != null && cached.at > Date.now() - lookupCacheMs) {
+      this.user = cached.user;
+      this.loaded = true;
+    } else {
+      this.xhr = apiLookupUsers([this.props.lookup], undefined, true)
+        .done((response) => runInAction(() => {
+          const user = response.users[0];
+          if (user != null) {
+            lookupCache.set(this.props.lookup, { at: Date.now(), user });
+          }
+          this.user = user ?? userNotFoundJson;
+        }))
+        .always(action(() => {
+          this.xhr = undefined;
+          this.loaded = true;
+        }));
     }
-
-    this.xhr = apiLookupUsers([this.props.lookup], undefined, true)
-      .done((response) => runInAction(() => {
-        this.user = response.users[0] ?? this.user ?? userNotFoundJson;
-      }))
-      .always(() => {
-        this.xhr = undefined;
-      });
 
     this.disposer = autorun(() => {
       tooltipWithActiveMenu = this.activeKeyState.value;
@@ -257,9 +273,14 @@ export class UserCardTooltip extends React.PureComponent<Props> {
     });
   }
 
-  // TomYum: the card grows when its numbers arrive (the expansion): placed again around the name, or
-  // it'd hang where the empty card was.
+  componentDidMount() {
+    this.updateVisibility();
+  }
+
+  // TomYum: the card takes its size when its numbers arrive: placed again around the name, or it'd
+  // hang where the empty card was.
   componentDidUpdate() {
+    this.updateVisibility();
     $(this.props.container).closest('.qtip').qtip('reposition');
   }
 
@@ -277,7 +298,7 @@ export class UserCardTooltip extends React.PureComponent<Props> {
           <KeyContext.Provider value={this.props.lookup}>
             <UserCard
               activated={activated}
-              expanded={this.props.container.dataset.cardSize !== 'compact'}
+              expanded={this.expanded}
               reportable={this.reportable}
               user={this.user}
             />
@@ -285,5 +306,11 @@ export class UserCardTooltip extends React.PureComponent<Props> {
         </ContainerContext.Provider>
       </TooltipContext.Provider>
     );
+  }
+
+  // The expanded card stays invisible (and lets the cursor through) until its lookup is back.
+  private updateVisibility() {
+    const tooltip = $(this.props.container).closest('.qtip')[0] ?? this.props.container;
+    tooltip.style.visibility = this.expanded && !this.loaded ? 'hidden' : '';
   }
 }
