@@ -430,6 +430,35 @@
       max-width: 100%;
     }
   }
+
+  // Bricks two to a row (user-cards--brick): avatar, group colour, name and group; the level and
+  // friend status make way for the name.
+  .player-card--brick {
+    display: flex;
+    min-width: 0;
+
+    .player-card__info {
+      min-width: 0;
+      width: 100%;
+    }
+
+    .level-hexagon,
+    .player-card__pill--friend {
+      display: none;
+    }
+
+    .player-card__username {
+      flex: 1 1 auto;
+      font-size: @font-size--title-small; // 14px
+      max-width: none;
+      min-width: 0;
+    }
+  }
+}
+
+// The mobile menu's own card: the menu's width, not its contents'.
+.navbar-mobile-item__main > .player-card {
+  flex: 1;
 }
 
 // TomYum: a card view card's place in the grid, as high as the card (60px info box, 30px status

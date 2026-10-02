@@ -27,11 +27,12 @@
     }
 
     &--user-card {
-      // TomYum: the card at its own height, not stretched to the stats beside it
       align-content: start;
-      align-self: flex-start;
 
       @media @desktop {
+        // TomYum: the card at its own height, not stretched to the stats beside it (only side by
+        // side: on phones the column is the page's width, and this made it the card's)
+        align-self: flex-start;
         width: 360px;
       }
     }
