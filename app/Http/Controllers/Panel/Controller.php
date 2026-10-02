@@ -43,6 +43,12 @@ abstract class Controller extends BaseController
         return $user !== null && ($user->isTournamentCommittee() || $user->isAdmin());
     }
 
+    // The Loved panel: Project Loved rounds.
+    public static function canUseLoved(?User $user): bool
+    {
+        return \App\Libraries\TomYumLoved::canRunRounds($user);
+    }
+
     /**
      * The panel a page shared by the admin and TC panels (tournament banners, badges) was opened
      * from, as its route name prefix: its links stay in that panel.
@@ -60,7 +66,7 @@ abstract class Controller extends BaseController
 
     public static function canUseAny(?User $user): bool
     {
-        return static::canUseBn($user) || static::canUseGmt($user) || static::canUseTc($user) || static::canUseAdmin($user)
+        return static::canUseBn($user) || static::canUseGmt($user) || static::canUseTc($user) || static::canUseLoved($user) || static::canUseAdmin($user)
             || \App\Libraries\TomYumBots::canManageAll($user)
             || TicketsController::canUseTickets($user);
     }

@@ -23,6 +23,7 @@ class PagesController extends Controller
                 'bn' => static::canUseBn($user),
                 'gmt' => static::canUseGmt($user),
                 'tc' => static::canUseTc($user),
+                'loved' => static::canUseLoved($user),
                 'admin' => static::canUseAdmin($user),
                 'bots' => \App\Libraries\TomYumBots::canManageAll($user),
                 'kudosu' => KudosuController::canAdjustKudosu($user),

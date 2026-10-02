@@ -906,7 +906,9 @@ class Beatmapset extends Model implements AfterCommit, CommentableInterface, Ind
 
             Event::generate('beatmapsetApprove', ['beatmapset' => $this]);
 
-            dispatch((new CheckBeatmapsetCovers($this))->onQueue('beatmap_high'));
+            // TomYum: after the commit, so covers that can't be made (the .osz unreachable, with jobs
+            // run in the request) don't undo the love.
+            dispatch((new CheckBeatmapsetCovers($this))->onQueue('beatmap_high'))->afterCommit();
 
             (new BeatmapsetLove($this, $user))->dispatch();
         });

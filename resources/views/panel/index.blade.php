@@ -24,6 +24,14 @@
                     <p class="tomyum-panel__hint">Restrictions, silences, reports, chat logs and score removal.</p>
                 </a>
             @endif
+            @if ($panels['loved'])
+                <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('panel.loved.index') }}">
+                    <span class="tomyum-panel__link-icon"><i class="fas fa-heart"></i></span>
+                    <span class="tomyum-panel__kicker">Project Loved</span>
+                    <h2>Loved panel</h2>
+                    <p class="tomyum-panel__hint">Pick maps for a round, open its polls, and close it to love the maps that passed.</p>
+                </a>
+            @endif
             @if ($panels['tc'])
                 <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('panel.tc.index') }}">
                     <span class="tomyum-panel__link-icon"><i class="fas fa-trophy"></i></span>

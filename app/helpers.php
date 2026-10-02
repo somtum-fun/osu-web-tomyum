@@ -1294,6 +1294,7 @@ function nav_links()
         'page_title.main.activity_controller._' => route('activity.index'),
         'page_title.main.contests_controller._' => route('contests.index'),
         'page_title.main.tournaments_controller._' => route('tournaments.index'),
+        'page_title.main.loved_controller._' => route('loved.index'),
         'page_title.main.livestreams_controller._' => route('livestreams.index'),
         'layout.menu.community.dev' => osu_url('dev'),
     ];

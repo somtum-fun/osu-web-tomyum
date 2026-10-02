@@ -30,9 +30,13 @@
             ['Badges', 'panel.tc.badges.index', ['panel.tc.badges.']],
             ['Assets', 'panel.tc.assets.index', ['panel.tc.assets.']],
         ]],
+        'loved' => ['Loved', 'panel.loved.index', PanelController::canUseLoved($user), [
+            ['Rounds', 'panel.loved.index', ['panel.loved.']],
+        ]],
         'admin' => ['Admin', 'panel.admin.index', PanelController::canUseAdmin($user), [
             ['Overview', 'panel.admin.index', ['panel.admin.index', 'panel.admin.recalculate']],
             ['Accounts', 'panel.admin.users.index', ['panel.admin.users.']],
+            ['Groups', 'panel.admin.groups.index', ['panel.admin.groups.']],
             ['Daily challenge', 'panel.admin.daily-challenge.index', ['panel.admin.daily-challenge.']],
             ['Ranked Play', 'panel.admin.matchmaking.index', ['panel.admin.matchmaking.']],
             ['Ranked mods', 'panel.admin.mods.index', ['panel.admin.mods.']],

@@ -1,0 +1,698 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
+// See the LICENCE file in the repository root for full licence text.
+
+// TomYum: Project Loved. The public page (loved/index) is osu-web's own pieces (page-extra sections,
+// the beatmap listing's cards, user cards); this styles what's between them: the about text, the
+// round's facts, each map's write-up and poll under its card. Then the Loved panel's round page.
+
+.tomyum-loved {
+  display: grid;
+  gap: 20px;
+  padding-bottom: 20px;
+  padding-top: 20px;
+
+  &__about {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+
+    @media @mobile {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    p {
+      margin: 0 0 10px;
+    }
+  }
+
+  &__steps {
+    counter-reset: step;
+    display: grid;
+    gap: 10px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    li {
+      counter-increment: step;
+      padding-left: 32px;
+      position: relative;
+
+      &::before {
+        align-items: center;
+        background: hsl(var(--hsl-h1));
+        border-radius: 50%;
+        color: hsl(var(--hsl-b6));
+        content: counter(step);
+        display: flex;
+        font-size: @font-size--normal;
+        font-weight: 700;
+        height: 22px;
+        justify-content: center;
+        left: 0;
+        position: absolute;
+        top: 0;
+        width: 22px;
+      }
+    }
+
+    strong {
+      display: block;
+    }
+  }
+
+  &__muted {
+    color: hsl(var(--hsl-c2));
+    margin: 0 0 15px;
+  }
+
+  // The round's facts, under its title.
+  &__status {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  &__status-item {
+    align-items: center;
+    background: hsl(var(--hsl-b3));
+    border-radius: 10000px;
+    color: hsl(var(--hsl-c2));
+    display: flex;
+    font-size: @font-size--normal;
+    gap: 10px;
+    padding: 3px 12px;
+
+    .fas {
+      margin-right: 5px;
+    }
+
+    &--live {
+      color: hsl(var(--hsl-lime-1));
+
+      .fas {
+        animation: tomyum-loved-pulse 1.5s ease-in-out infinite;
+        font-size: 7px;
+      }
+    }
+
+    &--loved {
+      color: hsl(var(--hsl-pink-1));
+    }
+  }
+
+  &__mode-count {
+    .link-plain();
+    color: hsl(var(--hsl-c2));
+
+    &:hover,
+    &--active {
+      color: hsl(var(--hsl-c1));
+    }
+
+    &--active {
+      font-weight: 700;
+    }
+  }
+
+  // Two maps a row, like the beatmap listing.
+  &__entries {
+    display: grid;
+    gap: 15px 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    @media @mobile {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  &__team {
+    display: grid;
+    gap: 5px;
+    grid-template-columns: repeat(auto-fill, minmax(@user-card-width, 1fr));
+  }
+
+  // The questions: two columns of answers that open when clicked.
+  &__faq {
+    align-items: start;
+    display: grid;
+    gap: 5px 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    @media @mobile {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  &__question {
+    background: hsl(var(--hsl-b3));
+    border-radius: @border-radius--large;
+    // The answer's height slides open and shut where browsers can animate to auto (Chromium);
+    // elsewhere it opens at once, still fading in (below).
+    interpolate-size: allow-keywords;
+    transition: background-color 150ms;
+
+    &::details-content {
+      block-size: 0;
+      overflow: hidden;
+      transition:
+        block-size 250ms cubic-bezier(0.33, 1, 0.68, 1),
+        content-visibility 250ms allow-discrete;
+    }
+
+    &[open]::details-content {
+      block-size: auto;
+    }
+
+    &:hover,
+    &[open] {
+      background: hsl(var(--hsl-b2));
+    }
+
+    &[open] p {
+      animation: tomyum-loved-answer 250ms cubic-bezier(0.33, 1, 0.68, 1);
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+      list-style: none;
+      padding: 10px 14px 10px 34px;
+      position: relative;
+
+      &::-webkit-details-marker {
+        display: none;
+      }
+
+      &::before {
+        color: hsl(var(--hsl-h1));
+        content: "\f054"; // chevron-right
+        font-family: "Font Awesome 5 Free";
+        font-size: @font-size--normal;
+        font-weight: 900;
+        left: 14px;
+        position: absolute;
+        top: 12px;
+        transition: transform 120ms;
+      }
+
+      &:hover {
+        color: hsl(var(--hsl-h1));
+      }
+    }
+
+    &[open] summary::before {
+      transform: rotate(90deg);
+    }
+
+    p {
+      color: hsl(var(--hsl-c2));
+      margin: 0;
+      padding: 0 14px 12px 34px;
+    }
+  }
+
+  // A section title with something on its right (a button, a link).
+  &__section-head {
+    align-items: baseline;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: space-between;
+  }
+
+  &__live {
+    color: hsl(var(--hsl-lime-1));
+  }
+
+  // Two sections side by side (most wanted, rounds).
+  &__columns {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    @media @mobile {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  // The latest round's maps as covers.
+  &__tiles {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+
+  // The request form.
+  &__form {
+    display: grid;
+    gap: 10px;
+  }
+
+  &__form-row {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: minmax(0, 1fr) 150px;
+
+    @media @mobile {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  &__alert {
+    border-radius: @border-radius--large;
+    font-size: @font-size--normal-2;
+    margin-bottom: 10px;
+    padding: 8px 12px;
+
+    &--success {
+      background: hsla(var(--hsl-lime-1), 0.15);
+      color: hsl(var(--hsl-lime-1));
+    }
+
+    &--error {
+      background: hsla(var(--hsl-red-2), 0.15);
+      color: hsl(var(--hsl-red-1));
+    }
+  }
+
+  &__declined {
+    display: grid;
+    gap: 6px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+@keyframes tomyum-loved-answer {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes tomyum-loved-pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+// A map of the latest round on the overview: its cover, mode and title.
+.tomyum-loved-tile {
+  .link-plain();
+  background: hsl(var(--hsl-b5)) center / cover;
+  border-radius: @border-radius--large;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  height: 100px;
+  justify-content: flex-end;
+  overflow: hidden;
+  position: relative;
+
+  &::before {
+    background: linear-gradient(transparent 20%, hsla(var(--hsl-b6), 0.9));
+    content: "";
+    inset: 0;
+    position: absolute;
+  }
+
+  &:hover {
+    color: #fff;
+
+    &::before {
+      background: linear-gradient(transparent, hsla(var(--hsl-b6), 0.75));
+    }
+  }
+
+  &--loved {
+    box-shadow: inset 0 0 0 2px hsl(var(--hsl-pink-1));
+  }
+
+  &--failed {
+    filter: grayscale(0.8);
+    opacity: 0.6;
+  }
+
+  &__mode,
+  &__badge {
+    background: hsla(var(--hsl-b6), 0.75);
+    border-radius: 10000px;
+    font-size: @font-size--normal;
+    padding: 3px 7px;
+    position: absolute;
+    top: 7px;
+  }
+
+  &__mode {
+    left: 7px;
+  }
+
+  &__badge {
+    color: hsl(var(--hsl-pink-1));
+    font-weight: 700;
+    right: 7px;
+  }
+
+  &__text {
+    display: grid;
+    padding: 8px 10px;
+    position: relative;
+  }
+
+  &__title {
+    font-weight: 700;
+  }
+
+  &__artist {
+    font-size: @font-size--normal;
+    opacity: 0.8;
+  }
+}
+
+// A short list on the overview (most wanted requests, rounds).
+.tomyum-loved-list {
+  display: grid;
+  gap: 5px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  &__item {
+    .link-plain();
+    align-items: center;
+    background: hsl(var(--hsl-b3));
+    border-radius: @border-radius--large;
+    color: hsl(var(--hsl-c1));
+    display: flex;
+    gap: 10px;
+    overflow: hidden;
+    padding-right: 12px;
+
+    &:hover {
+      background: hsl(var(--hsl-b2));
+      color: hsl(var(--hsl-c1));
+    }
+  }
+
+  &__cover {
+    align-self: stretch;
+    background: hsl(var(--hsl-b5)) center / cover;
+    flex: none;
+    min-height: 44px;
+    width: 70px;
+  }
+
+  &__text {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+    padding: 7px 0;
+
+    .tomyum-loved-list__item:not(:has(.tomyum-loved-list__cover)) & {
+      padding-left: 12px;
+    }
+  }
+
+  &__title {
+    font-weight: 700;
+  }
+
+  &__meta {
+    color: hsl(var(--hsl-c2));
+    font-size: @font-size--normal;
+  }
+
+  &__value {
+    color: hsl(var(--hsl-c2));
+    flex: none;
+    font-size: @font-size--normal-2;
+    font-weight: 700;
+
+    .fas {
+      color: hsl(var(--hsl-pink-1));
+      margin-right: 3px;
+    }
+  }
+}
+
+// A map in the round: osu-web's card, then the captain's write-up and the poll.
+.tomyum-loved-entry {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  scroll-margin-top: 80px;
+
+  &__body {
+    background: hsl(var(--hsl-b3));
+    border-radius: 0 0 @border-radius--large @border-radius--large;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    font-size: @font-size--normal-2;
+    gap: 10px;
+    margin: -5px 0 0;
+    padding: 15px 15px 12px;
+  }
+
+  &--loved &__body {
+    box-shadow: inset 0 -3px 0 hsl(var(--hsl-pink-1));
+  }
+
+  &--failed {
+    opacity: 0.65;
+  }
+
+  &__writeup {
+    flex: 1;
+  }
+
+  &__captain {
+    color: hsl(var(--hsl-c2));
+    font-size: @font-size--normal;
+    margin-bottom: 4px;
+  }
+
+  &__description {
+    border-left: 2px solid hsl(var(--hsl-h1));
+    padding-left: 10px;
+  }
+
+  &__poll {
+    display: grid;
+    gap: 7px;
+  }
+
+  &__numbers {
+    align-items: baseline;
+    color: hsl(var(--hsl-c2));
+    display: flex;
+    font-size: @font-size--normal;
+    gap: 12px;
+
+    strong {
+      color: hsl(var(--hsl-c1));
+    }
+
+    a {
+      margin-left: auto;
+    }
+  }
+
+  &__result {
+    font-size: @font-size--normal-2;
+
+    &--loved {
+      color: hsl(var(--hsl-pink-1)) !important;
+    }
+  }
+
+  &__bar {
+    background: linear-gradient(to right, hsl(var(--hsl-lime-1)) var(--yes), hsl(var(--hsl-red-2)) var(--yes));
+    border-radius: 10000px;
+    height: 6px;
+    position: relative;
+
+    &--empty {
+      background: hsl(var(--hsl-b5));
+    }
+
+    // Where the round's threshold is.
+    &::after {
+      background: hsl(var(--hsl-c1));
+      border-radius: 1px;
+      content: "";
+      height: 12px;
+      left: var(--needed);
+      position: absolute;
+      top: -3px;
+      width: 2px;
+    }
+  }
+
+  &__buttons {
+    display: grid;
+    gap: 5px;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  &__vote {
+    .reset-input();
+    align-items: center;
+    background: hsl(var(--hsl-b5));
+    border-radius: 10000px;
+    color: hsl(var(--hsl-c1));
+    display: flex;
+    font-size: @font-size--normal;
+    font-weight: 700;
+    gap: 6px;
+    justify-content: center;
+    padding: 6px;
+
+    &:hover {
+      background: hsl(var(--hsl-b6));
+    }
+
+    &--active&--yes {
+      background: hsl(var(--hsl-lime-1));
+      color: hsl(var(--hsl-b6));
+    }
+
+    &--active&--no {
+      background: hsl(var(--hsl-red-2));
+      color: #fff;
+    }
+
+    &--support {
+      padding: 6px 16px;
+    }
+
+    &--active&--support {
+      background: hsl(var(--hsl-pink-1));
+      color: hsl(var(--hsl-b6));
+    }
+  }
+
+  // A request's supporters and the support button.
+  &__support {
+    align-items: center;
+    color: hsl(var(--hsl-c2));
+    display: flex;
+    font-size: @font-size--normal;
+    gap: 10px;
+    justify-content: space-between;
+
+    strong {
+      color: hsl(var(--hsl-c1));
+      font-size: @font-size--normal-2;
+    }
+  }
+
+  &__note {
+    color: hsl(var(--hsl-c2));
+    font-size: @font-size--normal;
+  }
+}
+
+// The Loved panel's round page: a map per row (cover, details and write-up, votes and actions).
+.tomyum-loved-picks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tomyum-loved-pick {
+  background: hsl(var(--hsl-b3));
+  border-radius: @border-radius-large;
+  display: grid;
+  gap: 15px;
+  grid-template-columns: 130px minmax(0, 1fr) auto;
+  overflow: hidden;
+  scroll-margin-top: 150px;
+
+  @media @mobile {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  &__cover {
+    background: hsl(var(--hsl-b5)) center / cover;
+    min-height: 80px;
+  }
+
+  &__info {
+    min-width: 0;
+    padding: 10px 0;
+
+    @media @mobile {
+      padding: 0 12px;
+    }
+  }
+
+  &__title {
+    .link-plain();
+    color: hsl(var(--hsl-c1));
+    font-size: @font-size--title-small;
+    font-weight: 600;
+
+    &:hover {
+      color: hsl(var(--hsl-c1));
+      text-decoration: underline;
+    }
+  }
+
+  &__meta {
+    color: hsl(var(--hsl-c2));
+    font-size: @font-size--normal;
+  }
+
+  &__description {
+    border-left: 2px solid hsl(var(--hsl-h1));
+    margin-top: 8px;
+    padding-left: 10px;
+
+    &--empty {
+      color: hsl(var(--hsl-c2));
+      font-style: italic;
+    }
+  }
+
+  &__edit {
+    margin-top: 6px;
+
+    summary {
+      color: hsl(var(--hsl-h1));
+      cursor: pointer;
+      font-size: @font-size--normal;
+    }
+
+    form {
+      align-items: flex-start;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    textarea {
+      resize: vertical;
+      width: 100%;
+    }
+  }
+
+  &__side {
+    align-items: flex-end;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    justify-content: center;
+    padding: 10px 15px 10px 0;
+    white-space: nowrap;
+
+    @media @mobile {
+      align-items: flex-start;
+      padding: 0 12px 12px;
+    }
+  }
+}

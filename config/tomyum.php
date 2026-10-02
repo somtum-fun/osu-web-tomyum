@@ -39,6 +39,12 @@ return [
     // Ranked status is TomYum's (the osu! API plus the BN panel): don't run modding:rank here.
     'manages_ranking' => get_bool(env('TOMYUM_MANAGES_RANKING')) ?? true,
 
+    // Project Loved (App\Libraries\TomYumLoved): the forum the rounds' polls are posted in (osu!'s is 120
+    // too; made when the first round opens its polls, or by tomyum:setup).
+    'loved' => [
+        'forum_id' => get_int(env('TOMYUM_LOVED_FORUM_ID')) ?? 120,
+    ],
+
     // Store payments (TrueMoney, Stripe) through payments-service (Store\TomYumCheckoutController):
     // where it's reached from here; empty, paying fails with "not available".
     'payments' => [
