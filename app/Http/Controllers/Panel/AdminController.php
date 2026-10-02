@@ -203,6 +203,7 @@ class AdminController extends Controller
         $modes = Request::input('playmodes') ?? [];
         $added = [];
         $removed = [];
+        $titleChanges = [];
 
         foreach (Group::whereNotIn('identifier', static::UNASSIGNABLE_GROUPS)->get() as $group) {
             $want = in_array($group->identifier, $wanted, true);
@@ -219,14 +220,20 @@ class AdminController extends Controller
                     $target->addToGroup($group, $playmodes, Auth::user());
                     if (!$has) {
                         $added[] = $group->short_name;
-                        $this->groupTitle($target, $group, true);
+                        $titleChanges[] = [$group, true];
                     }
                 }
             } elseif ($has) {
                 $target->removeFromGroup($group, Auth::user());
                 $removed[] = $group->short_name;
-                $this->groupTitle($target, $group, false);
+                $titleChanges[] = [$group, false];
             }
+        }
+
+        // TomYum: their colour is their main group's: a staff group, not "default", once they have one.
+        $this->mainGroup($target);
+        foreach ($titleChanges as [$group, $isAdded]) {
+            $this->groupTitle($target, $group, $isAdded);
         }
 
         if (count($added) + count($removed) === 0) {
@@ -236,6 +243,34 @@ class AdminController extends Controller
         $summary = trim((count($added) > 0 ? 'added '.implode(', ', $added).' ' : '').(count($removed) > 0 ? 'removed '.implode(', ', $removed) : ''));
 
         return $this->done($target, 'admin.groups', "{$target->username}: {$summary}", 'Groups saved: '.$summary.'.');
+    }
+
+    /**
+     * TomYum: a player's colour (profile title and name) is their main group's. Someone whose main
+     * group is "default" (never set, or theirs was just taken away) gets their highest listed group
+     * as it (the staff page's order); their title stays (osu-web's setDefaultGroup sets the group's).
+     */
+    public static function mainGroup(User $target): void
+    {
+        $target->refresh();
+        $groups = app('groups');
+        if ($target->group_id !== $groups->byIdentifier('default')?->getKey()) {
+            return;
+        }
+
+        $main = Group::whereNotNull('display_order')
+            ->whereNotIn('identifier', static::UNASSIGNABLE_GROUPS)
+            ->orderBy('display_order')
+            ->get()
+            ->first(fn (Group $group) => $target->findUserGroup($group) !== null);
+        if ($main === null) {
+            return;
+        }
+
+        $title = $target->user_rank;
+        $target->setDefaultGroup($main, Auth::user());
+        User::whereKey($target->getKey())->update(['user_rank' => $title]);
+        $target->refresh();
     }
 
     /**
