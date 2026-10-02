@@ -5,6 +5,7 @@
 
 namespace App\Http\Controllers\Panel;
 
+use App\Libraries\TomYumAssets;
 use App\Models\ProfileBanner;
 use App\Models\Tournament;
 use App\Models\TournamentBanner;
@@ -12,24 +13,19 @@ use App\Models\User;
 use Auth;
 use Carbon\CarbonImmutable;
 use DB;
-use Http;
 use Request;
 
 /**
- * Admin panel: tournament banners on profiles (osu-web's own feature: the banner under a player's
- * header, linking to the tournament). A banner is a tournament (shown with the past ones on the
- * tournaments page) with one image for everyone who gets it, stored with the site's uploads at
- * normal and double size (tournament-banners/{id}/banner.jpg, banner@2x.jpg; a replaced image gets
- * a new name, banner-{time}.jpg, so nobody's browser keeps the old one).
+ * Admin and TC panels: tournament banners on profiles (osu-web's own feature: the banner under a
+ * player's header, linking to the tournament). Like osu!'s, a tournament's banners are a folder on
+ * the assets host (tournament-banners/official/owc2025/profile/), and every image in it is one of
+ * them, at normal and double size (supporter_CA.jpg, supporter_CA@2x.jpg; winner_CA.jpg, …): a player
+ * is given the tournament and which of its images is theirs. The images are managed here or on the
+ * Assets page, named as given. Banners made before (one uploaded image for everyone) keep working,
+ * and move to the assets host with a click.
  */
 class TournamentBannersController extends Controller
 {
-    /** Biggest image taken (uploaded or fetched). */
-    private const MAX_BYTES = 10 * 1024 * 1024;
-
-    /** How wide the banner shows on profiles (osu!'s are 1000 × 60, and 2000 × 120 at double size). */
-    private const WIDTH = 1000;
-
     public function __construct()
     {
         parent::__construct();
@@ -47,7 +43,27 @@ class TournamentBannersController extends Controller
         $holders = ProfileBanner::with('user')->whereIn('tournament_id', $banners->pluck('tournament_id'))->get()
             ->groupBy('tournament_id');
 
-        return ext_view('panel.admin.tournament_banners', ['banners' => $banners, 'holders' => $holders]);
+        // Each banner's images (its folder's), for showing and giving.
+        $images = [];
+        $problems = [];
+        foreach ($banners as $banner) {
+            $folder = static::folderOf($banner);
+            if ($folder === null) {
+                continue;
+            }
+            [$listing, $problem] = $this->assets()->list("tournament-banners/{$folder}");
+            $images[$banner->getKey()] = $listing['images'] ?? [];
+            if ($problem !== null) {
+                $problems[$banner->getKey()] = $problem;
+            }
+        }
+
+        return ext_view('panel.admin.tournament_banners', [
+            'banners' => $banners,
+            'holders' => $holders,
+            'images' => $images,
+            'problems' => $problems,
+        ]);
     }
 
     public function store()
@@ -60,6 +76,10 @@ class TournamentBannersController extends Controller
         if ($infoUrl !== null && !preg_match('#^https?://#', $infoUrl)) {
             return $this->back('error', 'The tournament\'s link should be a web address (https://…).');
         }
+        $folder = static::plainFolder((string) Request::input('folder'));
+        if ($folder === null) {
+            return $this->back('error', 'Give the images\' folder: like official/owc2025/profile (letters, digits, - and _, with / between folders).');
+        }
         $date = presence((string) Request::input('date'));
         try {
             $when = $date === null ? CarbonImmutable::now() : CarbonImmutable::parse($date)->endOfDay();
@@ -67,12 +87,7 @@ class TournamentBannersController extends Controller
             return $this->back('error', 'That date isn\'t one.');
         }
 
-        [$image, $problem] = $this->image();
-        if ($image === null) {
-            return $this->back('error', $problem);
-        }
-
-        $tournament = DB::transaction(function () use ($name, $infoUrl, $when) {
+        $tournament = DB::transaction(function () use ($name, $infoUrl, $when, $folder) {
             // Held (and over) on the day given: the tournaments page lists it with the previous ones.
             $tournament = Tournament::create([
                 'name' => $name,
@@ -87,23 +102,122 @@ class TournamentBannersController extends Controller
             TournamentBanner::create([
                 'tournament_id' => $tournament->getKey(),
                 'is_active' => true,
-                'banner_url_prefix' => url("/uploads/tournament-banners/{$tournament->getKey()}/banner"),
+                'banner_url_prefix' => static::prefixFor($folder),
             ]);
 
             return $tournament;
         });
+        $this->staffLog('banner.add', $tournament->getKey(), "Made the tournament banner \"{$name}\" (tournament-banners/{$folder})");
 
-        if (!$this->save($tournament->getKey(), 'banner', $image)) {
-            DB::transaction(function () use ($tournament) {
-                TournamentBanner::whereKey($tournament->getKey())->delete();
-                $tournament->delete();
-            });
+        return $this->back('success', "Made \"{$name}\". Add its images (upload, or copy osu!'s), then give them to players.", "banner-{$tournament->getKey()}");
+    }
 
-            return $this->back('error', 'That isn\'t an image the site can read (JPEG, PNG, WebP or GIF).');
+    /** One of a banner's images, uploaded: the @2x one (the normal is made from it), the normal, or both. */
+    public function upload(string $banner)
+    {
+        $row = TournamentBanner::with('tournament')->findOrFail((int) $banner);
+        $folder = static::folderOf($row);
+        if ($folder === null) {
+            return $this->back('error', 'Move this banner to the assets host first.', "banner-{$row->getKey()}");
         }
-        $this->staffLog('banner.add', $tournament->getKey(), "Made the tournament banner \"{$name}\"");
+        $retina = Request::file('retina');
+        $normal = Request::file('normal');
+        $source = $retina ?? $normal;
+        if ($source === null) {
+            return $this->back('error', 'Choose the image: the @2x one (2000×120), the normal one, or both.', "banner-{$row->getKey()}");
+        }
+        $name = AssetsController::plainName((string) Request::input('name'))
+            ?? AssetsController::plainName(pathinfo($source->getClientOriginalName(), PATHINFO_FILENAME));
+        if ($name === null) {
+            return $this->back('error', 'Give the image a name: letters, digits, - and _ (like winner_CA or banner).', "banner-{$row->getKey()}");
+        }
 
-        return $this->back('success', "Made the banner for \"{$name}\". Give it to players below.");
+        $problem = $this->assets()->save("tournament-banners/{$folder}/{$name}.jpg", $normal, $retina);
+
+        return $problem === null
+            ? $this->back('success', "Added {$name}.jpg to \"{$row->tournament?->name}\".", "banner-{$row->getKey()}")
+            : $this->back('error', $problem, "banner-{$row->getKey()}");
+    }
+
+    /** Banner images by link (osu!'s or any, one per line), copied into this banner's folder at both sizes. */
+    public function copy(string $banner)
+    {
+        $row = TournamentBanner::with('tournament')->findOrFail((int) $banner);
+        $folder = static::folderOf($row);
+        if ($folder === null) {
+            return $this->back('error', 'Move this banner to the assets host first.', "banner-{$row->getKey()}");
+        }
+
+        $links = collect(preg_split('/\r?\n/', (string) Request::input('links')))
+            ->map(fn ($link) => trim($link))
+            ->filter()
+            ->unique()
+            ->take(100);
+        $copied = [];
+        $problems = [];
+        foreach ($links as $link) {
+            // The link's own name (supporter_CA.jpg, from either size's link).
+            $file = basename(preg_replace('/[?#].*$/', '', $link));
+            $file = preg_replace('/@2x(\.jpg)$/i', '$1', $file);
+            if (!preg_match('/^[A-Za-z0-9_-]+\.jpg$/i', $file)) {
+                $problems[] = "{$link}: not a banner image (….jpg).";
+                continue;
+            }
+            [$sources, $problem] = $this->download($link);
+            if ($problem === null) {
+                $problem = $this->assets()->saveBytes("tournament-banners/{$folder}/{$file}", $sources[0], $sources[1]);
+            }
+            if ($problem === null) {
+                $copied[] = $file;
+            } else {
+                $problems[] = "{$link}: {$problem}";
+            }
+        }
+
+        $message = trim((count($copied) > 0 ? 'Copied '.implode(', ', $copied).'.' : '').(count($problems) > 0 ? ' Not copied: '.implode(' ', $problems) : ''));
+
+        return $this->back(count($copied) > 0 ? 'success' : 'error', $message === '' ? 'Nothing to copy.' : $message, "banner-{$row->getKey()}");
+    }
+
+    /** A banner made before (one uploaded image) to the assets host: its image becomes {folder}/banner.jpg. */
+    public function move(string $banner)
+    {
+        $row = TournamentBanner::with('tournament')->findOrFail((int) $banner);
+        if (static::folderOf($row) !== null) {
+            return $this->back('success', 'It\'s on the assets host already.', "banner-{$row->getKey()}");
+        }
+        $folder = static::plainFolder((string) Request::input('folder'));
+        if ($folder === null) {
+            return $this->back('error', 'Give the images\' folder: like official/owc2025/profile (letters, digits, - and _, with / between folders).', "banner-{$row->getKey()}");
+        }
+
+        // The old image is the prefix itself (…/uploads/tournament-banners/{id}/banner) with .jpg.
+        $relative = ltrim((string) parse_url($row->banner_url_prefix, PHP_URL_PATH), '/');
+        $file = public_path("{$relative}.jpg");
+        if (!str_starts_with($relative, 'uploads/tournament-banners/') || !is_file($file)) {
+            return $this->back('error', 'Its image isn\'t on the website any more: make the banner again on the assets host.', "banner-{$row->getKey()}");
+        }
+        $retina = preg_replace('/\.jpg$/', '@2x.jpg', $file);
+        $problem = $this->assets()->saveBytes(
+            "tournament-banners/{$folder}/banner.jpg",
+            file_get_contents($file),
+            is_file($retina) ? file_get_contents($retina) : null,
+        );
+        if ($problem !== null) {
+            return $this->back('error', $problem, "banner-{$row->getKey()}");
+        }
+
+        DB::transaction(function () use ($row, $folder) {
+            $row->update(['banner_url_prefix' => static::prefixFor($folder)]);
+            ProfileBanner::where('tournament_id', $row->getKey())->update(['country_acronym' => 'banner']);
+        });
+        foreach (glob(public_path("uploads/tournament-banners/{$row->getKey()}/*.jpg")) ?: [] as $old) {
+            @unlink($old);
+        }
+        @rmdir(public_path("uploads/tournament-banners/{$row->getKey()}"));
+        $this->staffLog('banner.image', $row->getKey(), "Moved the tournament banner \"{$row->tournament?->name}\" to tournament-banners/{$folder}");
+
+        return $this->back('success', "Moved: its image is tournament-banners/{$folder}/banner.jpg now, and everyone who has it keeps it.", "banner-{$row->getKey()}");
     }
 
     public function toggle(string $banner)
@@ -113,7 +227,7 @@ class TournamentBannersController extends Controller
         $name = $row->tournament?->name ?? "#{$row->getKey()}";
         $this->staffLog('banner.toggle', $row->getKey(), ($row->is_active ? 'Showed' : 'Hid')." the tournament banner \"{$name}\"");
 
-        return $this->back('success', $row->is_active ? "\"{$name}\" shows on profiles again." : "\"{$name}\" is hidden from profiles (kept for later).");
+        return $this->back('success', $row->is_active ? "\"{$name}\" shows on profiles again." : "\"{$name}\" is hidden from profiles (kept for later).", "banner-{$row->getKey()}");
     }
 
     public function destroy(string $banner)
@@ -125,36 +239,14 @@ class TournamentBannersController extends Controller
             $row->delete();
             $row->tournament?->delete();
         });
+        // A banner made before had its image with the website's uploads; the assets host's stay (the Assets page removes them).
         foreach (glob(public_path("uploads/tournament-banners/{$row->getKey()}/*.jpg")) ?: [] as $file) {
             @unlink($file);
         }
         @rmdir(public_path("uploads/tournament-banners/{$row->getKey()}"));
         $this->staffLog('banner.remove', $row->getKey(), "Removed the tournament banner \"{$name}\" (and took it from everyone)");
 
-        return $this->back('success', "Removed \"{$name}\" (and took it from everyone who had it).");
-    }
-
-    public function replace(string $banner)
-    {
-        $row = TournamentBanner::with('tournament')->findOrFail((int) $banner);
-        $name = $row->tournament?->name ?? "#{$row->getKey()}";
-
-        [$image, $problem] = $this->image();
-        if ($image === null) {
-            return $this->back('error', $problem);
-        }
-        $old = glob(public_path("uploads/tournament-banners/{$row->getKey()}/*.jpg")) ?: [];
-        $file = 'banner-'.time();
-        if (!$this->save($row->getKey(), $file, $image)) {
-            return $this->back('error', 'That isn\'t an image the site can read (JPEG, PNG, WebP or GIF).');
-        }
-        $row->update(['banner_url_prefix' => url("/uploads/tournament-banners/{$row->getKey()}/{$file}")]);
-        foreach ($old as $path) {
-            @unlink($path);
-        }
-        $this->staffLog('banner.image', $row->getKey(), "Changed the image of the tournament banner \"{$name}\"");
-
-        return $this->back('success', "\"{$name}\" has its new image.");
+        return $this->back('success', "Removed \"{$name}\" (and took it from everyone who had it). Its images stay on the Assets page.");
     }
 
     public function give(string $banner)
@@ -163,122 +255,114 @@ class TournamentBannersController extends Controller
         $name = trim((string) Request::input('user'));
         $user = $name === '' ? null : (ctype_digit($name) ? User::find((int) $name) : User::lookup($name, 'username'));
         if ($user === null) {
-            return $this->back('error', "There's no player called \"{$name}\".");
-        }
-        if (ProfileBanner::where('tournament_id', $row->getKey())->where('user_id', $user->getKey())->exists()) {
-            return $this->back('success', "{$user->username} already has it.");
+            return $this->back('error', "There's no player called \"{$name}\".", "banner-{$row->getKey()}");
         }
 
-        // One image for everyone: the "country" part of the image's name is empty.
-        ProfileBanner::create(['user_id' => $user->getKey(), 'tournament_id' => $row->getKey(), 'country_acronym' => '']);
-        $this->staffLog('user.banner_add', $user->getKey(), "Gave {$user->username} the tournament banner \"{$row->tournament?->name}\"");
+        // Which of its images: one of its folder's (a banner made before has just the one, '').
+        $folder = static::folderOf($row);
+        $variant = '';
+        if ($folder !== null) {
+            $available = array_map(
+                fn ($image) => pathinfo($image['name'], PATHINFO_FILENAME),
+                $this->assets()->list("tournament-banners/{$folder}")[0]['images'] ?? [],
+            );
+            $variant = (string) Request::input('image');
+            // Their country's: the image whose name ends with _{their country} (supporter_CA for a Canadian).
+            if ($variant === '*country') {
+                $country = $user->country_acronym;
+                $variant = collect($available)->first(fn ($image) => str_ends_with($image, "_{$country}")) ?? '';
+                if ($variant === '') {
+                    return $this->back('error', "None of its images is for {$user->username}'s country ({$country}).", "banner-{$row->getKey()}");
+                }
+            } elseif (!in_array($variant, $available, true)) {
+                return $this->back('error', 'Pick which of its images is theirs.', "banner-{$row->getKey()}");
+            }
+        }
 
-        return $this->back('success', "{$user->username} has the \"{$row->tournament?->name}\" banner now.");
+        // A player can have several (their profile shows them all), of this tournament too (winner and supporter).
+        $has = ProfileBanner::where('tournament_id', $row->getKey())->where('user_id', $user->getKey())->where('country_acronym', $variant)->exists();
+        if ($has) {
+            return $this->back('success', "{$user->username} already has it.", "banner-{$row->getKey()}");
+        }
+        ProfileBanner::create(['user_id' => $user->getKey(), 'tournament_id' => $row->getKey(), 'country_acronym' => $variant]);
+        $which = $variant === '' ? '' : " ({$variant})";
+        $this->staffLog('user.banner_add', $user->getKey(), "Gave {$user->username} the tournament banner \"{$row->tournament?->name}\"{$which}");
+
+        return $this->back('success', "{$user->username} has the \"{$row->tournament?->name}\" banner{$which} now.", "banner-{$row->getKey()}");
     }
 
     public function take(string $banner, string $user)
     {
         $row = TournamentBanner::with('tournament')->findOrFail((int) $banner);
         $target = User::findOrFail((int) $user);
-        ProfileBanner::where('tournament_id', $row->getKey())->where('user_id', $target->getKey())->delete();
-        $this->staffLog('user.banner_remove', $target->getKey(), "Took the tournament banner \"{$row->tournament?->name}\" from {$target->username}");
+        // That one of theirs (they may have others of the tournament).
+        $variant = (string) Request::input('image');
+        ProfileBanner::where('tournament_id', $row->getKey())->where('user_id', $target->getKey())->where('country_acronym', $variant)->delete();
+        $which = $variant === '' ? '' : " ({$variant})";
+        $this->staffLog('user.banner_remove', $target->getKey(), "Took the tournament banner \"{$row->tournament?->name}\"{$which} from {$target->username}");
 
-        return $this->back('success', "Took it from {$target->username}.");
+        return $this->back('success', "Took it from {$target->username}.", "banner-{$row->getKey()}");
     }
 
-    /** The uploaded image, or the one at the given address: [bytes, null] or [null, why not]. */
-    private function image(): array
+    /** A banner's folder under tournament-banners/ on the assets host; null for one made before (uploads). */
+    public static function folderOf(TournamentBanner $banner): ?string
     {
-        $file = Request::file('image');
-        if ($file !== null) {
-            if (!$file->isValid() || $file->getSize() > static::MAX_BYTES) {
-                return [null, 'The image didn\'t upload (it can be up to 10 MB).'];
+        $base = TomYumAssets::baseUrl().'/tournament-banners/';
+        $prefix = $banner->banner_url_prefix;
+
+        return str_starts_with($prefix, $base) && str_ends_with($prefix, '/') && strlen($prefix) > strlen($base) + 1
+            ? substr($prefix, strlen($base), -1)
+            : null;
+    }
+
+    /** A folder made plain (official/owc2025/profile), or null. */
+    public static function plainFolder(string $folder): ?string
+    {
+        $folder = trim(str_replace('\\', '/', trim($folder)), '/');
+        $folder = preg_replace('#^tournament-banners/#', '', $folder);
+
+        return strlen($folder) <= 150 && preg_match('#^[A-Za-z0-9][A-Za-z0-9_-]*(/[A-Za-z0-9][A-Za-z0-9_-]*){0,5}$#', $folder) === 1
+            ? $folder
+            : null;
+    }
+
+    private static function prefixFor(string $folder): string
+    {
+        return TomYumAssets::baseUrl()."/tournament-banners/{$folder}/";
+    }
+
+    /** An image link's two sizes (the given one, and its @2x or normal one): [[normal, retina], null] or [null, the problem]. */
+    private function download(string $link): array
+    {
+        if (!preg_match('#^https?://#i', $link)) {
+            return [null, 'not a web address.'];
+        }
+        $normalUrl = preg_replace('/@2x(\.jpg)(\?.*)?$/i', '$1$2', $link);
+        $retinaUrl = preg_replace('/(\.jpg)(\?.*)?$/i', '@2x$1$2', $normalUrl);
+        $fetch = function (string $url): ?string {
+            try {
+                $response = \Http::timeout(20)->get($url);
+            } catch (\Throwable) {
+                return null;
             }
+            $body = $response->body();
 
-            return [file_get_contents($file->getRealPath()), null];
-        }
+            return $response->successful() && strlen($body) <= 10 * 1024 * 1024 && @getimagesizefromstring($body) !== false ? $body : null;
+        };
+        $normal = $fetch($normalUrl);
+        $retina = $fetch($retinaUrl);
 
-        $url = presence(trim((string) Request::input('image_url')));
-        if ($url === null) {
-            return [null, 'Upload an image, or give the address of one.'];
-        }
-        if (!preg_match('#^https?://#', $url)) {
-            return [null, 'The image address should be a web address (https://…).'];
-        }
-
-        // Addresses like osu!'s (winner_PL.jpg) usually have a double size next to them (winner_PL@2x.jpg):
-        // that one first, so the banner isn't made from the small one.
-        $url2x = preg_match('#@2x\.[^./?]+(\?|$)#', $url) ? null : preg_replace('#(\.[^./?]+)(\?.*)?$#', '@2x$1$2', $url, 1);
-        foreach (array_filter([$url2x, $url]) as $candidate) {
-            $bytes = $this->fetch($candidate);
-            if ($bytes !== null) {
-                return [$bytes, null];
-            }
-        }
-
-        return [null, 'Couldn\'t fetch an image from that address (or it\'s over 10 MB).'];
+        return $normal === null && $retina === null ? [null, 'no image there.'] : [[$normal, $retina], null];
     }
 
-    /** The image at an address, or null when there's none (or it's too big). */
-    private function fetch(string $url): ?string
+    private function assets(): TomYumAssets
     {
-        try {
-            $response = Http::timeout(20)->get($url);
-        } catch (\Throwable $e) {
-            return null;
-        }
-        $body = $response->body();
-        if (!$response->successful() || strlen($body) > static::MAX_BYTES || @getimagesizefromstring($body) === false) {
-            return null;
-        }
-
-        return $body;
+        return new TomYumAssets(Auth::user());
     }
 
-    /**
-     * Stores the banner as JPEG at normal size ({$name}.jpg, up to WIDTH wide) and double size
-     * ({$name}@2x.jpg, up to twice that). Images are only ever shrunk: a small one is stored as it
-     * is at both sizes, not blown up. False when it isn't an image.
-     */
-    private function save(int $id, string $name, string $bytes): bool
+    private function back(string $type, string $message, ?string $anchor = null)
     {
-        $image = @imagecreatefromstring($bytes);
-        if ($image === false) {
-            return false;
-        }
-        $dir = public_path("uploads/tournament-banners/{$id}");
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
-        }
-
-        foreach (["{$name}.jpg" => static::WIDTH, "{$name}@2x.jpg" => static::WIDTH * 2] as $file => $maxWidth) {
-            imagejpeg($this->shrink($image, $maxWidth), "{$dir}/{$file}", 92);
-        }
-
-        return true;
-    }
-
-    /** The image at most $maxWidth wide (keeping its shape), resampled so it stays sharp. */
-    private function shrink(\GdImage $image, int $maxWidth): \GdImage
-    {
-        $width = imagesx($image);
-        $height = imagesy($image);
-        $newWidth = min($width, $maxWidth);
-        $newHeight = max(1, (int) round($height * $newWidth / $width));
-
-        // Drawn onto a fresh canvas even at the same size, so a transparent PNG/GIF gets the page's
-        // dark background instead of JPEG's black.
-        $out = imagecreatetruecolor($newWidth, $newHeight);
-        imagefill($out, 0, 0, imagecolorallocate($out, 0x2a, 0x22, 0x26));
-        imagealphablending($out, true);
-        imagecopyresampled($out, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-
-        return $out;
-    }
-
-    private function back(string $type, string $message)
-    {
-        return redirect(route(static::sharedPanelPrefix().'tournament-banners.index'))
+        return redirect(route(static::sharedPanelPrefix().'tournament-banners.index').($anchor === null ? '' : "#{$anchor}"))
             ->with('panel_status', ['type' => $type, 'message' => $message, 'link' => null]);
     }
 }

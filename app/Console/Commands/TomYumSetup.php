@@ -43,6 +43,22 @@ class TomYumSetup extends Command
         'announce' => ['Announcers', 'ANN', 'FFD966', null, false],
     ];
 
+    /** What each group does (Markdown), shown above its members on its page; only set while empty. */
+    private const GROUP_DESCRIPTIONS = [
+        'admin' => 'Run the server: accounts, settings, and the final say on its rules and appeals.',
+        'dev' => 'Build and look after the game server and this website.',
+        'gmt' => 'Keep chat, the forums and the leaderboards fair: they handle reports, silences and restrictions.',
+        'tc' => 'Run the server\'s official tournaments, and give out tournament badges and banners.',
+        'nat' => 'Look after the Beatmap Nominators: they review applications and members, and step in when a nomination is disputed.',
+        'bng' => 'Mod maps and nominate them for ranking, each in their own modes. A map needs two nominations to be qualified.',
+        'bng_limited' => 'New Beatmap Nominators on probation: they can nominate maps, but not give one its final nomination.',
+        'loved' => 'Pick the maps for each [Project Loved](/community/loved) round and run its votes, each in their own modes.',
+        'spt' => 'Answer support tickets: account problems, appeals and questions sent to the support addresses.',
+        'alumni' => 'People who helped run the server before. Thank you!',
+        'featured_artist' => 'Artists whose music is featured on the server.',
+        'bot' => 'Automated chat accounts, run by players or the staff.',
+    ];
+
     private const GENRES = [
         1 => 'Unspecified', 2 => 'Video Game', 3 => 'Anime', 4 => 'Rock', 5 => 'Pop', 6 => 'Other', 7 => 'Novelty',
         9 => 'Hip Hop', 10 => 'Electronic', 11 => 'Metal', 12 => 'Classical', 13 => 'Folk', 14 => 'Jazz',
@@ -87,6 +103,11 @@ class TomYumSetup extends Command
                 'display_order' => $order,
                 'group_type' => $listed ? 1 : 2,
             ]);
+        }
+        foreach (static::GROUP_DESCRIPTIONS as $identifier => $description) {
+            Group::where('identifier', $identifier)
+                ->where(fn ($query) => $query->whereNull('group_desc')->orWhere('group_desc', ''))
+                ->update(['group_desc' => $description]);
         }
         // Users show their main group's colour.
         DB::statement('UPDATE phpbb_users u JOIN phpbb_groups g ON g.group_id = u.group_id SET u.user_colour = g.group_colour');
@@ -248,6 +269,10 @@ class TomYumSetup extends Command
             }
         }
         $this->line('Forums: '.count($forums).' present, with posting rights.');
+
+        // Project Loved's polls (also made when the first round opens voting, on sites set up before it).
+        $loved = \App\Libraries\TomYumLoved::forum();
+        $this->line("Project Loved forum: #{$loved->getKey()} present.");
     }
 
     private function userPageForum(): void

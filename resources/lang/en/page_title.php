@@ -99,6 +99,9 @@ return [
         'livestreams_controller' => [
             '_' => 'live streams',
         ],
+        'loved_controller' => [
+            '_' => 'project loved',
+        ],
         'news_controller' => [
             '_' => 'news',
         ],

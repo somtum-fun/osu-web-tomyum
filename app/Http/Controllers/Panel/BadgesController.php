@@ -5,6 +5,7 @@
 
 namespace App\Http\Controllers\Panel;
 
+use App\Libraries\TomYumAssets;
 use App\Models\User;
 use App\Models\UserBadge;
 use Auth;
@@ -49,16 +50,46 @@ class BadgesController extends Controller
                 'count' => $h->n,
             ])->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)->values(),
             'today' => CarbonImmutable::now('UTC')->toDateString(),
+            // The badge images on the assets host, to pick from (only when giving one).
+            'images' => $user === null ? [] : array_column((new TomYumAssets(Auth::user()))->list('profile-badges')[0]['images'] ?? [], 'name'),
         ]);
     }
 
     public function store(string $user)
     {
         $target = User::findOrFail((int) $user);
+        $image = trim((string) Request::input('image'));
+        $name = presence(trim((string) Request::input('name')));
+
+        // An uploaded image (usually the @2x one, 172×80): kept on the assets host under its name
+        // (the normal size made from it), then given by that name.
+        $retina = Request::file('retina_file');
+        $normal = Request::file('normal_file');
+        if ($retina !== null || $normal !== null) {
+            $source = $retina ?? $normal;
+            $plain = AssetsController::plainName($name ?? pathinfo($source->getClientOriginalName(), PATHINFO_FILENAME));
+            if ($plain === null) {
+                return $this->back($target, 'error', 'Give the image a name: letters, digits, - and _ (like ndc-2023).');
+            }
+            $extension = strtolower($source->getClientOriginalExtension()) === 'gif' ? 'gif' : 'png';
+            $image = "{$plain}.{$extension}";
+            $existing = array_column((new TomYumAssets(Auth::user()))->list('profile-badges')[0]['images'] ?? [], 'name');
+            if (in_array($image, $existing, true)) {
+                return $this->back($target, 'error', "There's already a badge image called {$image}: give another name, or pick {$image} to give that one.");
+            }
+            if (($problem = (new TomYumAssets(Auth::user()))->save("profile-badges/{$image}", $normal, $retina)) !== null) {
+                return $this->back($target, 'error', $problem);
+            }
+        }
+        if ($image === '') {
+            return $this->back($target, 'error', 'Upload the image, pick one, or give a link to one.');
+        }
+
         $response = $this->tomyum()->post("/users/{$target->getKey()}/badges", [
-            'image' => (string) Request::input('image'),
+            'image' => $image,
             'description' => (string) Request::input('description'),
             'url' => presence(Request::input('url')),
+            'name' => $name,
         ]);
 
         if (!$response->successful()) {

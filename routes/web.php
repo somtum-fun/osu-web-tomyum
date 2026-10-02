@@ -83,6 +83,22 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('sets/{set}/track', 'BnSetsController@track')->name('sets.track');
         });
 
+        // Project Loved rounds: the Loved group and admins.
+        Route::group(['as' => 'loved.', 'prefix' => 'loved'], function () {
+            Route::get('/', 'LovedController@index')->name('index');
+            Route::post('rounds', 'LovedController@store')->name('store');
+            Route::get('rounds/{round}', 'LovedController@show')->name('show');
+            Route::post('rounds/{round}', 'LovedController@update')->name('update');
+            Route::post('rounds/{round}/remove', 'LovedController@destroy')->name('destroy');
+            Route::post('rounds/{round}/nominate', 'LovedController@nominate')->name('nominate');
+            Route::post('rounds/{round}/open', 'LovedController@open')->name('open');
+            Route::post('rounds/{round}/close', 'LovedController@close')->name('close');
+            Route::post('rounds/{round}/requests/{request}/pick', 'LovedController@pickRequest')->name('requests.pick');
+            Route::post('rounds/{round}/requests/{request}/decline', 'LovedController@declineRequest')->name('requests.decline');
+            Route::post('nominations/{nomination}', 'LovedController@updateNomination')->name('nominations.update');
+            Route::post('nominations/{nomination}/remove', 'LovedController@destroyNomination')->name('nominations.destroy');
+        });
+
         Route::group(['as' => 'gmt.', 'prefix' => 'gmt'], function () {
             Route::get('/', 'GmtController@index')->name('index');
             Route::get('chat', 'GmtController@chat')->name('chat');
@@ -101,6 +117,11 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('matches/{match}/abort', 'TcController@abort')->name('matches.abort');
             Route::post('matches/{match}/close', 'TcController@close')->name('matches.close');
             Route::post('matches/{match}/message', 'TcController@message')->name('matches.message');
+            Route::get('assets', 'AssetsController@index')->name('assets.index');
+            Route::post('assets', 'AssetsController@store')->name('assets.store');
+            Route::post('assets/import', 'AssetsController@import')->name('assets.import');
+            Route::post('assets/rename', 'AssetsController@rename')->name('assets.rename');
+            Route::post('assets/remove', 'AssetsController@destroy')->name('assets.destroy');
             Route::get('badges', 'BadgesController@index')->name('badges.index');
             Route::post('badges/{user}', 'BadgesController@store')->name('badges.store');
             Route::post('badges/{user}/remove', 'BadgesController@destroy')->name('badges.destroy');
@@ -109,7 +130,9 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('tournament-banners', 'TournamentBannersController@store')->name('tournament-banners.store');
             Route::post('tournament-banners/{banner}/toggle', 'TournamentBannersController@toggle')->name('tournament-banners.toggle');
             Route::post('tournament-banners/{banner}/remove', 'TournamentBannersController@destroy')->name('tournament-banners.destroy');
-            Route::post('tournament-banners/{banner}/image', 'TournamentBannersController@replace')->name('tournament-banners.replace');
+            Route::post('tournament-banners/{banner}/upload', 'TournamentBannersController@upload')->name('tournament-banners.upload');
+            Route::post('tournament-banners/{banner}/copy', 'TournamentBannersController@copy')->name('tournament-banners.copy');
+            Route::post('tournament-banners/{banner}/move', 'TournamentBannersController@move')->name('tournament-banners.move');
             Route::post('tournament-banners/{banner}/give', 'TournamentBannersController@give')->name('tournament-banners.give');
             Route::post('tournament-banners/{banner}/take/{user}', 'TournamentBannersController@take')->name('tournament-banners.take');
         });
@@ -157,6 +180,11 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('seasonal-backgrounds/settings', 'SeasonalBackgroundsController@settings')->name('seasonal-backgrounds.settings');
             Route::post('seasonal-backgrounds/{entry}/toggle', 'SeasonalBackgroundsController@toggle')->name('seasonal-backgrounds.toggle');
             Route::post('seasonal-backgrounds/{entry}/remove', 'SeasonalBackgroundsController@destroy')->name('seasonal-backgrounds.destroy');
+            Route::get('assets', 'AssetsController@index')->name('assets.index');
+            Route::post('assets', 'AssetsController@store')->name('assets.store');
+            Route::post('assets/import', 'AssetsController@import')->name('assets.import');
+            Route::post('assets/rename', 'AssetsController@rename')->name('assets.rename');
+            Route::post('assets/remove', 'AssetsController@destroy')->name('assets.destroy');
             Route::get('badges', 'BadgesController@index')->name('badges.index');
             Route::post('badges/{user}', 'BadgesController@store')->name('badges.store');
             Route::post('badges/{user}/remove', 'BadgesController@destroy')->name('badges.destroy');
@@ -165,9 +193,13 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('tournament-banners', 'TournamentBannersController@store')->name('tournament-banners.store');
             Route::post('tournament-banners/{banner}/toggle', 'TournamentBannersController@toggle')->name('tournament-banners.toggle');
             Route::post('tournament-banners/{banner}/remove', 'TournamentBannersController@destroy')->name('tournament-banners.destroy');
-            Route::post('tournament-banners/{banner}/image', 'TournamentBannersController@replace')->name('tournament-banners.replace');
+            Route::post('tournament-banners/{banner}/upload', 'TournamentBannersController@upload')->name('tournament-banners.upload');
+            Route::post('tournament-banners/{banner}/copy', 'TournamentBannersController@copy')->name('tournament-banners.copy');
+            Route::post('tournament-banners/{banner}/move', 'TournamentBannersController@move')->name('tournament-banners.move');
             Route::post('tournament-banners/{banner}/give', 'TournamentBannersController@give')->name('tournament-banners.give');
             Route::post('tournament-banners/{banner}/take/{user}', 'TournamentBannersController@take')->name('tournament-banners.take');
+            Route::get('groups', 'GroupsController@index')->name('groups.index');
+            Route::post('groups/{group}', 'GroupsController@update')->name('groups.update');
             Route::get('titles', 'TitlesController@index')->name('titles.index');
             Route::post('titles', 'TitlesController@store')->name('titles.store');
             Route::post('titles/assign', 'TitlesController@assign')->name('titles.assign');
@@ -324,6 +356,14 @@ Route::group(['middleware' => ['web']], function () {
         Route::post('tournaments/{tournament}/unregister', 'TournamentsController@unregister')->name('tournaments.unregister');
         Route::post('tournaments/{tournament}/register', 'TournamentsController@register')->name('tournaments.register');
         Route::resource('tournaments', 'TournamentsController', ['only' => ['index', 'show']]);
+
+        // TomYum: Project Loved rounds and their polls.
+        Route::get('loved', 'LovedController@index')->name('loved.index');
+        Route::get('loved/rounds/{round}', 'LovedController@round')->name('loved.rounds.show');
+        Route::get('loved/requests', 'LovedController@requests')->name('loved.requests');
+        Route::post('loved/requests', 'LovedController@storeRequest')->name('loved.requests.store');
+        Route::post('loved/requests/{request}/support', 'LovedController@support')->name('loved.requests.support');
+        Route::post('loved/{nomination}/vote', 'LovedController@vote')->name('loved.vote');
 
         Route::group(['as' => 'forum.', 'namespace' => 'Forum'], function () {
             Route::group(['prefix' => 'forums'], function () {
