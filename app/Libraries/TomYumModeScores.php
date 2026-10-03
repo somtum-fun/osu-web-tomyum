@@ -50,6 +50,17 @@ class TomYumModeScores
         return is_string($name) ? (static::MODES[$name] ?? null) : null;
     }
 
+    /**
+     * The Relax/Autopilot mode a player picked as their default (osurx, ...), or null for vanilla.
+     * It only counts while its ruleset is still their default ruleset.
+     */
+    public static function defaultVariant(User $user): ?string
+    {
+        $name = $user->userProfileCustomization?->tomyum_default_variant;
+
+        return $name !== null && (static::MODES[$name][0] ?? null) === $user->playmode ? $name : null;
+    }
+
     /** One page of a list (best, recent or firsts): ['items' => website-shaped scores, 'total' => all of them]. */
     public static function page(User $user, array $variant, string $type, int $offset, int $limit, bool $includeFails = false): array
     {

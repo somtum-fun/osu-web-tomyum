@@ -252,12 +252,14 @@ export default class Controller {
     const xhr = $.ajax(route('account.options'), {
       data: {
         user: {
-          playmode: this.currentMode,
+          // TomYum: the Relax/Autopilot mode shown, if any (saved as its ruleset plus the variant).
+          playmode: this.variant ?? this.currentMode,
         },
       },
       method: 'PUT',
     }).done(action(() => {
       this.state.user.playmode = this.currentMode;
+      this.state.user.tomyum_default_variant = this.variant;
       this.saveState();
     })) as JQuery.jqXHR<CurrentUserJson>;
 

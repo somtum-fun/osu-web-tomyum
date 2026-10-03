@@ -252,6 +252,13 @@ class AccountController extends Controller
             'user_notify:bool',
         ]);
 
+        // TomYum: a Relax/Autopilot mode (osurx, ...) as the default: its ruleset, plus the variant.
+        $defaultVariant = null;
+        if (isset($userParams['playmode']) && ($variant = \App\Libraries\TomYumModeScores::variant($userParams['playmode'])) !== null) {
+            $defaultVariant = $userParams['playmode'];
+            $userParams['playmode'] = $variant[0];
+        }
+
         if (isset($userParams['playmode']) && !Beatmap::isModeValid($userParams['playmode'])) {
             abort(422, 'invalid value specified for user[playmode]');
         }
@@ -262,6 +269,10 @@ class AccountController extends Controller
             // type validation is done by each setters
             array_map(fn ($key) => $key.':any', array_keys(UserProfileCustomization::DEFAULTS)),
         );
+
+        if (isset($userParams['playmode'])) {
+            $profileParams['tomyum_default_variant'] = $defaultVariant;
+        }
 
         $profileCustomization = $user->userProfileCustomization()->firstOrCreate();
         $user->setRelation('userProfileCustomization', $profileCustomization);

@@ -52,17 +52,28 @@
                     data-url="{{ route('account.options') }}"
                     data-field="user[playmode]"
                 >
-                    @foreach (App\Models\Beatmap::MODES as $ruleset => $_rulesetId)
+                    @php
+                        // TomYum: Relax/Autopilot can be the default mode too.
+                        $currentDefault = App\Libraries\TomYumModeScores::defaultVariant(auth()->user()) ?? default_mode();
+                        $defaultChoices = [];
+                        foreach (App\Models\Beatmap::MODES as $ruleset => $_rulesetId) {
+                            $defaultChoices[$ruleset] = osu_trans("beatmaps.mode.{$ruleset}");
+                        }
+                        foreach (App\Libraries\TomYumModeScores::MODES as $variant => [$ruleset]) {
+                            $defaultChoices[$variant] = osu_trans("beatmaps.mode.{$ruleset}").(str_ends_with($variant, 'ap') ? ' Autopilot' : ' Relax');
+                        }
+                    @endphp
+                    @foreach ($defaultChoices as $choice => $label)
                         <label class="account-edit-entry__checkbox">
                             @include('objects._switch', ['locals' => [
-                                'checked' => $ruleset === default_mode(),
+                                'checked' => $choice === $currentDefault,
                                 'name' => 'user[playmode]',
                                 'type' => 'radio',
-                                'value' => $ruleset,
+                                'value' => $choice,
                             ]])
 
                             <span class="account-edit-entry__checkbox-label">
-                                {{ osu_trans("beatmaps.mode.{$ruleset}") }}
+                                {{ $label }}
                             </span>
                         </label>
                     @endforeach

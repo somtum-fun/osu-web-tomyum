@@ -34,6 +34,7 @@ class UserProfileCustomization extends Model
         'profile_cover_expanded' => true,
         'profile_detail_v2' => true, // TomYum: the new profile cards (with Ranked Play) by default
         'scoring_mode' => self::SCORING_MODES[0],
+        'tomyum_default_variant' => null, // TomYum: Relax/Autopilot as the default mode (osurx, ...)
         'user_list_filter' => self::USER_LIST['filters']['default'],
         'user_list_sort' => self::USER_LIST['sorts']['default'],
         'user_list_view' => self::USER_LIST['views']['default'],
@@ -137,6 +138,7 @@ class UserProfileCustomization extends Model
             'profile_cover_expanded',
             'profile_detail_v2',
             'scoring_mode',
+            'tomyum_default_variant',
             'user_list_filter',
             'user_list_sort',
             'user_list_view' => $this->getOption($key) ?? static::DEFAULTS[$key],
@@ -231,6 +233,16 @@ class UserProfileCustomization extends Model
         }
 
         $this->setOption('scoring_mode', $value);
+    }
+
+    /** TomYum: a Relax/Autopilot mode (osurx, osuap, taikorx, fruitsrx) or null for vanilla. */
+    public function setTomyumDefaultVariantAttribute($value): void
+    {
+        if (\App\Libraries\TomYumModeScores::variant($value) === null) {
+            $value = null;
+        }
+
+        $this->setOption('tomyum_default_variant', $value);
     }
 
     public function setUserListFilterAttribute($value)
