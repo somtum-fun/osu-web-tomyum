@@ -217,7 +217,8 @@ export default class ReportForm extends React.Component<Props> {
           {
             <StringWithComponent
               mappings={{
-                mail: <a href='mailto:copyright@ppy.sh'>copyright@ppy.sh</a>,
+                // TomYum: this server's DMCA ticket address.
+                mail: <a href={`mailto:dmca@${ticketsDomain}`}>{`dmca@${ticketsDomain}`}</a>,
                 policy: <a href={route('legal', { locale: currentLocale, path: 'Copyright' })}>{trans('users.report.dmca.message_1.policy')}</a>,
               }}
               pattern={trans('users.report.dmca.message_1._')}

@@ -5,6 +5,8 @@
 <script data-turbo-eval="always">
     var csrf = "{{ csrf_token() }}";
     var canonicalUrl = "{{ $canonicalUrl ?? '' }}";
+    {{-- TomYum: the domain of this server's ticket addresses (dmca@, support@, …). --}}
+    var ticketsDomain = {!! json_encode(App\Libraries\TomYumTickets::domain()) !!};
 </script>
 
 @include ('layout._current_user')

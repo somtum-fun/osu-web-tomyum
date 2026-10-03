@@ -125,7 +125,7 @@ return [
 
             'store' => [
                 'play_more' => 'Kérlek próbáld ki a játékot mielőtt a fórumra posztolnál! Ha valami problémád merül fel játék közben, kérlek írj egy posztot a "Help" vagy a "Support" fórumra.',
-                'too_many_help_posts' => "Többet kell játszanod a játékkal további posztolás előtt. Ha még mindig nehézségeid merülnek fel a játék kapcsán, írj egy e-mailt erre a címre: support@ppy.sh", // FIXME: unhardcode email address.
+                'too_many_help_posts' => "Többet kell játszanod a játékkal további posztolás előtt. Ha még mindig nehézségeid merülnek fel a játék kapcsán, írj egy e-mailt erre a címre: :email", // FIXME: unhardcode email address.
             ],
         ],
 

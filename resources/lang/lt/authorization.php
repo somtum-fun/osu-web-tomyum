@@ -125,7 +125,7 @@ return [
 
             'store' => [
                 'play_more' => 'Prašau pažaisk žaidimą prieš dalyvaujant forumuose! Jei kyla problemų su žaidimu, prašau kreiptis į Pagalbos ir Palaikymo forumą.',
-                'too_many_help_posts' => "Tau reikia daugiau žaisti žaidimą prieš publikuojant daugiau įrašų. Jeigu vis dar kyla problemų žaidžiant, siųsk el. laišką į support@ppy.sh", // FIXME: unhardcode email address.
+                'too_many_help_posts' => "Tau reikia daugiau žaisti žaidimą prieš publikuojant daugiau įrašų. Jeigu vis dar kyla problemų žaidžiant, siųsk el. laišką į :email", // FIXME: unhardcode email address.
             ],
         ],
 

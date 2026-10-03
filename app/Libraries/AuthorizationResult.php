@@ -49,7 +49,8 @@ class AuthorizationResult
             return;
         }
 
-        return osu_trans('authorization.'.$this->rawMessage());
+        // TomYum: messages that name an address (:email) give this server's support@, not osu!'s.
+        return osu_trans('authorization.'.$this->rawMessage(), ['email' => TomYumTickets::address('support')]);
     }
 
     public function ensureCan()

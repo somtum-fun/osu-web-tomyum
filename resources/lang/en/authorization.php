@@ -125,7 +125,7 @@ return [
 
             'store' => [
                 'play_more' => 'Try playing the game before posting on the forums, please! If you have a problem with playing, please post to the Help and Support forum.',
-                'too_many_help_posts' => "You need to play the game more before you can make additional posts. If you're still having trouble playing the game, email support@ppy.sh", // FIXME: unhardcode email address.
+                'too_many_help_posts' => "You need to play the game more before you can make additional posts. If you're still having trouble playing the game, email :email", // TomYum: :email is this server's support@ address (AuthorizationResult).
             ],
         ],
 

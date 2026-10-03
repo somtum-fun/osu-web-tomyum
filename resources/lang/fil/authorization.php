@@ -125,7 +125,7 @@ return [
 
             'store' => [
                 'play_more' => 'Pakisubukang maglaro bago mag-post sa mga forum! Kung mayroon kang problema sa paglalaro, pakipost sa Help and Support forum.',
-                'too_many_help_posts' => "Kailangan mo pang laruin ang laro bago ka makagawa ng mga karagdagang post. Kung nahihirapan ka pa rin sa paglalaro, mag-email sa support@ppy.sh", // FIXME: unhardcode email address.
+                'too_many_help_posts' => "Kailangan mo pang laruin ang laro bago ka makagawa ng mga karagdagang post. Kung nahihirapan ka pa rin sa paglalaro, mag-email sa :email", // FIXME: unhardcode email address.
             ],
         ],
 

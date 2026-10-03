@@ -125,7 +125,7 @@ return [
 
             'store' => [
                 'play_more' => 'Pokušaj igrati igru ​​prije objavljivanja na forumima, molim te! Ako imaš problema s igranjem, objavi na forumu za pomoć i podršku.',
-                'too_many_help_posts' => "Moraš više igrati igru ​​prije nego što možeš objavljivati ​​dodatne objave. Ako i dalje imaš problema s igranjem igre, pošalji e-poštu na support@ppy.sh", // FIXME: unhardcode email address.
+                'too_many_help_posts' => "Moraš više igrati igru ​​prije nego što možeš objavljivati ​​dodatne objave. Ako i dalje imaš problema s igranjem igre, pošalji e-poštu na :email", // FIXME: unhardcode email address.
             ],
         ],
 

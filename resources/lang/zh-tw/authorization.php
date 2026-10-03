@@ -125,7 +125,7 @@ return [
 
             'store' => [
                 'play_more' => '在論壇發文前，請先嘗試遊玩遊戲！如果您在遊玩過程中遇到問題，請在「說明與支援」論壇發文。',
-                'too_many_help_posts' => "您需要再玩久一點才可以發表更多貼文，如果您仍然在遊戲中遇到問題，請聯絡 support@ppy.sh", // FIXME: unhardcode email address.
+                'too_many_help_posts' => "您需要再玩久一點才可以發表更多貼文，如果您仍然在遊戲中遇到問題，請聯絡 :email", // FIXME: unhardcode email address.
             ],
         ],
 

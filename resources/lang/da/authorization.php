@@ -125,7 +125,7 @@ return [
 
             'store' => [
                 'play_more' => 'Prøv at spille spillet før du skriver i forumet, tak! Hvis du har et problem med at få spillet op at køre, bedes du skrive i \'Hjælp og Support\' forumet.',
-                'too_many_help_posts' => "Du skal spille mere, før du kan lave flere indlæg. Hvis du stadig har problemer med at få spillet op at køre, skal du sende en email til support@ppy.sh", // FIXME: unhardcode email address.
+                'too_many_help_posts' => "Du skal spille mere, før du kan lave flere indlæg. Hvis du stadig har problemer med at få spillet op at køre, skal du sende en email til :email", // FIXME: unhardcode email address.
             ],
         ],
 

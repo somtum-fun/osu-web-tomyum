@@ -125,7 +125,7 @@ return [
 
             'store' => [
                 'play_more' => 'Prova a giocare prima di postare nei forum! Se hai problemi a giocare, posta nel forum di Aiuto e Supporto.',
-                'too_many_help_posts' => "Devi giocare di più prima di poter fare ulteriori post. Se hai ancora problemi a giocare, invia un email a support@ppy.sh", // FIXME: unhardcode email address.
+                'too_many_help_posts' => "Devi giocare di più prima di poter fare ulteriori post. Se hai ancora problemi a giocare, invia un email a :email", // FIXME: unhardcode email address.
             ],
         ],
 

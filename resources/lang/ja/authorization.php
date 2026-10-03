@@ -125,7 +125,7 @@ return [
 
             'store' => [
                 'play_more' => 'フォーラムに投稿をする前にゲームのプレイをお願いします。プレイする上で問題が発生した場合、Helpフォーラムにお問い合わせください。',
-                'too_many_help_posts' => "追加投稿をするためにはもっとゲームをプレイする必要があります。問題が発生していてプレイができない場合、support@ppy.shにメールしてください。", // FIXME: unhardcode email address.
+                'too_many_help_posts' => "追加投稿をするためにはもっとゲームをプレイする必要があります。問題が発生していてプレイができない場合、:emailにメールしてください。", // FIXME: unhardcode email address.
             ],
         ],
 

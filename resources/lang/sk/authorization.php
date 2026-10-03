@@ -125,7 +125,7 @@ return [
 
             'store' => [
                 'play_more' => 'Predtým, ako pridáte príspevok na fórach, skúste si zahrať, prosím! Ak máte problém s hraním, prosím opýtajte sa na fóre Pomoc a Podpora.',
-                'too_many_help_posts' => "Musíš hrať viac, aby si mohol vytvárať ďalšie príspevky. Ak tvoj problém s hraním hry pretrváva, napíš na email support@ppy.sh", // FIXME: unhardcode email address.
+                'too_many_help_posts' => "Musíš hrať viac, aby si mohol vytvárať ďalšie príspevky. Ak tvoj problém s hraním hry pretrváva, napíš na email :email", // FIXME: unhardcode email address.
             ],
         ],
 

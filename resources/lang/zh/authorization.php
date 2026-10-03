@@ -125,7 +125,7 @@ return [
 
             'store' => [
                 'play_more' => '在发帖之前先玩上两局吧！如果你在游戏时遇到问题，请在“Help”或“中文”版块发帖求助。',
-                'too_many_help_posts' => "如果你想发更多的帖子，再多玩几局吧！如果你在游戏时仍遇到问题，请发送邮件至 support@ppy.sh", // FIXME: unhardcode email address.
+                'too_many_help_posts' => "如果你想发更多的帖子，再多玩几局吧！如果你在游戏时仍遇到问题，请发送邮件至 :email", // FIXME: unhardcode email address.
             ],
         ],
 

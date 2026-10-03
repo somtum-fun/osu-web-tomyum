@@ -125,7 +125,7 @@ return [
 
             'store' => [
                 'play_more' => 'Sila cuba bermain sebelum menghantar di forum! Sekiranya anda mempunyai masalah ketika bermain, sila hantar ke forum Bantuan dan Sokongan.',
-                'too_many_help_posts' => "Anda perlu bermain osu! lagi sebelum anda boleh menghantar lagi. Sekiranya anda masih mempunyai masalah bermain, hantar e-mel ke support@ppy.sh", // FIXME: unhardcode email address.
+                'too_many_help_posts' => "Anda perlu bermain osu! lagi sebelum anda boleh menghantar lagi. Sekiranya anda masih mempunyai masalah bermain, hantar e-mel ke :email", // FIXME: unhardcode email address.
             ],
         ],
 

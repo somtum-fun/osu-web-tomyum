@@ -125,7 +125,7 @@ return [
 
             'store' => [
                 'play_more' => 'Pyydämme, että kokeilet peliä ennen viestin lähettämistä foorumeille! Jos kohtaat ongelmia pelatessasi, lähetä viesti foorumin apu- ja tukialueelle.',
-                'too_many_help_posts' => "Sinun on pelattava peliä enemmän, ennen kuin voit luoda enemmän postauksia. Jos sinulla on edelleen ongelmia pelin pelaamisen kanssa, lähetä sähköpostia osoitteeseen support@ppy.sh", // FIXME: unhardcode email address.
+                'too_many_help_posts' => "Sinun on pelattava peliä enemmän, ennen kuin voit luoda enemmän postauksia. Jos sinulla on edelleen ongelmia pelin pelaamisen kanssa, lähetä sähköpostia osoitteeseen :email", // FIXME: unhardcode email address.
             ],
         ],
 

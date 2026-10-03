@@ -125,7 +125,7 @@ return [
 
             'store' => [
                 'play_more' => 'Pamēģini paspēlēt spēli pirms raksti forumos, lūdzu! Ja rodas problēmas ar spēli, lūdzu, sūti ziņu palīdzības atbalsta forumam.',
-                'too_many_help_posts' => "Tev vajag vairāk paspēlēt spēli, pirms tu vari izveidot papildu rakstus. Ja joprojām ir problēmas ar spēlēšanu, rakstiet uz support@ppy.sh", // FIXME: unhardcode email address.
+                'too_many_help_posts' => "Tev vajag vairāk paspēlēt spēli, pirms tu vari izveidot papildu rakstus. Ja joprojām ir problēmas ar spēlēšanu, rakstiet uz :email", // FIXME: unhardcode email address.
             ],
         ],
 

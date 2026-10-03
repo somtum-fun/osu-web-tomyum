@@ -125,7 +125,7 @@ return [
 
             'store' => [
                 'play_more' => 'Prosimo, da najprej igrate igro in šele nato pišete v forume! Če imate težave z igro, nam pišite v forum Help and Support.',
-                'too_many_help_posts' => "Preden lahko naprej objavljate, morate igrati igro. Če imate težave z igranjem, nam pišite na e-poštni naslov support@ppy.sh", // FIXME: unhardcode email address.
+                'too_many_help_posts' => "Preden lahko naprej objavljate, morate igrati igro. Če imate težave z igranjem, nam pišite na e-poštni naslov :email", // FIXME: unhardcode email address.
             ],
         ],
 

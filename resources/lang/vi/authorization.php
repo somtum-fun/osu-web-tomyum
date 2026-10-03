@@ -125,7 +125,7 @@ return [
 
             'store' => [
                 'play_more' => 'Vui lòng thử chơi game này trước khi đăng bài lên diễn đàn! Nếu bạn gặp vấn đề khi chơi, Vui lòng đăng bài lên diễn đàn Trợ Giúp và Hỗ Trợ (Help and Support).',
-                'too_many_help_posts' => "Bạn cần phải chơi game này nhiều hơn trước khi bạn tạo thêm bài đăng. Nếu bạn vẫn còn gặp vấn đề khi chơi game, hãy gửi email tới địa chỉ support@ppy.sh", // FIXME: unhardcode email address.
+                'too_many_help_posts' => "Bạn cần phải chơi game này nhiều hơn trước khi bạn tạo thêm bài đăng. Nếu bạn vẫn còn gặp vấn đề khi chơi game, hãy gửi email tới địa chỉ :email", // FIXME: unhardcode email address.
             ],
         ],
 
