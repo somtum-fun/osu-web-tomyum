@@ -24,8 +24,8 @@
     ]])
     <div class="osu-page osu-page--admin tomyum-panel">
         <div class="tomyum-panel__card">
-            <h2 style="margin-bottom: 4px; display: flex; gap: 8px; align-items: flex-start">
-                <i class="fas fa-ticket-alt" style="margin-top: 4px"></i>
+            <h2 style="margin-bottom: 4px">
+                <i class="fas fa-ticket-alt"></i>
                 <span style="flex: 1; min-width: 0; overflow-wrap: anywhere">#{{ $ticketId }} {{ $ticket->subject }}</span>
                 <span class="tomyum-panel__badge {{ $ticket->status === 'open' ? 'tomyum-panel__badge--success' : '' }}" style="flex: none">{{ ucfirst($ticket->status) }}</span>
             </h2>

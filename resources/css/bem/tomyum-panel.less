@@ -303,6 +303,11 @@
       padding: 7px 10px;
       text-align: left;
       vertical-align: middle;
+
+      // A hint in a cell is a second line, not a paragraph: no paragraph spacing to push it off-centre.
+      .tomyum-panel__hint {
+        margin: 0;
+      }
     }
 
     tr:hover td {
@@ -588,6 +593,7 @@
     border-radius: @border-radius-large;
     color: hsl(var(--hsl-h1));
     display: inline-flex;
+    flex: none; // stays square beside a long title
     font-size: 13px;
     height: 28px;
     justify-content: center;
