@@ -69,7 +69,23 @@ class AdminController extends Controller
             'entries' => $entries,
             'actors' => BnController::actorNames($entries),
             'maintenance' => \App\Libraries\TomYumMaintenance::status(),
+            'developmentBanner' => [
+                'enabled' => \App\Libraries\TomYumSiteSettings::developmentBannerEnabled(),
+                'message' => \App\Libraries\TomYumSiteSettings::developmentBannerMessage(),
+            ],
         ]);
+    }
+
+    /** The development banner at the bottom of every page: on or off, and its message (markdown). */
+    public function developmentBanner()
+    {
+        $enabled = Request::boolean('enabled');
+        $message = trim(Request::input('message') ?? '');
+        \App\Libraries\TomYumSiteSettings::set('development_banner_enabled', $enabled ? '1' : '0');
+        \App\Libraries\TomYumSiteSettings::set('development_banner_message', $message === '' ? null : mb_substr($message, 0, 500));
+        $this->staffLog('site.development_banner', null, ($enabled ? 'Development banner on' : 'Development banner off').($message === '' ? '.' : ": {$message}"));
+
+        return $this->backToIndex('success', $enabled ? 'The development banner is on.' : 'The development banner is off.');
     }
 
     /** Maintenance mode on (a message, a countdown) or off: only staff can log in while it's on. */
