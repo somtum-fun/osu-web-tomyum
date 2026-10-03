@@ -113,6 +113,33 @@
             @endif
         </div>
 
+        <div class="tomyum-panel__card" id="development-banner">
+            <h2><i class="fas fa-flask"></i>Development banner</h2>
+            <p>
+                @if ($developmentBanner['enabled'])
+                    <span class="tomyum-panel__badge tomyum-panel__badge--error">ON</span>
+                @else
+                    <span class="tomyum-panel__badge">OFF</span>
+                @endif
+                The red bar at the bottom of every page of the website.
+            </p>
+            <p class="tomyum-panel__hint">Markdown works for links: <code>[osu! website](https://osu.ppy.sh)</code>. Leave the message empty for the default one.</p>
+            <form method="POST" action="{{ route('panel.admin.development-banner') }}" class="tomyum-panel__row" style="align-items: flex-end">
+                @csrf
+                <label class="input-container tomyum-panel__field">
+                    <span class="input-container__label">Message</span>
+                    <input class="input-text" type="text" name="message" maxlength="500"
+                        value="{{ $developmentBanner['message'] === App\Libraries\TomYumSiteSettings::DEVELOPMENT_BANNER_DEFAULT ? '' : $developmentBanner['message'] }}"
+                        placeholder="{{ App\Libraries\TomYumSiteSettings::DEVELOPMENT_BANNER_DEFAULT }}">
+                </label>
+                <label class="tomyum-panel__field" style="flex: 0 0 auto; display: flex; gap: 6px; align-items: center">
+                    <input type="checkbox" name="enabled" value="1" @if ($developmentBanner['enabled']) checked @endif>
+                    Show it
+                </label>
+                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-save"></i>Save</button>
+            </form>
+        </div>
+
         <div class="tomyum-panel__card" id="alert">
             <h2><i class="fas fa-bullhorn"></i>In-game alert</h2>
             <p class="tomyum-panel__hint">A notification to everyone online in stable (osu!'s yellow pop-up); lazer players get it as a BanchoBot message.</p>

@@ -136,9 +136,10 @@
             >
                 @yield('permanent-fixed-footer')
 
-                @if ($GLOBALS['cfg']['osu']['is_development_deploy'])
+                {{-- TomYum: on/off and the message are set in the admin panel (IS_DEVELOPMENT_DEPLOY until then). --}}
+                @if (App\Libraries\TomYumSiteSettings::developmentBannerEnabled())
                     <div class="development-deploy-footer">
-                        This is a development instance of the <a href="https://osu.ppy.sh" class="development-deploy-footer__link">osu! website</a>. Please do not login with your osu! credentials.
+                        {!! App\Libraries\TomYumSiteSettings::developmentBannerHtml() !!}
                     </div>
                 @endif
             </div>
