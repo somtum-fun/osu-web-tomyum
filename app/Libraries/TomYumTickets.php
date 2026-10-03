@@ -12,15 +12,19 @@ use Cache;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 
 /**
  * TomYum: support tickets from email (staff panel → Tickets).
  *
- * Every minute (`tomyum:tickets-fetch`) the mailbox (Zoho, through NoCodeAPI) is read: an email to one
- * of the ticket addresses becomes a ticket in that address's category and gets the automatic reply,
- * or joins the ticket its subject names ("[Ticket #12]", from the same sender; a closed one reopens).
- * Staff reply from the panel, from the address the ticket came to. NoCodeAPI only gives the start of
- * each email (its summary, about 250 characters); the panel links to the full message in Zoho Mail.
+ * Every minute (`tomyum:tickets-fetch`) the mailbox is read: an email to one of the ticket addresses
+ * becomes a ticket in that address's category and gets the automatic reply, or joins the ticket its
+ * subject names ("[Ticket #12]", from the same sender; a closed one reopens). Staff reply from the
+ * panel, from the address the ticket came to.
+ *
+ * The mailbox is either any IMAP one (tomyum.tickets.imap: Spacemail, Zoho IMAP, …; replies then go
+ * by SMTP, the site's MAIL_* server), with whole emails, or Zoho through NoCodeAPI, which only gives
+ * the start of each email (its summary, about 250 characters; the panel links to it in Zoho Mail).
  *
  * Who sees what: admins and developers every category; GMT accounts and appeals; the Support Team
  * (SPT) general support; the Tournament Committee (TC) tournaments.
@@ -97,10 +101,102 @@ class TomYumTickets
     /** Reads the mailbox once; returns [new tickets, messages added to tickets]. */
     public static function fetch(): array
     {
-        $base = static::apiBase();
-        if ($base === null) {
-            return [0, 0];
+        $created = 0;
+        $added = 0;
+        // Each email, oldest first (so a reply lands after the email it answers), as
+        // [id, to (every recipient), from, name, subject, body, is_summary, received_at, automated].
+        $handle = function (array $email) use (&$created, &$added) {
+            if (DB::table('tomyum_ticket_messages')->where('mail_message_id', $email['id'])->exists()) {
+                return;
+            }
+
+            $category = static::categoryOf($email['to']);
+            $from = static::firstAddress($email['from']);
+            if ($category === null || $from === null || $email['automated'] || static::isAutomated($from, $email['subject'])) {
+                return;
+            }
+
+            static::receive($category, $from, $email) === 'created' ? $created++ : $added++;
+        };
+
+        if (static::imapConfig() !== null) {
+            static::fetchImap($handle);
+        } elseif (static::apiBase() !== null) {
+            static::fetchZoho($handle);
         }
+
+        return [$created, $added];
+    }
+
+    /**
+     * New mail in the IMAP folder: the messages after the last UID handled. The first time (or when
+     * the folder's UIDs start over) that's set to the newest message, so older mail isn't turned into
+     * tickets. The place only moves on once a message is handled; a message handled twice is skipped
+     * by its id.
+     */
+    private static function fetchImap(callable $handle): void
+    {
+        $config = static::imapConfig();
+        $imap = new TomYumImap($config['host'], $config['port']);
+        try {
+            $imap->login($config['username'], $config['password']);
+            $box = $imap->examine($config['folder']);
+
+            $state = Cache::get('tomyum:tickets:imap');
+            if (!is_array($state) || ($state['validity'] ?? null) !== $box['uidvalidity']) {
+                Cache::forever('tomyum:tickets:imap', ['validity' => $box['uidvalidity'], 'last' => $box['uidnext'] - 1]);
+
+                return;
+            }
+
+            // "n:*" always includes the newest message, even when it's older than n.
+            $uids = array_values(array_filter($imap->search('UID '.($state['last'] + 1).':*'), fn ($uid) => $uid > $state['last']));
+            foreach (array_slice($uids, 0, 50) as $uid) {
+                $fetched = $imap->fetch($uid);
+                if ($fetched !== null) {
+                    $handle(static::fromImap($fetched, $box['uidvalidity'], $uid));
+                }
+                Cache::forever('tomyum:tickets:imap', ['validity' => $box['uidvalidity'], 'last' => $uid]);
+            }
+        } finally {
+            $imap->logout();
+        }
+    }
+
+    private static function fromImap(array $fetched, int $validity, int $uid): array
+    {
+        $message = TomYumMailMessage::parse($fetched['raw']);
+
+        $receivedAt = null;
+        foreach ([[$fetched['date'], 'd-M-Y H:i:s O'], [$message->header('date'), null]] as [$date, $format]) {
+            try {
+                $receivedAt ??= $date === null || $date === '' ? null
+                    : ($format === null ? Carbon::parse($date) : Carbon::createFromFormat($format, $date));
+            } catch (\Throwable) {
+                // An unreadable date: try the next, or now.
+            }
+        }
+
+        // Message-IDs can be longer than the column: a hash of it (or of the folder's UID) instead.
+        $id = $message->header('message-id') ?: "{$validity}:{$uid}";
+
+        return [
+            'id' => 'imap:'.sha1($id),
+            'to' => implode(' ', [$message->header('to'), $message->header('cc'), $message->header('delivered-to'), $message->header('x-original-to')]),
+            'from' => $message->header('from'),
+            'name' => $message->fromName(),
+            'subject' => $message->header('subject'),
+            'body' => $message->text,
+            'is_summary' => false,
+            'received_at' => $receivedAt ?? Carbon::now(),
+            'automated' => $message->isAutomated(),
+        ];
+    }
+
+    /** The Inbox's latest 50 emails through NoCodeAPI's Zoho connector (the start of each). */
+    private static function fetchZoho(callable $handle): void
+    {
+        $base = static::apiBase();
 
         // Mail from before the system was turned on isn't turned into tickets.
         $since = (int) Cache::rememberForever('tomyum:tickets:since', fn () => Carbon::now()->getTimestampMs());
@@ -111,43 +207,41 @@ class TomYumTickets
             throw new \RuntimeException('The mailbox could not be read: '.$response->body());
         }
 
-        $created = 0;
-        $added = 0;
-        // Oldest first, so a reply lands after the email it answers.
         foreach (array_reverse($emails) as $email) {
             $messageId = (string) ($email['messageId'] ?? '');
             if ($messageId === '' || (int) ($email['receivedTime'] ?? 0) < $since) {
                 continue;
             }
-            if (DB::table('tomyum_ticket_messages')->where('mail_message_id', $messageId)->exists()) {
-                continue;
-            }
 
-            $category = static::categoryOf(html_entity_decode(($email['toAddress'] ?? '').' '.($email['ccAddress'] ?? '')));
-            $from = static::firstAddress(html_entity_decode($email['fromAddress'] ?? ''));
-            if ($category === null || $from === null || static::isAutomated($from, $email['subject'] ?? '')) {
-                continue;
-            }
-
-            $result = static::receive($category, $from, html_entity_decode($email['sender'] ?? ''), $email, $messageId);
-            $result === 'created' ? $created++ : $added++;
+            $handle([
+                'id' => $messageId,
+                'to' => html_entity_decode(($email['toAddress'] ?? '').' '.($email['ccAddress'] ?? '')),
+                'from' => html_entity_decode($email['fromAddress'] ?? ''),
+                'name' => html_entity_decode($email['sender'] ?? ''),
+                'subject' => html_entity_decode($email['subject'] ?? ''),
+                'body' => html_entity_decode($email['summary'] ?? ''),
+                'is_summary' => true,
+                'received_at' => Carbon::createFromTimestampMs((int) ($email['receivedTime'] ?? Carbon::now()->getTimestampMs())),
+                'automated' => false,
+            ]);
         }
-
-        return [$created, $added];
     }
 
-    private static function receive(string $category, string $from, string $name, array $email, string $messageId): string
+    private static function receive(string $category, string $from, array $email): string
     {
-        $subject = trim(html_entity_decode($email['subject'] ?? '')) ?: '(no subject)';
-        $receivedAt = Carbon::createFromTimestampMs((int) ($email['receivedTime'] ?? Carbon::now()->getTimestampMs()));
-        $body = trim(html_entity_decode($email['summary'] ?? ''));
+        $subject = trim($email['subject']) ?: '(no subject)';
+        $name = trim($email['name']);
+        $receivedAt = $email['received_at'];
+        $body = trim($email['body']);
+        $isSummary = $email['is_summary'];
+        $messageId = $email['id'];
 
         $ticket = null;
         if (preg_match('/\[Ticket #(\d+)\]/i', $subject, $match)) {
             $ticket = DB::table('tomyum_tickets')->where('id', (int) $match[1])->where('requester_email', $from)->first();
         }
 
-        [$isNew, $ticketId] = DB::transaction(function () use ($ticket, $category, $from, $name, $subject, $receivedAt, $body, $messageId) {
+        [$isNew, $ticketId] = DB::transaction(function () use ($ticket, $category, $from, $name, $subject, $receivedAt, $body, $isSummary, $messageId) {
             $isNew = $ticket === null;
             if ($isNew) {
                 $ticketId = DB::table('tomyum_tickets')->insertGetId([
@@ -178,7 +272,7 @@ class TomYumTickets
                 'from_address' => $from,
                 'subject' => mb_substr($subject, 0, 255),
                 'body' => $body,
-                'is_summary' => true,
+                'is_summary' => $isSummary,
                 'mail_message_id' => $messageId,
                 'created_at' => $receivedAt,
                 'updated_at' => Carbon::now(),
@@ -289,11 +383,15 @@ class TomYumTickets
     }
 
     /**
-     * Sends from the ticket's address; if Zoho refuses it (not set up as an alias), from the server's
-     * main address instead, so the requester still gets an answer.
+     * Sends from the ticket's address; if the mail server refuses it (not set up as an alias), from
+     * the server's main address instead, so the requester still gets an answer.
      */
     private static function send(object $ticket, string $text): bool
     {
+        if (static::imapConfig() !== null) {
+            return static::sendSmtp($ticket, $text);
+        }
+
         $base = static::apiBase();
         if ($base === null) {
             return false;
@@ -317,6 +415,28 @@ class TomYumTickets
                 \Log::warning("Ticket #{$ticket->id}: sending from {$from} failed", ['response' => $response->body()]);
             } catch (\Throwable $e) {
                 log_error($e);
+            }
+        }
+
+        return false;
+    }
+
+    /** The same through the site's mail server (MAIL_*), replies coming back to the ticket's address. */
+    private static function sendSmtp(object $ticket, string $text): bool
+    {
+        $fallback = $GLOBALS['cfg']['mail']['from']['address'];
+        foreach (array_unique([$ticket->mailbox, $fallback]) as $from) {
+            try {
+                Mail::raw($text, function ($message) use ($ticket, $from) {
+                    $message->from($from, static::signature())
+                        ->replyTo($ticket->mailbox)
+                        ->to($ticket->requester_email)
+                        ->subject(static::subjectFor($ticket));
+                });
+
+                return true;
+            } catch (\Throwable $e) {
+                \Log::warning("Ticket #{$ticket->id}: sending from {$from} failed: {$e->getMessage()}");
             }
         }
 
@@ -361,6 +481,16 @@ class TomYumTickets
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────────────────────
+
+    /** The IMAP mailbox's settings, or null when tickets come through NoCodeAPI (or not at all). */
+    private static function imapConfig(): ?array
+    {
+        $config = $GLOBALS['cfg']['tomyum']['tickets']['imap'] ?? null;
+
+        return ($config['host'] ?? null) !== null && ($config['username'] ?? null) !== null && ($config['password'] ?? null) !== null
+            ? $config
+            : null;
+    }
 
     /** The NoCodeAPI Zoho Mail endpoint (MAIL_DRIVER=nocodeapi's URL without /sendEmail). */
     private static function apiBase(): ?string

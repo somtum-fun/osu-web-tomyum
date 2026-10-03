@@ -134,7 +134,9 @@ return [
         'search_timeout' => env('ES_SEARCH_TIMEOUT', '5s'),
     ],
     'emails' => [
-        'account' => 'accounts@ppy.sh',
+        // TomYum: the accounts@ ticket address on this server's domain (config/tomyum.php), not osu!'s.
+        'account' => 'accounts@'.(presence(env('TICKETS_MAIL_DOMAIN'))
+            ?? preg_replace('/^osu\./', '', parse_url((string) env('APP_URL'), PHP_URL_HOST) ?? '')),
     ],
     'forum' => [
         'admin_forum_id' => get_int(env('ADMIN_FORUM_ID')) ?? 28,

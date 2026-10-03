@@ -61,13 +61,22 @@ return [
     ],
 
     // Support tickets from email (App\Libraries\TomYumTickets): the domain of the ticket addresses
-    // (support@, accounts@, appeal-review@, abuse@, privacy@, dmca@, tournaments@), all received by the
-    // Zoho mailbox NoCodeAPI reads (aliases of it); empty TICKETS_ENABLED turns the fetching off.
+    // (support@, accounts@, appeal-review@, abuse@, privacy@, dmca@, tournaments@), all aliases of one
+    // mailbox: read over IMAP (TICKETS_IMAP_HOST, any provider) with replies by SMTP (the MAIL_* server),
+    // or else the Zoho mailbox NoCodeAPI reads; empty TICKETS_ENABLED turns the fetching off.
     'tickets' => [
         'enabled' => get_bool(env('TICKETS_ENABLED')) ?? true,
         // (by default the site's domain without its "osu." part: osu.sundei.eu → sundei.eu)
         'domain' => presence(env('TICKETS_MAIL_DOMAIN'))
             ?? preg_replace('/^osu\./', '', parse_url((string) env('APP_URL'), PHP_URL_HOST) ?? ''),
+        // IMAP over TLS (port 993); the login is the SMTP one unless set apart.
+        'imap' => [
+            'host' => presence(env('TICKETS_IMAP_HOST')),
+            'port' => get_int(env('TICKETS_IMAP_PORT')) ?? 993,
+            'username' => presence(env('TICKETS_IMAP_USERNAME')) ?? presence(env('MAIL_USERNAME')),
+            'password' => presence(env('TICKETS_IMAP_PASSWORD')) ?? presence(env('MAIL_PASSWORD')),
+            'folder' => presence(env('TICKETS_IMAP_FOLDER')) ?? 'INBOX',
+        ],
     ],
 
     // Mail through NoCodeAPI's Zoho Mail endpoint when MAIL_DRIVER=nocodeapi (TomYumNocodeapiTransport).
