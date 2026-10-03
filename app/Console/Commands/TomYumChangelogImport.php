@@ -200,7 +200,7 @@ class TomYumChangelogImport extends Command
             'at' => CarbonImmutable::parse($date)->utc(),
             // The page speaks of the server, not its code name.
             'subject' => static::unname(trim($subject)),
-            'body' => static::unname(trim($body)),
+            'body' => static::unname(static::withoutTrailers($body)),
             'email' => strtolower(trim($email)),
             'files' => $files,
         ];
@@ -326,6 +326,20 @@ class TomYumChangelogImport extends Command
         }
 
         return [null, static::upperFirst($subject)];
+    }
+
+    /**
+     * The body without git's trailers and tool footers (Co-Authored-By, Signed-off-by,
+     * Claude-Session, "Generated with …"): who or what helped write a commit isn't news to players.
+     */
+    private static function withoutTrailers(string $body): string
+    {
+        $lines = array_filter(
+            explode("\n", str_replace("\r\n", "\n", $body)),
+            fn ($line) => preg_match('/^\s*([\w-]+-(by|session):\s|(🤖\s*)?Generated with\b)/i', $line) !== 1,
+        );
+
+        return trim(preg_replace("/\n{3,}/", "\n\n", implode("\n", $lines)));
     }
 
     private static function unname(string $text): string
