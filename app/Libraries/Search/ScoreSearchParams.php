@@ -23,6 +23,8 @@ class ScoreSearchParams extends SearchParams
     public ?array $beatmapIds = null;
     public ?Score $beforeScore = null;
     public ?int $beforeTotalScore = null;
+    // TomYum: whether beforeScore ranks by pp (the board is sorted by pp) rather than by total score.
+    public bool $rankByPp = false;
     public bool $excludeConverts = false;
     public ?array $excludeMods = null;
     public ?bool $isLegacy = null;
@@ -133,6 +135,12 @@ class ScoreSearchParams extends SearchParams
 
     public function setSort(?string $sort): void
     {
+        // TomYum: ranks (beforeScore) count by pp on a board sorted by pp. A count clears the sort,
+        // so this stays as it was then.
+        if ($sort !== null) {
+            $this->rankByPp = $sort === 'pp_desc';
+        }
+
         switch ($sort) {
             case 'score_desc':
                 $sortColumn = $this->isLegacy ? 'legacy_total_score' : 'total_score';

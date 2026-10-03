@@ -671,6 +671,14 @@ class UsersController extends Controller
      */
     public function show($id, $mode = null)
     {
+        $user = FindForProfilePage::find($id, get_string(request('key')));
+
+        // TomYum: a player whose default is Relax/Autopilot opens on it (on the website; the API
+        // keeps answering with the ruleset).
+        if ($mode === null && !is_api_request()) {
+            $mode = \App\Libraries\TomYumModeScores::defaultVariant($user);
+        }
+
         // TomYum: lazer's Relax/Autopilot modes (LazerAuthlibInjection asks for them like rulesets):
         // the normal profile, with TomYum's stats for that mode (the website has none).
         $tomyumMode = \App\Libraries\TomYumModeScores::variant($mode);
@@ -678,8 +686,6 @@ class UsersController extends Controller
         if ($tomyumMode !== null) {
             $mode = $tomyumMode[0];
         }
-
-        $user = FindForProfilePage::find($id, get_string(request('key')));
 
         $currentMode = $mode ?? $user->playmode;
 
@@ -722,6 +728,8 @@ class UsersController extends Controller
             $lastFm = static::tomyumListening($user);
             $userArray['tomyum_lastfm'] = $lastFm !== null;
             $userArray['tomyum_listening'] = $lastFm['listening'] ?? null;
+            // TomYum: their default Relax/Autopilot mode, if any (the profile's "set as default").
+            $userArray['tomyum_default_variant'] = \App\Libraries\TomYumModeScores::defaultVariant($user);
             $currentUser = \Auth::user();
             if ($currentUser !== null && $currentUser->getKey() === $user->getKey()) {
                 $userCoverPresets = app('user-cover-presets')->json();

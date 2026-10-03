@@ -45,6 +45,7 @@ function TdLink(linkProps: TdLinkProps) {
 interface Props {
   activated: boolean;
   beatmap: BeatmapJson;
+  byPp: boolean; // TomYum: show pp in the score column
   highlightFriends: boolean;
   index: number;
   score: ScoreJsonForBeatmap;
@@ -87,7 +88,8 @@ export default class ScoreboardTableRow extends React.Component<Props> {
         </TdLink>
 
         <TdLink href={this.scoreUrl} modifiers='score'>
-          <ScoreValue score={score} />
+          {/* TomYum: pp in place of score when sorted by pp */}
+          {this.props.byPp ? <PpValue score={score} suffix='pp' /> : <ScoreValue score={score} />}
         </TdLink>
 
         <TdLink href={this.scoreUrl} modifiers={scoreAccuracy === 1 ? 'perfect' : null}>

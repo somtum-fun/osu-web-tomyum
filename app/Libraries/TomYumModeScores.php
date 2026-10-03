@@ -25,7 +25,7 @@ class TomYumModeScores
     /**
      * Relax/Autopilot plays are TomYum's, numbered apart from the website's scores. lazer only knows
      * a score by its id (it fetches /scores/{id} and /scores/{id}/download), so they're given ids from
-     * here up, which ScoresController hands back to TomYum.
+     * here up, which ScoresController hands back to TomYum. lazer plays use their website score id instead.
      */
     public const ID_OFFSET = 1_000_000_000_000;
 
@@ -48,6 +48,17 @@ class TomYumModeScores
     public static function variant(mixed $name): ?array
     {
         return is_string($name) ? (static::MODES[$name] ?? null) : null;
+    }
+
+    /**
+     * The Relax/Autopilot mode a player picked as their default (osurx, ...), or null for vanilla.
+     * It only counts while its ruleset is still their default ruleset.
+     */
+    public static function defaultVariant(User $user): ?string
+    {
+        $name = $user->userProfileCustomization?->tomyum_default_variant;
+
+        return $name !== null && (static::MODES[$name][0] ?? null) === $user->playmode ? $name : null;
     }
 
     /** One page of a list (best, recent or firsts): ['items' => website-shaped scores, 'total' => all of them]. */
@@ -112,9 +123,10 @@ class TomYumModeScores
      * like BeatmapsController::scores: the top 50 and the viewer's own best. $variant is "rx" or "ap";
      * a ruleset without that variant (mania, or AP outside osu!) has no scores. $mods (acronyms, "NM"
      * for none) keeps plays with exactly those mods, as the in-game "Selected Mods" board does. $type
-     * is the website's: global, or only the viewer's country, friends (and themselves) or team.
+     * is the website's: global, or only the viewer's country, friends (and themselves) or team. $sort
+     * is "pp" or "score" (each player's best play, ordered by score).
      */
-    public static function beatmapLeaderboard(Beatmap $beatmap, ?string $ruleset, string $variant, array $mods = [], string $type = 'global'): array
+    public static function beatmapLeaderboard(Beatmap $beatmap, ?string $ruleset, string $variant, array $mods = [], string $type = 'global', string $sort = 'pp'): array
     {
         $ruleset ??= Beatmap::modeStr($beatmap->playmode);
         $mode = static::variant($ruleset.$variant);
@@ -137,6 +149,7 @@ class TomYumModeScores
             'limit' => 50,
             'viewerId' => $viewer?->getKey(),
             'mods' => $mods === [] ? null : app('mods')->idsToBitset(array_diff($mods, ['NM'])),
+            'sort' => $sort,
         ];
         $path = "/beatmaps/{$beatmap->getKey()}/mode-scores/{$mode[1]}";
         $admin = new TomYumAdmin($viewer);
@@ -180,8 +193,14 @@ class TomYumModeScores
             $beatmap->playmode = $rulesetId;
         }
 
+        // TomYum: a lazer play keeps the website's own score id, which its replay carries, so lazer
+        // matches the downloaded replay to it. Stable plays (and any without one) use ID_OFFSET.
+        $id = !($score['stable'] ?? true) && isset($score['osuWebScoreId'])
+            ? (int) $score['osuWebScoreId']
+            : static::ID_OFFSET + $score['id'];
+
         return [
-            'id' => static::ID_OFFSET + $score['id'],
+            'id' => $id,
             // Not a website score: nothing may report, pin or link to it as one.
             'type' => 'tomyum_score',
             'user_id' => $user->getKey(),
@@ -190,7 +209,7 @@ class TomYumModeScores
             'beatmap_id' => $beatmap->getKey(),
             'beatmapset' => json_item($beatmap->beatmapset, new BeatmapsetCompactTransformer()),
             // Its own best (TomYum keeps one per map): the site shows pp only for bests.
-            'best_id' => static::ID_OFFSET + $score['id'],
+            'best_id' => $id,
             'build_id' => null,
             'classic_total_score' => $score['score'],
             'current_user_attributes' => ['pin' => null],

@@ -38,6 +38,8 @@ export type ProfilePageMatchmakingStatsJson = MatchmakingUserStatsJson & Require
 
 export type ProfilePageUserJson = Omit<UserExtendedJson, 'matchmaking_stats'> & Required<Pick<UserExtendedJson, ProfilePageIncludes>> & {
   matchmaking_stats: ProfilePageMatchmakingStatsJson[];
+  // TomYum: their default Relax/Autopilot mode (osurx, ...), or null for vanilla.
+  tomyum_default_variant?: string | null;
 };
 
 export const profilePageSections = [...beatmapsetSections, ...topScoreSections, ...historicalSections, 'recentActivity', 'recentlyReceivedKudosu'] as const;

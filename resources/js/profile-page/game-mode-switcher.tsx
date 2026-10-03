@@ -99,9 +99,16 @@ export default class GameModeSwitcher extends React.Component<Props> {
   }
 
   private renderSetDefault() {
-    if (!this.props.controller.withEdit || this.props.controller.state.user.playmode === this.props.controller.currentMode) {
+    const { controller } = this.props;
+    // TomYum: Relax/Autopilot can be the default too.
+    const isDefault = controller.state.user.playmode === controller.currentMode
+      && (controller.state.user.tomyum_default_variant ?? null) === controller.variant;
+
+    if (!controller.withEdit || isDefault) {
       return null;
     }
+
+    const variantTitle = controller.variant == null ? '' : ` ${controller.variant.endsWith('ap') ? 'Autopilot' : 'Relax'}`;
 
     return (
       <div className='profile-page-button'>
@@ -113,7 +120,7 @@ export default class GameModeSwitcher extends React.Component<Props> {
         >
           <StringWithComponent
             mappings={{
-              mode: <strong>{trans(`beatmaps.mode.${this.props.controller.currentMode}`)}</strong>,
+              mode: <strong>{trans(`beatmaps.mode.${controller.currentMode}`)}{variantTitle}</strong>,
             }}
             pattern={trans('users.show.edit.default_playmode.set')}
           />
