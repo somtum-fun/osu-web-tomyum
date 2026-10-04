@@ -17,3 +17,6 @@ import 'osu-core-singleton';
 import 'main.coffee';
 
 import 'register-components';
+
+// TomYum: :3
+import 'tomyum/cat-stampede';

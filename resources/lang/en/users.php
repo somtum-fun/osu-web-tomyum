@@ -262,6 +262,12 @@ return [
                 'set' => 'set :mode as profile default game mode',
             ],
 
+            // TomYum: starred game modes (vanilla / Relax / Autopilot) a player keeps pinned.
+            'favourite_mode' => [
+                'star' => 'star this mode as a favourite',
+                'unstar' => 'remove this favourite',
+            ],
+
             'hue' => [
                 'reset_no_supporter' => 'Reset colour to default? Supporter tag will be required to change it to a different colour.',
                 'title' => 'Colour',

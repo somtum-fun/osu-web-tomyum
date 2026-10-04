@@ -40,6 +40,8 @@ export type ProfilePageUserJson = Omit<UserExtendedJson, 'matchmaking_stats'> & 
   matchmaking_stats: ProfilePageMatchmakingStatsJson[];
   // TomYum: their default Relax/Autopilot mode (osurx, ...), or null for vanilla.
   tomyum_default_variant?: string | null;
+  // TomYum: starred modes (rulesets or Relax/Autopilot variants) the player keeps pinned.
+  tomyum_favorite_modes?: string[];
 };
 
 export const profilePageSections = [...beatmapsetSections, ...topScoreSections, ...historicalSections, 'recentActivity', 'recentlyReceivedKudosu'] as const;
