@@ -214,6 +214,41 @@ class TomYumModeScores
         return $result;
     }
 
+    /**
+     * A mode's top plays for the rankings' "Top Plays" with the Relax/Autopilot variant: everyone's
+     * best on each map, by pp (TomYum's, up to 1000), shaped like the website's top plays (with the
+     * player). Null when the game server can't be reached.
+     */
+    public static function topPlays(string $ruleset, string $variant): ?array
+    {
+        $mode = static::variant($ruleset.$variant);
+        if ($mode === null) {
+            return [];
+        }
+        $response = (new TomYumAdmin(auth()->user()))->get("/mode-scores/top-plays/{$mode[1]}", ['limit' => 1000]);
+        if (!$response->successful()) {
+            return null;
+        }
+
+        $entries = $response->json('scores') ?? [];
+        $users = User::default()->with(['country', 'team'])->whereIn('user_id', array_column($entries, 'userId'))->get()->keyBy('user_id');
+        $beatmaps = Beatmap::with('beatmapset')->whereIn('beatmap_id', array_column(array_column($entries, 'score'), 'beatmapId'))->get()->keyBy('beatmap_id');
+        $rulesetId = Beatmap::MODES[$mode[0]];
+        $items = [];
+        foreach ($entries as $entry) {
+            $user = $users[$entry['userId']] ?? null;
+            $beatmap = $beatmaps[$entry['score']['beatmapId']] ?? null;
+            if ($user === null || $beatmap === null || $beatmap->beatmapset === null) {
+                continue;
+            }
+            $json = static::item($entry['score'], $user, $beatmap, $rulesetId, null);
+            $json['user'] = json_item($user, new UserCompactTransformer(), ['country', 'team']);
+            $items[] = $json;
+        }
+
+        return $items;
+    }
+
     /** A TomYum play shaped like the website's scores. */
     private static function item(array $score, User $user, Beatmap $beatmap, int $rulesetId, ?float $weight): array
     {

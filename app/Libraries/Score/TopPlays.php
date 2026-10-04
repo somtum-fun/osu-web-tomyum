@@ -24,7 +24,10 @@ class TopPlays
     public function updateCache(): void
     {
         $search = new ScoreSearch(ScoreSearchParams::fromArray([
-            'excludeWithoutPp' => true,
+            // TomYum: Relax/Autopilot plays (a lazer one carries its Akatsuki pp) have their own top
+            // plays (the rx/ap variant). fromArray reads exclude_without_pp, not excludeWithoutPp.
+            'exclude_mods' => ScoreSearchParams::RELAX_MODS,
+            'exclude_without_pp' => true,
             'limit' => 3000,
             'ruleset_id' => $this->rulesetId,
             'sort' => 'pp_desc',

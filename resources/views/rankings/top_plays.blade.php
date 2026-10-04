@@ -4,10 +4,49 @@
 --}}
 @extends('rankings.index', [
     'hasPager' => $scores !== null,
-    'params' => ['mode' => $rulesetName, 'type' => 'top_plays'],
+    'params' => ['mode' => $rulesetName, 'type' => 'top_plays', 'variant' => $variant ?? null],
     'rulesetSelectorUrlFn' => fn (string $r): string => route('rankings.top-plays', ['mode' => $r]),
     'titlePrepend' => osu_trans('rankings.type.top_plays'),
 ])
+
+{{-- TomYum: Relax/Autopilot top plays (osu!, taiko, catch), as the global ranking switches. --}}
+@php
+    $tomyumVariants = isset(App\Http\Controllers\RankingController::TOMYUM_VARIANTS[$rulesetName])
+        ? ['all', ...array_keys(App\Http\Controllers\RankingController::TOMYUM_VARIANTS[$rulesetName])]
+        : null;
+@endphp
+@if ($tomyumVariants !== null)
+    @section('ranking-header')
+        <div class="osu-page osu-page--ranking-info">
+            <div class="grid-items grid-items--ranking-filter">
+                <div class="js-react u-contents" data-react="ranking-variant-filter">
+                    <div class="ranking-filter">
+                        <div class="ranking-filter__title">
+                            {{ osu_trans('rankings.filter.variant.title') }}
+                        </div>
+                        <div class="sort sort--ranking-header">
+                            <div class="sort__items">
+                                @foreach ($tomyumVariants as $v)
+                                    <button class="sort__item sort__item--button">
+                                        {{ osu_trans("beatmaps.variant.{$rulesetName}.{$v}") }}
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <script id="json-variant-filter" type="application/json">
+                    {!! json_encode([
+                        'current' => $variant ?? null,
+                        'current_ruleset' => $rulesetName,
+                        'items' => $tomyumVariants,
+                    ]) !!}
+                </script>
+            </div>
+        </div>
+    @endsection
+@endif
 
 @if ($scores === null)
     @section('scores')
