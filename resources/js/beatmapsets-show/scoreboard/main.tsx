@@ -31,7 +31,7 @@ const legacyMods = {
 const maniaConvertMods = new Set(['1K', '2K', '3K', '4K', '5K', '6K', '7K', '8K', '9K', '10K', 'DS']);
 const variantLabels: Record<ScoreboardVariant, string> = { ap: 'Autopilot', rx: 'Relax', vn: 'Vanilla' };
 const sorts: ScoreboardSort[] = ['pp', 'score'];
-const sortLabels: Record<ScoreboardSort, string> = { pp: 'By pp', score: 'By score' };
+const sortLabels: Record<ScoreboardSort, string> = { pp: 'pp', score: 'Score' };
 
 interface Props {
   beatmap: BeatmapExtendedJson;
@@ -82,8 +82,6 @@ export default class Main extends React.Component<Props> {
   render() {
     return (
       <div className='beatmapset-scoreboard'>
-        {this.renderVariants()}
-
         <div className='page-tabs'>
           {scoreboardTypes.map((type) => (
             <Tab
@@ -94,7 +92,7 @@ export default class Main extends React.Component<Props> {
           ))}
         </div>
 
-        {this.renderSorts()}
+        {this.renderOptions()}
 
         {this.controller.beatmap.is_scoreable &&
           <div className={classWithModifiers('beatmapset-scoreboard__mods', { initial: this.controller.enabledMods.size === 0 })}>
@@ -111,13 +109,13 @@ export default class Main extends React.Component<Props> {
     );
   }
 
-  private readonly onClickVariant = (e: React.MouseEvent<HTMLDivElement>) => {
+  private readonly onClickVariant = (e: React.MouseEvent<HTMLButtonElement>) => {
     const variant = e.currentTarget.dataset.variant as ScoreboardVariant;
     // The mod lists differ (lazer's on Vanilla, stable's on Relax/Autopilot): start without a filter.
     this.controller.setCurrent({ resetMods: true, variant });
   };
 
-  private readonly onClickSort = (e: React.MouseEvent<HTMLDivElement>) => {
+  private readonly onClickSort = (e: React.MouseEvent<HTMLButtonElement>) => {
     this.controller.setCurrent({ sort: e.currentTarget.dataset.sort as ScoreboardSort });
   };
 
@@ -175,47 +173,45 @@ export default class Main extends React.Component<Props> {
     }
   }
 
-  // TomYum: Vanilla / Relax / Autopilot, for the rulesets that have them.
-  private renderVariants() {
-    const variants = variantsByRuleset[this.controller.beatmap.mode];
-    if (variants == null || !this.controller.beatmap.is_scoreable) return null;
-
-    return (
-      <div className='page-tabs'>
-        {variants.map((variant) => (
-          <div
-            key={variant}
-            className={classWithModifiers('page-tabs__tab', { active: this.controller.variant === variant })}
-            data-variant={variant}
-            onClick={this.onClickVariant}
-          >
-            <span className='fake-bold' data-content={variantLabels[variant]}>
-              {variantLabels[variant]}
-            </span>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  // TomYum: by pp or by score.
-  private renderSorts() {
+  // TomYum: one row under the board tabs: Vanilla / Relax / Autopilot (for the rulesets that have
+  // them) and the order (by pp or by score), as small buttons like the listing's "Sort by".
+  private renderOptions() {
     if (!this.controller.beatmap.is_scoreable) return null;
 
+    const variants = variantsByRuleset[this.controller.beatmap.mode];
+
     return (
-      <div className='page-tabs'>
-        {sorts.map((sort) => (
-          <div
-            key={sort}
-            className={classWithModifiers('page-tabs__tab', { active: this.controller.sort === sort })}
-            data-sort={sort}
-            onClick={this.onClickSort}
-          >
-            <span className='fake-bold' data-content={sortLabels[sort]}>
-              {sortLabels[sort]}
-            </span>
+      <div className='sort beatmapset-scoreboard__options'>
+        {variants != null &&
+          <div className='sort__items'>
+            {variants.map((variant) => (
+              <button
+                key={variant}
+                className={classWithModifiers('sort__item', 'button', { active: this.controller.variant === variant })}
+                data-variant={variant}
+                onClick={this.onClickVariant}
+                type='button'
+              >
+                {variantLabels[variant]}
+              </button>
+            ))}
           </div>
-        ))}
+        }
+
+        <div className='sort__items'>
+          <span className='sort__item sort__item--title'>{trans('sort._')}</span>
+          {sorts.map((sort) => (
+            <button
+              key={sort}
+              className={classWithModifiers('sort__item', 'button', { active: this.controller.sort === sort })}
+              data-sort={sort}
+              onClick={this.onClickSort}
+              type='button'
+            >
+              {sortLabels[sort]}
+            </button>
+          ))}
+        </div>
       </div>
     );
   }
