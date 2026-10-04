@@ -35,6 +35,7 @@ class UserProfileCustomization extends Model
         'profile_detail_v2' => true, // TomYum: the new profile cards (with Ranked Play) by default
         'scoring_mode' => self::SCORING_MODES[0],
         'tomyum_default_variant' => null, // TomYum: Relax/Autopilot as the default mode (osurx, ...)
+        'tomyum_favorite_modes' => [], // TomYum: starred modes (ruleset or variant: osu, osurx, osuap, ...)
         'user_list_filter' => self::USER_LIST['filters']['default'],
         'user_list_sort' => self::USER_LIST['sorts']['default'],
         'user_list_view' => self::USER_LIST['views']['default'],
@@ -139,6 +140,7 @@ class UserProfileCustomization extends Model
             'profile_detail_v2',
             'scoring_mode',
             'tomyum_default_variant',
+            'tomyum_favorite_modes',
             'user_list_filter',
             'user_list_sort',
             'user_list_view' => $this->getOption($key) ?? static::DEFAULTS[$key],
@@ -243,6 +245,28 @@ class UserProfileCustomization extends Model
         }
 
         $this->setOption('tomyum_default_variant', $value);
+    }
+
+    /** TomYum: a player's starred modes (rulesets or Relax/Autopilot variants). Deduplicated, order kept. */
+    public function setTomyumFavoriteModesAttribute($value): void
+    {
+        $filtered = [];
+        if (is_array($value)) {
+            foreach ($value as $item) {
+                if (!is_string($item) || in_array($item, $filtered, true)) {
+                    continue;
+                }
+                if (!\App\Libraries\TomYumModeScores::isFavoritableMode($item)) {
+                    continue;
+                }
+                $filtered[] = $item;
+                if (count($filtered) >= 8) {
+                    break; // there are only 8 real modes; refuse more as spam defence
+                }
+            }
+        }
+
+        $this->setOption('tomyum_favorite_modes', $filtered);
     }
 
     public function setUserListFilterAttribute($value)

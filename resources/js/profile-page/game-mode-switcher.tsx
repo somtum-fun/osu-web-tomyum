@@ -54,6 +54,8 @@ export default class GameModeSwitcher extends React.Component<Props> {
   }
 
   // TomYum: Relax and Autopilot have their own stats and plays (lazer shows them as modes too).
+  // Each pill also carries a star you can click (your own profile only) to pin that mode as a
+  // favourite; favourites get a gold border so other players see which modes a user cares about.
   private renderVariants() {
     const mode = this.props.controller.currentMode;
     const variants: Partial<Record<Ruleset, [string, string, string][]>> = {
@@ -68,35 +70,76 @@ export default class GameModeSwitcher extends React.Component<Props> {
 
     const shown = this.props.controller.variant ?? mode;
     const user = this.props.controller.state.user.id;
+    const favourites = this.props.controller.state.user.tomyum_favorite_modes ?? [];
+    const canEdit = this.props.controller.withEdit;
 
     return (
       <div style={{ alignItems: 'center', display: 'flex', gap: 6 }}>
         {[['Vanilla', mode], ...list.map(([, target, title]) => [title, target])].map(([label, target]) => {
           const active = shown === target;
+          const favourite = favourites.includes(target);
 
           return (
-            <a
+            <span
               key={target}
-              href={route('users.show', { mode: target, user })}
               style={{
+                alignItems: 'center',
                 background: active ? 'hsl(var(--hsl-h1))' : 'hsl(var(--hsl-b4))',
+                border: favourite ? '1px solid hsl(var(--hsl-h1))' : '1px solid transparent',
                 borderRadius: 999,
                 color: active ? 'hsl(var(--hsl-b6))' : 'hsl(var(--hsl-c1))',
+                display: 'inline-flex',
                 fontSize: 12,
                 fontWeight: 600,
+                gap: 4,
                 lineHeight: '20px',
-                padding: '2px 12px',
-                textDecoration: 'none',
+                padding: '1px 10px',
                 whiteSpace: 'nowrap',
               }}
             >
-              {label}
-            </a>
+              <a
+                href={route('users.show', { mode: target, user })}
+                style={{ color: 'inherit', textDecoration: 'none' }}
+              >
+                {label}
+              </a>
+              {(canEdit || favourite) && (
+                <button
+                  aria-label={favourite ? trans('users.show.edit.favourite_mode.unstar') : trans('users.show.edit.favourite_mode.star')}
+                  disabled={!canEdit || this.favouriting === target}
+                  onClick={canEdit ? () => this.toggleFavourite(target) : undefined}
+                  style={{
+                    background: 'transparent',
+                    border: 0,
+                    color: favourite ? 'hsl(var(--hsl-y1, 44 100% 60%))' : 'inherit',
+                    cursor: canEdit ? 'pointer' : 'default',
+                    fontSize: 11,
+                    opacity: favourite ? 1 : 0.6,
+                    padding: 0,
+                    pointerEvents: canEdit ? 'auto' : 'none',
+                  }}
+                  title={favourite ? trans('users.show.edit.favourite_mode.unstar') : trans('users.show.edit.favourite_mode.star')}
+                  type='button'
+                >
+                  <i className={favourite ? 'fas fa-star' : 'far fa-star'} />
+                </button>
+              )}
+            </span>
           );
         })}
       </div>
     );
   }
+
+  @observable private favouriting: string | null = null;
+
+  @action
+  private readonly toggleFavourite = (mode: string) => {
+    this.favouriting = mode;
+    this.props.controller.apiToggleFavoriteMode(mode)
+      .always(action(() => { this.favouriting = null; }))
+      .fail(onErrorWithCallback(() => this.toggleFavourite(mode)));
+  };
 
   private renderSetDefault() {
     const { controller } = this.props;

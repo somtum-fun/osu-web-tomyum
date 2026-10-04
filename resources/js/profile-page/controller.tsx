@@ -268,6 +268,39 @@ export default class Controller {
     return xhr;
   }
 
+  /**
+   * TomYum: star or unstar a game mode. The whole list is sent each time so the server owns the
+   * final ordering and no partial-update race can mix two clicks up.
+   */
+  @action
+  apiToggleFavoriteMode(mode: string): JQuery.jqXHR<CurrentUserJson> {
+    const current = this.state.user.tomyum_favorite_modes ?? [];
+    const next = current.includes(mode)
+      ? current.filter((m) => m !== mode)
+      : [...current, mode];
+
+    this.state.user.tomyum_favorite_modes = next;
+    this.xhr.toggleFavoriteMode?.abort();
+
+    const xhr = $.ajax(route('account.options'), {
+      data: {
+        user_profile_customization: {
+          tomyum_favorite_modes: next,
+        },
+      },
+      method: 'PUT',
+      // jQuery would otherwise send an empty array as nothing at all, which Laravel then can't
+      // tell apart from "no update". A real empty value needs to clear the saved favourites.
+      traditional: false,
+    }).fail(action(() => {
+      this.state.user.tomyum_favorite_modes = current;
+    })) as JQuery.jqXHR<CurrentUserJson>;
+
+    this.xhr.toggleFavoriteMode = xhr;
+
+    return xhr;
+  }
+
   @action
   apiSetExtraPageOrder(newOrder: ProfileExtraPage[]): JQuery.jqXHR<CurrentUserJson> {
     this.state.user.profile_order = newOrder;

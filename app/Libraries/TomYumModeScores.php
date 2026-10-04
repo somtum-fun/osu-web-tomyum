@@ -61,6 +61,32 @@ class TomYumModeScores
         return $name !== null && (static::MODES[$name][0] ?? null) === $user->playmode ? $name : null;
     }
 
+    /** Whether <paramref name="name"/> names something a player can star: a ruleset, or a Relax/Autopilot variant. */
+    public static function isFavoritableMode(mixed $name): bool
+    {
+        return is_string($name) && (
+            in_array($name, ['osu', 'taiko', 'fruits', 'mania'], true)
+            || isset(static::MODES[$name])
+        );
+    }
+
+    /** A player's starred modes (filtered to currently valid names, order kept), or an empty array. */
+    public static function favoriteModes(User $user): array
+    {
+        $list = $user->userProfileCustomization?->tomyum_favorite_modes ?? [];
+        if (!is_array($list)) {
+            return [];
+        }
+
+        $out = [];
+        foreach ($list as $item) {
+            if (static::isFavoritableMode($item) && !in_array($item, $out, true)) {
+                $out[] = $item;
+            }
+        }
+        return $out;
+    }
+
     /** One page of a list (best, recent or firsts): ['items' => website-shaped scores, 'total' => all of them]. */
     public static function page(User $user, array $variant, string $type, int $offset, int $limit, bool $includeFails = false): array
     {
