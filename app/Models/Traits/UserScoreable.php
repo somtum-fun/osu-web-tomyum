@@ -18,6 +18,9 @@ trait UserScoreable
     public function aggregatedScoresBest(string $mode, int $size): array
     {
         return (new FetchDedupedScores('beatmap_id', ScoreSearchParams::fromArray([
+            // TomYum: Relax and Autopilot plays have their own top plays (the profile's RX/AP modes); a
+            // lazer one shows its Akatsuki pp on its own page but isn't a vanilla top play.
+            'exclude_mods' => ScoreSearchParams::RELAX_MODS,
             'exclude_without_pp' => true,
             'limit' => $size,
             'ruleset_id' => Beatmap::MODES[$mode],
@@ -31,7 +34,7 @@ trait UserScoreable
         // aggregations do not support regular pagination.
         // always fetching 200 to cache; we're not supporting beyond 200, either.
         return $this->beatmapBestScoreIds[$mode] ??= cache_remember_mutexed(
-            "search-cache:beatmapBestScoresSolo-v2:{$this->getKey()}:{$mode}",
+            "search-cache:beatmapBestScoresSolo-v2-tomyum1:{$this->getKey()}:{$mode}",
             $GLOBALS['cfg']['osu']['scores']['es_cache_duration'],
             [],
             fn () => array_column($this->aggregatedScoresBest($mode, 200), 'id'),

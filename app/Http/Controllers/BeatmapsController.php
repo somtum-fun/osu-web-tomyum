@@ -423,6 +423,8 @@ class BeatmapsController extends Controller
                 $type,
                 // TomYum: by pp (the default here) or by score.
                 get_string(request('sort')) === 'score' ? 'score' : 'pp',
+                // TomYum: stable mode (legacy_only, or the "legacy scores only" setting) has no lazer plays, as the vanilla board.
+                ScoreSearchParams::showLegacyForUser(\Auth::user()) === true,
             );
         }
 
