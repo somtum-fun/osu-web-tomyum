@@ -28,12 +28,15 @@
                                 {{ osu_trans('home.download.download') }}
                                 <div>
                                     <div class="btn-osu-big__text-top btn-osu-big__text-top--download">
-                                        osu!
+                                        lazer-fork
                                     </div>
                                     {{ osu_trans('home.download.for_os', ['os' => $lazerPlatformName]) }}
                                 </div>
                                 <div class="btn-osu-big__text-bottom btn-osu-big__text-bottom--download-version">
                                     {{ $version }}
+                                    @if (isset($lazer['size']))
+                                        ({{ App\Libraries\TomYumDownloads::size($lazer['size']) }})
+                                    @endif
                                 </div>
                             </div>
                             <span class="btn-osu-big__icon">
@@ -46,26 +49,20 @@
                     </div>
                 </div>
             </div>
+            {{-- TomYum: the production patcher for today's osu!(stable), in place of ppy's installer. --}}
             <div class="download-page__banner-tail">
                 <div class="download-page__banner-content download-page__banner-content--tail">
                     <div class="download-page__text download-page__text--download-stable">
-                        <div>
-                            {{ osu_trans('home.download.stable_text') }}:
-                        </div>
-                        @if (($lazerInfoUrl = osu_url('lazer_info')) !== null)
-                            <a href="{{ $lazerInfoUrl }}">
-                                ({{ osu_trans('home.download.action_lazer_info') }})
-                            </a>
-                        @endif
+                        Playing on osu!(stable)? Patch it to play on production (required):
                     </div>
-                    <a class="btn-osu-big btn-osu-big--download btn-osu-big--download-stable" href="{{ osu_url('installer') }}">
+                    <a class="btn-osu-big btn-osu-big--download btn-osu-big--download-stable" href="{{ $patcherUrl }}">
                         <div class="btn-osu-big__content">
                             <div class="btn-osu-big__left">
                                 <div>
                                     <div class="btn-osu-big__text-top btn-osu-big__text-top--download">
-                                        osu!(stable)
+                                        production patcher
                                     </div>
-                                    {{ osu_trans('home.download.os.windows') }}
+                                    Windows and Linux (no macOS)
                                 </div>
                             </div>
                             <span class="btn-osu-big__icon">
@@ -73,19 +70,11 @@
                             </span>
                         </div>
                     </a>
-
-                    <div class="download-page__extra-links">
-                        <a class="download-page__extra-link" href="{{ osu_url('installer-mirror') }}">
-                            {{ osu_trans('home.download.mirror') }}
-                        </a>
-                        <span class="download-page__extra-link download-page__extra-link--separator"></span>
-                        <a class="download-page__extra-link" href="{{ osu_url('osx') }}">
-                            {{ osu_trans('home.download.macos-fallback') }}
-                        </a>
-                    </div>
                 </div>
             </div>
         </div>
+
+        @include('home._download_legacy')
 
         <div class="download-page__guide">
             <iframe

@@ -10,9 +10,9 @@ use App\Libraries\CurrentStats;
 use App\Libraries\MenuContent;
 use App\Libraries\Search\AllSearch;
 use App\Libraries\Search\QuickSearch;
+use App\Libraries\TomYumDownloads;
 use App\Models\BeatmapDownload;
 use App\Models\Beatmapset;
-use App\Models\Build;
 use App\Models\Forum\Post;
 use App\Models\LivestreamCollection;
 use App\Models\Multiplayer\Room;
@@ -64,38 +64,21 @@ class HomeController extends Controller
 
     public function getDownload()
     {
+        // TomYum: lazer-fork (lazer) is built for Windows and Linux only.
         $lazerPlatformNames = [
-            'android' => osu_trans('home.download.os_version_or_later', ['os_version' => 'Android 5']),
-            'ios' => osu_trans('home.download.os_version_or_later', ['os_version' => 'iOS 13.4']),
+            'windows_x64' => 'Windows (x64)',
             'linux_x64' => 'Linux (x64)',
-            'macos_as' => osu_trans('home.download.os_version_or_later', ['os_version' => 'macOS 12']).' (Apple Silicon)',
-            'macos_intel' => osu_trans('home.download.os_version_or_later', ['os_version' => 'macOS 12']).' (Intel)',
-            'windows_x64' => osu_trans('home.download.os_version_or_later', ['os_version' => 'Windows 10']).' (x64)',
         ];
 
         $platform = get_string(request('platform'));
         if (!array_key_exists($platform, $lazerPlatformNames)) {
             $deviceDetector = new DeviceDetector(\Request::header('User-Agent') ?? '');
             $deviceDetector->parse();
-            $family = $deviceDetector->getOs('family');
-
-            $platform = match ($family) {
-                // Try matching most likely platform first
-                'Windows' => 'windows_x64',
-                // current iPadOS declares itself as a desktop browser.
-                'iOS' => 'ios',
-                // FIXME: Figure out a way to differentiate Intel and Apple Silicon.
-                'Mac' => 'macos_as',
-                'Android' => 'android',
-                'GNU/Linux' => 'linux_x64',
-                default => 'windows_x64',
-            };
+            $platform = $deviceDetector->getOs('family') === 'GNU/Linux' ? 'linux_x64' : 'windows_x64';
         }
 
-        $version = Build::where(['stream_id' => $GLOBALS['cfg']['osu']['client']['download_stream'], 'test_build' => false])
-            ->orderBy('build_id', 'desc')
-            ->first()
-            ?->version;
+        $manifest = TomYumDownloads::manifest();
+        $lazer = $manifest['lazer'][$platform] ?? null;
 
         $items = [];
         foreach ($lazerPlatformNames as $key => $value) {
@@ -110,10 +93,15 @@ class HomeController extends Controller
         ];
 
         return ext_view('home.download', [
-            'lazerUrl' => osu_url("lazer_dl.{$platform}"),
+            'dlUrl' => TomYumDownloads::baseUrl(),
+            'hook' => $manifest['hook'] ?? null,
+            'lazer' => $lazer,
+            'lazerUrl' => $lazer['url'] ?? TomYumDownloads::baseUrl().'/lazer/',
             'lazerPlatformName' => $lazerPlatformNames[$platform],
+            'legacyYears' => TomYumDownloads::legacyByYear($manifest),
+            'patcherUrl' => $manifest['patcher']['url'] ?? TomYumDownloads::PATCHER_URL,
             'selectOptions' => $selectOptions,
-            'version' => $version,
+            'version' => $manifest['lazer']['version'] ?? null,
         ]);
     }
 
