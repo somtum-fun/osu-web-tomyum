@@ -848,7 +848,8 @@ function currency_thb($price, $precision = 2)
 /** TomYum: what a store amount in baht costs in US$ (players outside Thailand). */
 function store_usd($price, $precision = 2): float
 {
-    return round($price / App\Models\SupporterTag::BAHT_PER_US_DOLLAR, $precision);
+    // to the nearest 50 cents: baht prices are rounded up to whole baht (US$2.52 is osu!'s US$5).
+    return round(round($price / App\Models\SupporterTag::BAHT_PER_US_DOLLAR * 2) / 2, $precision);
 }
 
 /**

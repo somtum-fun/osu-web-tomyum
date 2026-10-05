@@ -62,8 +62,8 @@ return [
             ],
 
             'fresh_start' => [
-                'title' => 'One Click to Start Fresh',
-                'description' => 'Want a fresh start? Just head to your user settings and wipe everything with a single button!',
+                'title' => 'Start Fresh',
+                'description' => 'Want a fresh start? Contact support and we\'ll wipe your scores for you!',
             ],
 
             'dev_team' => [

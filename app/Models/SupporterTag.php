@@ -9,16 +9,17 @@ use App\Exceptions\InvariantException;
 
 class SupporterTag
 {
-    // TomYum: prices are in Thai baht, osu!'s ladder at ฿25 to its US$1 (฿100 is a month, ฿650 a
-    // year, the same discounts). Keep in step with store-supporter-tag.tsx.
-    const BAHT_PER_DOLLAR = 25;
+    // TomYum: prices are in Thai baht, half osu!'s ladder at ฿25 to its US$1: ฿12.5 per osu! dollar
+    // (฿50 is a month, ฿325 a year, the same discounts), rounded up to whole baht (TrueMoney).
+    // Keep in step with store-supporter-tag.tsx.
+    const BAHT_PER_DOLLAR = 12.5;
 
-    // TomYum: what players outside Thailand pay in US$: half osu!'s price (US$2 a month), so the
-    // baht prices convert at ฿50 to the dollar. Keep in step with store-supporter-tag.tsx.
-    const BAHT_PER_US_DOLLAR = 50;
+    // TomYum: players outside Thailand pay US$, half osu!'s price too (US$2 a month): ฿25 to the
+    // dollar, to the nearest 50 cents (store_usd()).
+    const BAHT_PER_US_DOLLAR = 25;
 
     const MAX_DONATION = 1 << 16; // 65k-ish
-    const MIN_DONATION = 4 * self::BAHT_PER_DOLLAR;
+    const MIN_DONATION = 50; // TomYum: osu!'s US$4 (a month) in baht, see BAHT_PER_DOLLAR
 
     /**
      * Gets the duration for a donated amount.
@@ -39,7 +40,8 @@ class SupporterTag
             throw new InvariantException('amount must be <= '.static::MAX_DONATION);
         }
 
-        $amount = intdiv($amount, static::BAHT_PER_DOLLAR);
+        // TomYum: back to osu!'s dollars (prices are rounded up, so round down here).
+        $amount = (int) floor($amount / static::BAHT_PER_DOLLAR + 1e-6);
 
         switch (true) {
             case $amount >= 26:
@@ -74,7 +76,7 @@ class SupporterTag
      **/
     public static function getMinimumDonation(int $duration)
     {
-        return static::getMinimumDonationDollars($duration) * static::BAHT_PER_DOLLAR;
+        return (int) ceil(static::getMinimumDonationDollars($duration) * static::BAHT_PER_DOLLAR);
     }
 
     private static function getMinimumDonationDollars(int $duration)
