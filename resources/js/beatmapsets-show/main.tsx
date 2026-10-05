@@ -178,7 +178,7 @@ export default class Main extends React.Component<Props> {
   private renderPage() {
     return (
       <>
-        <div className='osu-page osu-page--generic-compact osu-page--beatmapset'>
+        <div className='osu-page osu-page--generic-compact'>
           <Header controller={this.controller} />
           <Info controller={this.controller} />
 
@@ -229,7 +229,6 @@ export default class Main extends React.Component<Props> {
       <HeaderV4
         links={headerLinks('show', this.controller.beatmapset)}
         linksAppend={this.headerLinksAppend}
-        modifiers='game-scale'
         onLinkClick={this.handleHeaderLinkClick}
         theme='beatmapset'
       />

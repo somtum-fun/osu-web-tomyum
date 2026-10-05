@@ -33,7 +33,7 @@ interface Props {
 export default class BeatmapPicker extends React.Component<Props> {
   private readonly buttonRef = React.createRef<HTMLButtonElement>();
   @observable private listOpen = false;
-  @observable private listPosition = { left: 0, top: 0, zoom: 1 };
+  @observable private listPosition = { left: 0, top: 0 };
 
   constructor(props: Props) {
     super(props);
@@ -91,19 +91,16 @@ export default class BeatmapPicker extends React.Component<Props> {
   };
 
   // Where the design has it: its left edge 29px right of the dots, its top 118px above them (over
-  // the title), kept below the site's header and inside the window. As large as the page (it's
-  // scaled like the game's on wide screens), so its place is in the page's scale too.
+  // the title), kept below the site's header and inside the window.
   @action
   private readonly handleToggle = () => {
     const button = this.buttonRef.current;
     if (button != null) {
       const rect = button.getBoundingClientRect();
-      const zoom = (button as HTMLElement & { currentCSSZoom?: number }).currentCSSZoom ?? 1;
-      const width = Math.min(550 * zoom, window.innerWidth - 40);
+      const width = Math.min(550, window.innerWidth - 40);
       this.listPosition = {
-        left: (Math.max(20, Math.min(rect.left + 29 * zoom, window.innerWidth - width - 20)) + window.scrollX) / zoom,
-        top: (Math.max(70, rect.top - 118 * zoom) + window.scrollY) / zoom,
-        zoom,
+        left: Math.max(20, Math.min(rect.left + 29, window.innerWidth - width - 20)) + window.scrollX,
+        top: Math.max(70, rect.top - 118) + window.scrollY,
       };
     }
     this.listOpen = !this.listOpen;
@@ -115,7 +112,7 @@ export default class BeatmapPicker extends React.Component<Props> {
     return (
       <Portal>
         <div className='beatmapset-beatmap-picker__dim' onClick={this.handleClose} />
-        <div className='beatmapset-beatmap-picker__list' style={{ left: this.listPosition.left, top: this.listPosition.top, zoom: this.listPosition.zoom }}>
+        <div className='beatmapset-beatmap-picker__list' style={{ left: this.listPosition.left, top: this.listPosition.top }}>
           {controller.currentBeatmaps.map((beatmap) => (
             <a
               key={beatmap.id}
