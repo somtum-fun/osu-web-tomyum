@@ -56,6 +56,7 @@
                     playsinline is for iphone autoplay
                     reference: https://webkit.org/blog/6784/new-video-policies-for-ios/
                 --}}
+                @if ($GLOBALS['cfg']['osu']['landing']['video_url'] !== null) {{-- TomYum --}}
                 <video
                     class="landing-hero__bg"
                     autoplay
@@ -64,6 +65,7 @@
                     playsinline
                     src="{{ $GLOBALS['cfg']['osu']['landing']['video_url'] }}"
                 ></video>
+                @endif
             </div>
 
             <div class="landing-hero__pippi">
@@ -145,9 +147,11 @@
             <a href="{{ route('support-the-game') }}" class="landing-footer-social__icon landing-footer-social__icon--support">
                 <span class="fas fa-heart"></span>
             </a>
-            <a href="{{ osu_url('social.twitter') }}" class="landing-footer-social__icon landing-footer-social__icon--twitter">
-                <span class="fab fa-twitter"></span>
-            </a>
+            @if (osu_url('social.twitter') !== null)
+                <a href="{{ osu_url('social.twitter') }}" class="landing-footer-social__icon landing-footer-social__icon--twitter">
+                    <span class="fab fa-twitter"></span>
+                </a>
+            @endif
         </div>
 
         @include('layout.footer', ['modifiers' => ['landing'], 'withLinks' => false])
@@ -161,33 +165,5 @@
         {!! json_encode($news) !!}
     </script>
 
-    <script type="application/ld+json">
-    {
-      "@@context": "https://schema.org",
-      "@type": "VideoGame",
-      "name": "osu!",
-      "url": "https://osu.ppy.sh/",
-      "image": "https://assets.ppy.sh/logo-with-background.png",
-      "description": "rhythm is just a click away",
-      "author": {
-        "@type": "Organization",
-        "name": "ppy"
-      },
-      "publisher": {
-        "@type": "Organization",
-        "name": "ppy"
-      },
-      "producer": {
-        "@type": "Organization",
-        "name": "ppy"
-      },
-      "applicationCategory": "Game",
-      "gamePlatform": ["Windows", "macOS", "Linux", "Android", "iOS"],
-      "playMode": ["SinglePlayer","MultiPlayer"],
-      "genre": "Rhythm",
-      "inLanguage": ["en", "be", "bg", "ca", "cs", "da", "de", "el", "es", "fi", "fr", "hr-hr", "hu", "id", "it", "ja", "ko", "lt", "lv-lv", "ms-my", "nl", "no", "pl", "pt", "pt-br", "ro", "ru", "sk", "sl", "sr", "sv", "th", "tr", "uk", "vi", "zh", "zh_hant"],
-      "sameAs": "https://github.com/ppy/osu",
-      "datePublished": "2007-09-16"
-    }
-    </script>
+    {{-- TomYum: no schema.org VideoGame block (that described ppy's osu!). --}}
 @endsection

@@ -7,7 +7,7 @@ return [
     'cart' => [
         'checkout' => 'Pirkuma norēķināšanās ',
         'empty_cart' => 'Noņemt visas preces no groza',
-        'info' => ':count_delimited prece grozā ($:subtotal)|:count_delimited prece grozā ($:subtotal)',
+        'info' => ':count_delimited prece grozā (:subtotal)|:count_delimited prece grozā (:subtotal)',
         'more_goodies' => 'Es gribu apskatīt vairāk labumiņus pirms es pabeikšu savu pasūtījumu',
         'shipping_fees' => 'piegādes maksas',
         'title' => 'Iepirkumu grozs',

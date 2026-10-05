@@ -7,7 +7,7 @@ return [
     'cart' => [
         'checkout' => 'תשלום',
         'empty_cart' => '',
-        'info' => ':count_delimited פריטים בעגלה ($:subtotal)|:count_delimited פריטים בעגלה ($:subtotal)',
+        'info' => ':count_delimited פריטים בעגלה (:subtotal)|:count_delimited פריטים בעגלה (:subtotal)',
         'more_goodies' => 'אני רוצה להוסיף עוד דברים לפני השלמת ההזמנה',
         'shipping_fees' => 'עלות משלוח',
         'title' => 'עגלת קניות',

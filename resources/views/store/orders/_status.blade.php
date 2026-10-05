@@ -2,6 +2,7 @@
     Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
     See the LICENCE file in the repository root for full licence text.
 --}}
+{{-- TomYum: store support mail goes to this server's store address (osu!'s was osustore@ppy.sh). --}}
 @php
     use App\Models\Store\Order;
 
@@ -19,7 +20,7 @@
         <p><em class="store-text store-text--emphasis">{{ osu_trans('store.invoice.status.delivered.title') }}</em></p>
         <p>
             {!! osu_trans('store.invoice.status.delivered.line_1._', [
-                'link' => link_to('mailto:osustore@ppy.sh', osu_trans('store.invoice.status.delivered.line_1.link_text')),
+                'link' => link_to('mailto:'.$GLOBALS['cfg']['tomyum']['store_mail']['address'], osu_trans('store.invoice.status.delivered.line_1.link_text')),
             ]) !!}
         </p>
     @elseif ($order->isPaymentRequested())
@@ -37,7 +38,7 @@
         <p><em class="store-text store-text--emphasis">{{ osu_trans('store.invoice.status.cancelled.title') }}</em></p>
         <p>
             {!! osu_trans('store.invoice.status.cancelled.line_1._', [
-                'link' => link_to('mailto:osustore@ppy.sh', osu_trans('store.invoice.status.cancelled.line_1.link_text')),
+                'link' => link_to('mailto:'.$GLOBALS['cfg']['tomyum']['store_mail']['address'], osu_trans('store.invoice.status.cancelled.line_1.link_text')),
                 'order_number' => $order->order_id,
             ]) !!}
         </p>
@@ -50,7 +51,7 @@
         @else
             <p>
                 {!! osu_trans('store.invoice.status.shipped.no_tracking_details._', [
-                    'link' => link_to('mailto:osustore@ppy.sh', osu_trans('store.invoice.status.shipped.no_tracking_details.link_text')),
+                    'link' => link_to('mailto:'.$GLOBALS['cfg']['tomyum']['store_mail']['address'], osu_trans('store.invoice.status.shipped.no_tracking_details.link_text')),
                 ]) !!}
             </p>
         @endif

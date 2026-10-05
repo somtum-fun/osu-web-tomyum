@@ -17,13 +17,16 @@ use App\Models\Forum\Post;
 use App\Models\LivestreamCollection;
 use App\Models\Multiplayer\Room;
 use App\Models\NewsPost;
+use App\Models\User;
 use App\Models\UserDonation;
 use App\Transformers\MenuImageTransformer;
 use App\Transformers\NewsPostTransformer;
 use App\Transformers\UserCompactTransformer;
 use Auth;
 use Carbon\CarbonImmutable;
+use DB;
 use DeviceDetector\DeviceDetector;
+use Illuminate\Database\QueryException;
 use Request;
 
 /**
@@ -102,6 +105,44 @@ class HomeController extends Controller
             'patcherUrl' => $manifest['patcher']['url'] ?? TomYumDownloads::PATCHER_URL,
             'selectOptions' => $selectOptions,
             'version' => $manifest['lazer']['version'] ?? null,
+        ]);
+    }
+
+    // TomYum: the server lists to vote on, the player's own votes and the top voters. The counts are
+    // the tomyum.votes plugin's (tomyum.plugin_votes), which it creates on the first vote.
+    public function vote()
+    {
+        $config = $GLOBALS['cfg']['tomyum']['votes'];
+        $user = Auth::user();
+        $myVotes = null;
+        $topVoters = [];
+
+        try {
+            if ($user !== null) {
+                $myVotes = (int) DB::table('tomyum.plugin_votes')->where('user_id', $user->getKey())->value('votes');
+            }
+
+            $counts = DB::table('tomyum.plugin_votes')
+                ->orderByDesc('votes')
+                ->orderBy('first_voted_at')
+                ->limit(10)
+                ->pluck('votes', 'user_id');
+            $users = User::default()->whereIn('user_id', $counts->keys())->get()->keyBy('user_id');
+            foreach ($counts as $userId => $votes) {
+                if (isset($users[$userId])) {
+                    $topVoters[] = ['user' => $users[$userId], 'votes' => (int) $votes];
+                }
+            }
+        } catch (QueryException) {
+            // no votes yet
+        }
+
+        return ext_view('home.vote', [
+            'daysPerVote' => $config['days_per_vote'],
+            'myVotes' => $myVotes,
+            'sites' => $config['sites'],
+            'topVoters' => $topVoters,
+            'user' => $user,
         ]);
     }
 
@@ -307,6 +348,8 @@ class HomeController extends Controller
 
         $pageLayout = [
             // why support
+            // TomYum: where this server's money goes (osu!'s Featured Artists, official tournaments and
+            // bounty program aren't ours); voting gives supporter for free.
             'support-reasons' => [
                 'type' => 'group',
                 'section' => 'why-support',
@@ -317,20 +360,12 @@ class HomeController extends Controller
                     'infra' => [
                         'icons' => ['fas fa-server'],
                     ],
-                    'featured-artists' => [
-                        'icons' => ['fas fa-user-astronaut'],
-                        'link' => route('artists.index'),
-                    ],
                     'ads' => [
                         'icons' => ['fas fa-ad', 'fas fa-slash'],
                     ],
-                    'tournaments' => [
-                        'icons' => ['fas fa-trophy'],
-                        'link' => route('tournaments.index'),
-                    ],
-                    'bounty-program' => [
-                        'icons' => ['fas fa-child'],
-                        'link' => osu_url('bounty-form'),
+                    'vote' => [
+                        'icons' => ['fas fa-vote-yea'],
+                        'link' => route('vote'),
                     ],
                 ],
             ],
@@ -340,6 +375,27 @@ class HomeController extends Controller
             // There are 5 perk rendering types: image, image-flipped, hero, group and image-group.
             // image, image-flipped, hero each show an individual perk (with image) while group and image-group show groups of perks (the latter with images)
             'perks' => [
+                // TomYum: production's own perks first (example.com).
+                [
+                    'type' => 'group',
+                    'items' => [
+                        'discord_role' => [
+                            'icons' => ['fab fa-discord'],
+                        ],
+                        'unlimited_name_changes' => [
+                            'icons' => ['fas fa-magic'],
+                        ],
+                        'fresh_start' => [
+                            'icons' => ['fas fa-broom'],
+                        ],
+                        'dev_team' => [
+                            'icons' => ['fas fa-comments'],
+                        ],
+                        'much_more' => [
+                            'icons' => ['fas fa-gift'],
+                        ],
+                    ],
+                ],
                 [
                     'type' => 'image',
                     'name' => 'osu_direct',
@@ -382,9 +438,7 @@ class HomeController extends Controller
                                 'supporter_bonus_max' => $GLOBALS['cfg']['osu']['beatmapset']['upload_bonus_per_ranked_max_supporter'],
                             ],
                         ],
-                        'early_access' => [
-                            'icons' => ['fas fa-flask'],
-                        ],
+                        // TomYum: no early access (osu!'s TestFlight) here.
                     ],
                 ],
                 [
@@ -422,9 +476,6 @@ class HomeController extends Controller
                         ],
                         'speedy_downloads' => [
                             'icons' => ['fas fa-tachometer-alt'],
-                        ],
-                        'change_username' => [
-                            'icons' => ['fas fa-magic'],
                         ],
                         'skinnables' => [
                             'icons' => ['fas fa-paint-brush'],

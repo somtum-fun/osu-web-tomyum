@@ -7,7 +7,7 @@ return [
     'cart' => [
         'checkout' => '支払いをする',
         'empty_cart' => 'カートからすべてのアイテムを削除',
-        'info' => ':count_delimited 個がカート内にあります($:subtotal)',
+        'info' => ':count_delimited 個がカート内にあります(:subtotal)',
         'more_goodies' => '精算の前に他のグッズをチェックする。',
         'shipping_fees' => '配送料',
         'title' => 'カート',

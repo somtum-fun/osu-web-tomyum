@@ -10,38 +10,36 @@ use App\Models\Wiki;
 
 class LegalController extends Controller
 {
+    // TomYum: our own Terms, Privacy and Copyright pages (resources/views/tomyum-legal), in English for
+    // every locale, in place of ppy's Legal/ pages from osu-wiki. Those are ppy's and name ppy as the
+    // operator, so they (and the other Legal/ pages) aren't shown here.
+    private const PAGES = [
+        'copyright' => 'Copyright',
+        'privacy' => 'Privacy',
+        'terms' => 'Terms',
+    ];
+
     public function show($locale = null, $path = null)
     {
-        if (!LocaleMeta::isValid($locale)) {
-            $redirect = concat_path(['Legal', $locale, $path]);
+        $validLocale = LocaleMeta::isValid($locale);
+        // /legal/Terms comes in with "Terms" as the locale.
+        $key = strtolower(rtrim($validLocale ? (string) $path : concat_path([$locale, $path]), '/'));
+        $locale = $validLocale ? $locale : app()->getLocale();
 
-            return ujs_redirect(wiki_url($redirect));
+        if ($key === '') {
+            return ujs_redirect(route('legal', ['locale' => $locale, 'path' => 'Terms']));
         }
 
-        if (substr(request()->getPathInfo(), -1) === '/') {
-            return ujs_redirect(route('legal', ['path' => rtrim($path, '/'), 'locale' => $locale]));
+        $name = static::PAGES[$key] ?? abort(404);
+        $canonical = parse_url(route('legal', ['locale' => $locale, 'path' => $name]), PHP_URL_PATH);
+        if (request()->getPathInfo() !== $canonical) {
+            return ujs_redirect(route('legal', ['locale' => $locale, 'path' => $name]));
         }
 
-        switch ($path) {
-            case 'copyright':
-                $redirect = 'Copyright';
-                break;
-            case 'privacy':
-                $redirect = 'Privacy';
-                break;
-            case 'terms':
-                $redirect = 'Terms';
-                break;
-        }
-
-        if (isset($redirect)) {
-            return ujs_redirect(wiki_url("Legal/{$redirect}"));
-        }
-
-        $page = Wiki\Page::lookupForController("Legal/{$path}", $locale);
-        $legal = true;
-
-        return ext_view('wiki.show', compact('legal', 'locale', 'page'));
+        return ext_view('tomyum-legal.'.$key, [
+            'page' => $key,
+            'titlePrepend' => $name,
+        ]);
     }
 
     public function update($locale, $path)

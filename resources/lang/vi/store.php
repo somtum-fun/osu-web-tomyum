@@ -7,7 +7,7 @@ return [
     'cart' => [
         'checkout' => 'Thanh Toán',
         'empty_cart' => 'Xoá tất cả mặt hàng khỏi giỏ hàng',
-        'info' => ':count_delimited sản phẩm trong giỏ ($:subtotal)|:count_delimited sản phẩm trong giỏ ($:subtotal)',
+        'info' => ':count_delimited sản phẩm trong giỏ (:subtotal)|:count_delimited sản phẩm trong giỏ (:subtotal)',
         'more_goodies' => 'Tôi muốn xem thêm nhiều mặt hàng nữa trước khi hoàn thành đơn hàng',
         'shipping_fees' => 'phí vận chuyển',
         'title' => 'Giỏ Hàng',

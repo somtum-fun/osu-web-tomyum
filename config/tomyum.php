@@ -36,6 +36,25 @@ return [
         'enabled' => get_bool(env('TOMYUM_STORE_ENABLED')) ?? false,
     ],
 
+    // The vote page (/home/vote): server lists players vote on. A site without a url shows as
+    // "coming soon". days_per_vote matches the tomyum.votes plugin's daysPerVote (supporter per vote
+    // on osu-server-list.com, which calls TomYum's /vote-callback).
+    'votes' => [
+        'days_per_vote' => get_int(env('TOMYUM_VOTE_DAYS_PER_VOTE')) ?? 1,
+        'sites' => [
+            [
+                'name' => 'osu-server-list.com',
+                'url' => presence(env('TOMYUM_VOTE_OSL_URL')) ?? 'https://osu-server-list.com/server/prod/vote',
+                'rewarded' => true,
+            ],
+            [
+                'name' => 'find.circles-to.click',
+                'url' => presence(env('TOMYUM_VOTE_CIRCLES_URL')),
+                'rewarded' => false,
+            ],
+        ],
+    ],
+
     // Ranked status is TomYum's (the osu! API plus the BN panel): don't run modding:rank here.
     'manages_ranking' => get_bool(env('TOMYUM_MANAGES_RANKING')) ?? true,
 
@@ -87,6 +106,6 @@ return [
     // account can send as; if it refuses this one, the mail goes from MAIL_ADDRESS instead.
     'store_mail' => [
         'address' => presence(env('MAIL_STORE_ADDRESS')) ?? presence(env('MAIL_ADDRESS')),
-        'name' => presence(env('MAIL_STORE_SENDER')) ?? 'osu!store',
+        'name' => presence(env('MAIL_STORE_SENDER')) ?? 'production store',
     ],
 ];

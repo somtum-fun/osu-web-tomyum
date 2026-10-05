@@ -170,7 +170,8 @@ return [
     ],
     'is_development_deploy' => get_bool(env('IS_DEVELOPMENT_DEPLOY')) ?? true,
     'landing' => [
-        'video_url' => env('LANDING_VIDEO_URL', 'https://assets.ppy.sh/media/landing.mp4'),
+        // TomYum: our own videos (public/media), not ppy's (they show osu!'s logo and pippi).
+        'video_url' => presence(env('LANDING_VIDEO_URL')) ?? '/media/landing.mp4',
     ],
     'legacy' => [
         'bancho_bot_user_id' => get_int(env('BANCHO_BOT_USER_ID')) ?? 3,
@@ -242,8 +243,9 @@ return [
     'urls' => [
         'base' => 'https://osu.ppy.sh',
         'bounty-form' => env('OS_BOUNTY_URL'),
-        'dev' => 'https://discord.gg/ppy',
-        'download_video' => env('OSU_URL_DOWNLOAD_VIDEO', 'https://assets.ppy.sh/media/festive.mp4'),
+        // TomYum: our own Discord, status page and socials; empty, the link isn't shown.
+        'dev' => presence(env('OSU_URL_DISCORD')),
+        'download_video' => presence(env('OSU_URL_DOWNLOAD_VIDEO')) ?? '/media/download.mp4',
         'installer' => 'https://m1.ppy.sh/r/osu!install.exe',
         'installer-mirror' => 'https://m2.ppy.sh/r/osu!install.exe',
         'lazer_dl.android' => presence(env('OSU_URL_LAZER_ANDROID')) ?? 'https://github.com/ppy/osu/releases/latest/download/sh.ppy.osulazer.apk',
@@ -256,10 +258,11 @@ return [
         'lazer_info' => presence(env('OSU_URL_LAZER_INFO')),
         'menu_content' => presence(env('OSU_URL_MENU_CONTENT_JSON')) ?? 'https://assets.ppy.sh/menu-content.json',
         'osx' => 'https://osx.ppy.sh',
-        'server_status' => 'https://status.ppy.sh',
+        'server_status' => presence(env('OSU_URL_SERVER_STATUS')),
         'smilies' => '/forum/images/smilies',
-        'social.twitter' => '/wiki/Twitter',
-        'source_code' => 'https://github.com/ppy',
+        'social.twitter' => presence(env('OSU_URL_TWITTER')),
+        // TomYum: this site is built on ppy's osu-web (AGPL-3.0).
+        'source_code' => presence(env('OSU_URL_SOURCE_CODE')) ?? 'https://github.com/ppy/osu-web',
         'testflight.public' => env('TESTFLIGHT_LINK'),
         'testflight.supporter' => env('TESTFLIGHT_LINK_SUPPORTER'),
         'user.recover' => '/wiki/Help_centre/Account#sign-in',

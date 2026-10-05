@@ -7,7 +7,7 @@ return [
     'cart' => [
         'checkout' => 'إتمام الشراء',
         'empty_cart' => 'إزالة جميع العناصر من سلة التسوق',
-        'info' => ':count_delimited عنصر في السلة ($:subtotal)|:count_delimited عناصر في السلة ($:subtotal)',
+        'info' => ':count_delimited عنصر في السلة (:subtotal)|:count_delimited عناصر في السلة (:subtotal)',
         'more_goodies' => 'أريد أن تحقق من المزيد من الأشياء قبل إتمام الأمر',
         'shipping_fees' => 'رسوم الشحن',
         'title' => 'عربة التسوق',

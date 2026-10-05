@@ -7,7 +7,7 @@ return [
     'cart' => [
         'checkout' => 'Төлеу',
         'empty_cart' => '',
-        'info' => 'себеттегі :count_delimited тауар ($:subtotal)',
+        'info' => 'себеттегі :count_delimited тауар (:subtotal)',
         'more_goodies' => 'Тапсырысты аяқтамастан бұрын басқа да тауарларды көргім келеді',
         'shipping_fees' => 'жеткізу құны',
         'title' => 'Себет',

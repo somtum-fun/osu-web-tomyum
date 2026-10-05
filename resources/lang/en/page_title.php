@@ -89,6 +89,7 @@ return [
             'search' => 'search',
             'support_the_game' => 'support the game',
             'testflight' => 'testflight',
+            'vote' => 'vote for us',
         ],
         'legacy_matches_controller' => [
             '_' => 'matches',

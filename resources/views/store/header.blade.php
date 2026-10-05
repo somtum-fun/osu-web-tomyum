@@ -58,7 +58,7 @@
             <a href="{{ route('store.cart.show') }}" class="btn-osu-big btn-osu-big--store-cart">
                 <span class="btn-osu-big__content">
                     <span class="btn-osu-big__left">
-                        {{ osu_trans_choice('store.cart.info', $cart->getItemCount(), ['subtotal' => $cart->getSubtotal()]) }}
+                        {{ osu_trans_choice('store.cart.info', $cart->getItemCount(), ['subtotal' => currency($cart->getSubtotal())]) }}
                     </span>
 
                     <span class="btn-osu-big__icon">

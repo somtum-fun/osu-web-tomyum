@@ -1,0 +1,80 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
+// See the LICENCE file in the repository root for full licence text.
+
+// TomYum: the vote page (home/vote.blade.php).
+.vote-page {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 20px 0 30px;
+
+  &__title {
+    margin: 0;
+    font-size: @font-size--title;
+    font-weight: 600;
+  }
+
+  &__subtitle {
+    margin: 15px 0 0;
+    font-size: @font-size--title-small-4;
+    font-weight: 600;
+  }
+
+  &__text {
+    margin: 0;
+    font-size: @font-size--title-small-3;
+
+    &--small {
+      font-size: @font-size--normal;
+      color: hsl(var(--hsl-c2));
+    }
+  }
+
+  &__sites {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 10px;
+  }
+
+  &__site {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 20px;
+    border-radius: @border-radius--extra;
+    background: hsl(var(--hsl-b4));
+  }
+
+  &__site-name {
+    font-size: @font-size--title-small-4;
+    font-weight: 600;
+  }
+
+  &__site-text {
+    flex: 1;
+  }
+
+  &__soon {
+    color: hsl(var(--hsl-c2));
+    font-style: italic;
+  }
+
+  &__voters {
+    margin: 0;
+    padding-left: 25px;
+  }
+
+  &__voter {
+    padding: 3px 0;
+  }
+
+  &__voter-name {
+    font-weight: 600;
+    margin: 0 5px;
+  }
+
+  &__voter-count {
+    color: hsl(var(--hsl-c2));
+  }
+}

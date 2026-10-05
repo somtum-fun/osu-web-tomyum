@@ -7,7 +7,7 @@ return [
     'cart' => [
         'checkout' => 'Kassa',
         'empty_cart' => 'Poista kaikki tuotteet ostoskärrystä',
-        'info' => ':count_delimited tuote ostoskärryssä ($:subtotal)|:count_delimited tuotetta ostoskärryssä ($:subtotal)',
+        'info' => ':count_delimited tuote ostoskärryssä (:subtotal)|:count_delimited tuotetta ostoskärryssä (:subtotal)',
         'more_goodies' => 'Tarkastelisin vielä muita tuotteita ennen tilauksen tekemistä',
         'shipping_fees' => 'toimituskulut',
         'title' => 'Ostoskärry',

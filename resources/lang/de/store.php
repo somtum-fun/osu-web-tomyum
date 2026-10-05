@@ -7,7 +7,7 @@ return [
     'cart' => [
         'checkout' => 'Zur Kasse',
         'empty_cart' => 'Alle Artikel aus dem Warenkorb entfernen',
-        'info' => ':count_delimited Artikel im Warenkorb ($:subtotal)|:count_delimited Artikel im Warenkorb ($:subtotal)',
+        'info' => ':count_delimited Artikel im Warenkorb (:subtotal)|:count_delimited Artikel im Warenkorb (:subtotal)',
         'more_goodies' => 'Ich möchte mich vor meiner Bestellung noch etwas umschauen',
         'shipping_fees' => 'Versandkosten',
         'title' => 'Warenkorb',

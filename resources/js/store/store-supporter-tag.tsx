@@ -25,6 +25,8 @@ const minValue = 4;
 // (SupporterTag::BAHT_PER_DOLLAR in php). Players outside Thailand see the dollars, osu!'s own
 // prices; the order is still in baht.
 const bahtPerDollar = 25;
+// TomYum: players outside Thailand pay half osu!'s US$ price (SupporterTag::BAHT_PER_US_DOLLAR).
+const bahtPerUsDollar = 50;
 
 interface Props {
   currency: 'thb' | 'usd';
@@ -38,6 +40,10 @@ interface SavedState {
 }
 
 const monthPresets = [1, 2, 4, 6, 12, 18, 24] as const;
+
+function formatUsd(amount: number) {
+  return Number.isInteger(amount) ? amount.toString() : amount.toFixed(2);
+}
 
 function durationToPrice(duration: number) {
   switch (true) {
@@ -206,7 +212,7 @@ export default class StoreSupporterTag extends React.Component<Props> {
             <div className='ui-slider-handle'>
               <div className='store-slider__fake-callout'>
                 <div className='store-slider__callout'>
-                  <div className='store-slider__bigtext'>{this.props.currency === 'usd' ? `USD ${this.dollars}` : `฿${this.cost}`}</div>
+                  <div className='store-slider__bigtext'>{this.props.currency === 'usd' ? `USD ${formatUsd(this.cost / bahtPerUsDollar)}` : `฿${this.cost}`}</div>
                   <div>{this.durationText}</div>
                   <div className='store-slider__subtext'>{trans('store.discount', { percent: this.discount })}</div>
                 </div>

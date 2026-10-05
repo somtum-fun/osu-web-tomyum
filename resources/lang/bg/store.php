@@ -7,7 +7,7 @@ return [
     'cart' => [
         'checkout' => 'Разплащане',
         'empty_cart' => 'Премахване на всичко от количката',
-        'info' => ':count_delimited артикул в количката ($:subtotal)|:count_delimited артикула в количката ($:subtotal)',
+        'info' => ':count_delimited артикул в количката (:subtotal)|:count_delimited артикула в количката (:subtotal)',
         'more_goodies' => 'Ще проверя още артикули, преди да приключа поръчката си',
         'shipping_fees' => 'транспортни такси',
         'title' => 'Количка за пазаруване',

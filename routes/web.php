@@ -464,6 +464,8 @@ Route::group(['middleware' => ['web']], function () {
             ? '/store/products/'.\App\Models\Store\Product::SUPPORTER_TAG_NAME
             : route('support-the-game')));
         Route::get('testflight', 'HomeController@testflight')->name('testflight');
+        // TomYum: vote for the server on server lists.
+        Route::get('vote', 'HomeController@vote')->name('vote');
 
         Route::get('password-reset', 'PasswordResetController@index')->name('password-reset');
         Route::post('password-reset', 'PasswordResetController@create');

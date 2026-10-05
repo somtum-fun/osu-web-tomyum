@@ -120,7 +120,7 @@ return [
 
         'beta' => [
             'main' => 'Beta access is currently restricted to privileged users.',
-            'small' => '(osu!supporters will get in soon)',
+            'small' => '(supporters will get in soon)',
         ],
     ],
 
@@ -196,7 +196,7 @@ return [
         'change_avatar' => 'change your avatar!',
         'first_members' => 'Here since the beginning',
         'is_developer' => 'osu!developer',
-        'is_supporter' => 'osu!supporter',
+        'is_supporter' => 'production supporter',
         'joined_at' => 'Joined :date',
         'lastvisit' => 'Last seen :date',
         'lastvisit_online' => 'Currently online',
@@ -252,7 +252,7 @@ return [
 
                     'restriction_info' => [
                         '_' => 'Upload available for :link only',
-                        'link' => 'osu!supporters',
+                        'link' => 'production supporters',
                     ],
                 ],
             ],
@@ -274,7 +274,7 @@ return [
 
                 'supporter' => [
                     '_' => 'Custom colour themes available for :link only',
-                    'link' => 'osu!supporters',
+                    'link' => 'production supporters',
                 ],
             ],
         ],
@@ -516,7 +516,7 @@ return [
 
             'restriction_info' => [
                 '_' => 'You need to be an :link to unlock this feature.',
-                'link' => 'osu!supporter',
+                'link' => 'production supporter',
             ],
         ],
         'post_count' => [

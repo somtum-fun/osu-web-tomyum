@@ -26,6 +26,23 @@
     border-radius: 0 0 @border-radius--extra @border-radius--extra;
   }
 
+  // TomYum: the production wordmark where ppy's video was.
+  &__banner-logo {
+    .at2x("~@images/layout/prod-logo.png");
+    position: absolute;
+    top: 0;
+    left: var(--content-margin);
+    width: calc(100% - @button-width - 3 * var(--content-margin));
+    height: 100%;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+
+    @media @mobile {
+      display: none;
+    }
+  }
+
   &__banner-content {
     position: relative;
     display: flex;

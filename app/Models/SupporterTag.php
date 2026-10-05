@@ -13,6 +13,10 @@ class SupporterTag
     // year, the same discounts). Keep in step with store-supporter-tag.tsx.
     const BAHT_PER_DOLLAR = 25;
 
+    // TomYum: what players outside Thailand pay in US$: half osu!'s price (US$2 a month), so the
+    // baht prices convert at ฿50 to the dollar. Keep in step with store-supporter-tag.tsx.
+    const BAHT_PER_US_DOLLAR = 50;
+
     const MAX_DONATION = 1 << 16; // 65k-ish
     const MIN_DONATION = 4 * self::BAHT_PER_DOLLAR;
 

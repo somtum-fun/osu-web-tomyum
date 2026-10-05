@@ -7,7 +7,7 @@ return [
     'cart' => [
         'checkout' => 'Ολοκλήρωση αγοράς',
         'empty_cart' => 'Αφαίρεση όλων των αντικειμένων από το καλάθι',
-        'info' => ':count_delimited αντικείμενο στο καλάθι ($:subtotal),:count_delimited αντικείμενα στο καλάθι ($:subtotal)',
+        'info' => ':count_delimited αντικείμενο στο καλάθι (:subtotal),:count_delimited αντικείμενα στο καλάθι (:subtotal)',
         'more_goodies' => 'Θέλω να ελέγξω περισσότερα καλούδια πριν ολοκληρώσω την παραγγελία',
         'shipping_fees' => 'έξοδα αποστολής',
         'title' => 'Καλάθι Αγορών',

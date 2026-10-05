@@ -7,7 +7,7 @@ return [
     'cart' => [
         'checkout' => 'Pagament',
         'empty_cart' => 'Eliminar tots els elements del cistell',
-        'info' => ':count_delimited elements al cistell ($:subtotal)|:count_delimited elements al cistell ($:subtotal)',
+        'info' => ':count_delimited elements al cistell (:subtotal)|:count_delimited elements al cistell (:subtotal)',
         'more_goodies' => 'Vull veure més productes abans de completar la compra',
         'shipping_fees' => 'despeses d\'enviament',
         'title' => 'Cistella de compra',

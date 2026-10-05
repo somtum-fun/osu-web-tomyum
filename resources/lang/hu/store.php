@@ -7,7 +7,7 @@ return [
     'cart' => [
         'checkout' => 'Fizetés',
         'empty_cart' => 'Összes elem törlése a kosárból',
-        'info' => ':count_delimited elem a kosárban ($:subtotal)|:count_delimited elem a kosárban ($:subtotal)',
+        'info' => ':count_delimited elem a kosárban (:subtotal)|:count_delimited elem a kosárban (:subtotal)',
         'more_goodies' => 'Még több cuccot szeretnék megnézni mielőtt befejezném a rendelésem',
         'shipping_fees' => 'szállítási költség',
         'title' => 'Kosár',

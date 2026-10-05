@@ -153,7 +153,7 @@ class UsersController extends Controller
         $remaining = \App\Libraries\ChangeUsername::remainingThisMonth($user);
 
         return $remaining === null
-            ? 'Free (no limit for osu!supporters)'
+            ? 'Free (no limit for supporters)'
             : "Free ({$remaining} of ".\App\Libraries\ChangeUsername::MONTHLY_LIMIT.' changes left in the next '
                 .\App\Libraries\ChangeUsername::MONTHLY_WINDOW_DAYS.' days)';
     }

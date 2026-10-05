@@ -23,4 +23,4 @@
 @endif
 
 {!! osu_trans('mail.common.closing') !!}
-osu! Management
+production
