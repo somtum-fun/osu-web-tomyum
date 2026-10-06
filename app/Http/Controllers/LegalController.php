@@ -13,9 +13,12 @@ class LegalController extends Controller
     // TomYum: our own Terms, Privacy and Copyright pages (resources/views/tomyum-legal), in English for
     // every locale, in place of ppy's Legal/ pages from osu-wiki. Those are ppy's and name ppy as the
     // operator, so they (and the other Legal/ pages) aren't shown here.
+    // The Rules and Restrictions & Appeals pages are here too (from example.com's docs).
     private const PAGES = [
         'copyright' => 'Copyright',
         'privacy' => 'Privacy',
+        'restrictions' => 'Restrictions',
+        'rules' => 'Rules',
         'terms' => 'Terms',
     ];
 

@@ -228,6 +228,29 @@ class BeatmapsetsController extends Controller
         return $beatmapset->defaultDiscussionJson();
     }
 
+    /**
+     * TomYum: a BN, NAT or admin opens an osu! graveyard or WIP set for nominations (players' hypes
+     * ask for it); see Beatmapset::tomyumOpenForNominations.
+     */
+    public function openForNominations($id)
+    {
+        $beatmapset = Beatmapset::findOrFail($id);
+        $user = Auth::user();
+
+        if (!Beatmapset::tomyumCanOpenForNominations($user)) {
+            abort(403);
+        }
+        if (!$beatmapset->tomyumIsOsuUnranked()) {
+            return error_popup('Only sets osu! has as graveyard or WIP can be opened for nominations.');
+        }
+
+        $beatmapset->tomyumOpenForNominations($user);
+
+        BeatmapsetWatch::markRead($beatmapset, $user);
+
+        return $beatmapset->fresh()->defaultDiscussionJson();
+    }
+
     public function love($id)
     {
         $beatmapset = Beatmapset::findOrFail($id);

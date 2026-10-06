@@ -1306,6 +1306,7 @@ function nav_links()
         'page_title.main.contests_controller._' => route('contests.index'),
         'page_title.main.tournaments_controller._' => route('tournaments.index'),
         'page_title.main.loved_controller._' => route('loved.index'),
+        'page_title.main.dan_controller._' => route('dan.index'), // TomYum: osu!dan
         'page_title.main.livestreams_controller._' => route('livestreams.index'),
     ];
     // TomYum: our Discord, when there's an invite (OSU_URL_DISCORD).
@@ -1324,7 +1325,8 @@ function nav_links()
     $links['help'] = [
         'page_title.main.wiki_controller._' => wiki_url('Main_page'),
         'layout.menu.help.getFaq' => wiki_url('FAQ'),
-        'layout.menu.help.getRules' => wiki_url('Rules'),
+        // TomYum: our own rules (LegalController), not ppy's.
+        'layout.menu.help.getRules' => route('legal', ['locale' => app()->getLocale(), 'path' => 'Rules']),
         'layout.menu.help.getAbuse' => wiki_url('Reporting_bad_behaviour/Abuse'),
         'layout.menu.help.getSupport' => wiki_url('Help_centre'),
     ];
@@ -1357,7 +1359,9 @@ function footer_legal_links(): array
     $locale = app()->getLocale();
 
     $ret = [];
-    $ret['rules'] = wiki_url('Rules');
+    // TomYum: our own Rules and Restrictions & Appeals pages (LegalController).
+    $ret['rules'] = route('legal', ['locale' => $locale, 'path' => 'Rules']);
+    $ret['restrictions'] = route('legal', ['locale' => $locale, 'path' => 'Restrictions']);
     $ret['terms'] = route('legal', ['locale' => $locale, 'path' => 'Terms']);
     // TomYum: no 特定商取引法 page (that's ppy's, for their store in Japan).
     $ret['privacy'] = route('legal', ['locale' => $locale, 'path' => 'Privacy']);

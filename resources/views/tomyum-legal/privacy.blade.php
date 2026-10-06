@@ -132,7 +132,13 @@
 <h2>7. Data Retention</h2>
 <p>
     We retain user data until a deletion request is made. Users can request to delete their data by contacting
-    <a href="mailto:privacy@example.com">privacy@example.com</a>.
+    <a href="mailto:{{ App\Libraries\TomYumTickets::address('privacy') }}">{{ App\Libraries\TomYumTickets::address('privacy') }}</a>.
+</p>
+{{-- TomYum: the sign-up checks (TomYumRegistrationGuard). --}}
+<p>
+    When you make an account, we check the network you sign up from (to stop VPN, proxy and multiple
+    sign-ups) and may ask proxycheck.io about your IP address. We keep a log of sign-ups, with the IP address,
+    network and country, for 90 days, then delete it.
 </p>
 
 <h2>8. Data Protection &amp; Security</h2>
@@ -155,9 +161,9 @@
 <h2>9. User Rights</h2>
 <ul>
     <li><strong>Access &amp; Deletion:</strong> Users can request access to their data or request deletion by
-        contacting <a href="mailto:privacy@example.com">privacy@example.com</a>.</li>
+        contacting <a href="mailto:{{ App\Libraries\TomYumTickets::address('privacy') }}">{{ App\Libraries\TomYumTickets::address('privacy') }}</a>.</li>
     <li><strong>Account Appeals:</strong> Users who have been banned may appeal by emailing
-        <a href="mailto:accounts@example.com">accounts@example.com</a>.</li>
+        <a href="mailto:{{ App\Libraries\TomYumTickets::address('accounts') }}">{{ App\Libraries\TomYumTickets::address('accounts') }}</a>.</li>
 </ul>
 
 <h2>10. Changes to This Privacy Policy</h2>
@@ -165,6 +171,6 @@
 
 <h2>11. Contact Information</h2>
 <p>For any privacy concerns, contact us at:</p>
-<p>Email: <a href="mailto:privacy@example.com">privacy@example.com</a></p>
+<p>Email: <a href="mailto:{{ App\Libraries\TomYumTickets::address('privacy') }}">{{ App\Libraries\TomYumTickets::address('privacy') }}</a></p>
 <p>By using production, you acknowledge that you have read and understood this Privacy Policy.</p>
 @endsection

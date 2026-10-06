@@ -73,5 +73,41 @@
     a {
       .link-default();
     }
+
+    // TomYum: the appeal cooldowns (Restrictions & Appeals).
+    table {
+      width: 100%;
+      margin: 0 0 10px;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 6px 10px;
+      border: 1px solid hsl(var(--hsl-b4));
+      text-align: left;
+    }
+
+    th {
+      background: hsl(var(--hsl-b4));
+    }
+  }
+
+  // TomYum: the appeal form (tomyum-appeals/show).
+  &__field {
+    display: block;
+    margin-bottom: 15px;
+  }
+
+  &__field-hint {
+    display: block;
+    margin-bottom: 5px;
+    color: hsl(var(--hsl-c2));
+  }
+
+  &__textarea {
+    width: 100%;
+    min-height: 100px;
+    resize: vertical;
   }
 }

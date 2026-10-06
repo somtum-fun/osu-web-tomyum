@@ -24,13 +24,21 @@
                     <div class="tournament-list__group{{$state == 'previous' ? ' tournament-list__group--old' : ''}}">
                     @foreach($tournaments as $t)
                         <a href="{{ route('tournaments.show', $t) }}" class='tournament-list-item{{$state == 'previous' ? ' tournament-list-item--old' : ''}}'>
-                            <div class='tournament-list-item__image-wrapper'>
-                                <img class='tournament-list-item__image'
-                                    src="{{$t->header_banner}}"
-                                    srcSet="{{$t->header_banner}} 1x, {{retinaify($t->header_banner)}} 2x">
-                            </div>
+                            {{-- TomYum: a tournament may have no header image yet. --}}
+                            @if (present($t->header_banner))
+                                <div class='tournament-list-item__image-wrapper'>
+                                    <img class='tournament-list-item__image'
+                                        alt="{{ $t->name }}"
+                                        src="{{$t->header_banner}}"
+                                        srcSet="{{$t->header_banner}} 1x, {{retinaify($t->header_banner)}} 2x">
+                                </div>
+                            @endif
                             <div class='tournament-list-item__metadata'>
                                 <div class='tournament-list-item__metadata-left'>
+                                    {{-- TomYum: without a header image, its name goes here (the image usually shows it). --}}
+                                    @if (!present($t->header_banner))
+                                        <div class='tournament-list-item__name'>{{ $t->name }}</div>
+                                    @endif
                                     <div class='tournament-list-item__tournament-date'>{{
                                         osu_trans('tournament.tournament_period', [
                                             'start' => i18n_date($t->start_date),

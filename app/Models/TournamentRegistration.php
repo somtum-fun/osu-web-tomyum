@@ -13,10 +13,19 @@ namespace App\Models;
  * @property \Carbon\Carbon|null $updated_at
  * @property User $user
  * @property int $user_id
+ * @property \Carbon\Carbon|null $checked_at TomYum: when the requirements were checked again
+ * @property string|null $country_acronym TomYum: their country when they signed up
+ * @property array|null $ineligible_reasons TomYum: why they no longer qualify (null: they do)
  */
 class TournamentRegistration extends Model
 {
     protected $primaryKey = 'registration_id';
+
+    // TomYum: the check made again when registration closed.
+    protected $casts = [
+        'checked_at' => 'datetime',
+        'ineligible_reasons' => 'array',
+    ];
 
     public function getDates()
     {

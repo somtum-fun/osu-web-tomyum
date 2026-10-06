@@ -50,6 +50,13 @@
         'banner.remove' => ['Remove banner', 'pink'],
         'user.banner_add' => ['Give banner', 'pink'],
         'user.banner_remove' => ['Take banner', 'pink'],
+        'tournament.add' => ['New tournament', 'pink'],
+        'tournament.edit' => ['Edit tournament', 'info'],
+        'tournament.remove' => ['Remove tournament', 'bad'],
+        'tournament.recheck' => ['Check registrations', 'info'],
+        'tournament.registration_remove' => ['Remove registration', 'warn'],
+        'user.tournament_ban' => ['Tournament ban', 'bad'],
+        'user.tournament_unban' => ['Lift tournament ban', 'good'],
         'user.lock' => ['Lock', 'bad'],
         'user.unlock' => ['Unlock', 'good'],
         'user.whitelist' => ['Whitelist', 'info'],
@@ -67,7 +74,7 @@
         'anticheat.suspicious' => ['Suspicious play', 'warn'],
     ];
     // Actions whose target isn't a player.
-    $notPlayers = ['beatmapset.', 'title.', 'news.', 'seasonal.', 'daily_challenge.', 'matchmaking.', 'scores.', 'mods.', 'banner.'];
+    $notPlayers = ['beatmapset.', 'title.', 'news.', 'seasonal.', 'daily_challenge.', 'matchmaking.', 'scores.', 'mods.', 'banner.', 'tournament.'];
 @endphp
 <div class="tomyum-panel__scroll">
 <table class="tomyum-panel__table">

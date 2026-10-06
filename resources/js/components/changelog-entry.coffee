@@ -61,7 +61,8 @@ export ChangelogEntry = ({entry}) =>
             ')'
 
         # TomYum: entries from git history have no author; say nothing rather than "by [no name]".
-        if entry.github_user?.user_id? || entry.github_user?.github_username?
+        # Changes written on the changelog panel may credit just a name (tomyum_name).
+        if entry.github_user?.user_id? || entry.github_user?.github_username? || entry.github_user?.tomyum_name?
           span
             className: 'changelog-entry__user'
             el StringWithComponent,

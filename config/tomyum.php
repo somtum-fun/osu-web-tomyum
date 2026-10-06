@@ -108,4 +108,16 @@ return [
         'address' => presence(env('MAIL_STORE_ADDRESS')) ?? presence(env('MAIL_ADDRESS')),
         'name' => presence(env('MAIL_STORE_SENDER')) ?? 'production store',
     ],
+
+    // Sign-up rules for accounts made in lazer and stable (App\Libraries\TomYumRegistrationGuard):
+    // IP bans, 1 account per network a day, Tor and hosting networks, then proxycheck.io (works without
+    // a key for about 100 checks a day; a free key gives 1,000). Staff switch the rules and keep the
+    // allowlist in the GMT panel (Sign-ups).
+    'registration' => [
+        'proxycheck_enabled' => get_bool(env('PROXYCHECK_ENABLED')) ?? true,
+        'proxycheck_key' => presence(env('PROXYCHECK_API_KEY')),
+        // The lists tomyum:registration-lists-update downloads every day.
+        'hosting_asn_list_url' => presence(env('TOMYUM_HOSTING_ASN_LIST_URL')) ?? 'https://raw.githubusercontent.com/X4BNet/lists_vpn/main/input/datacenter/ASN.txt',
+        'tor_exit_list_url' => presence(env('TOMYUM_TOR_EXIT_LIST_URL')) ?? 'https://check.torproject.org/torbulkexitlist',
+    ],
 ];

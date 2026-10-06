@@ -289,6 +289,44 @@ class TomYumTickets
         return $isNew ? 'created' : 'added';
     }
 
+    /**
+     * A ticket sent from the website (the appeal form) by a signed-in player: the same as one sent by
+     * email from their account's address, so replies reach them there. Returns its id.
+     */
+    public static function createFromSite(User $user, string $category, string $subject, string $body): int
+    {
+        $now = Carbon::now();
+        $ticketId = DB::transaction(function () use ($user, $category, $subject, $body, $now) {
+            $ticketId = DB::table('tomyum_tickets')->insertGetId([
+                'category' => $category,
+                'status' => 'open',
+                'subject' => mb_substr($subject, 0, 255),
+                'requester_email' => strtolower($user->user_email),
+                'requester_name' => mb_substr($user->username, 0, 255),
+                'user_id' => $user->getKey(),
+                'mailbox' => static::address($category),
+                'last_message_at' => $now,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+            DB::table('tomyum_ticket_messages')->insert([
+                'ticket_id' => $ticketId,
+                'direction' => 'in',
+                'from_address' => strtolower($user->user_email),
+                'subject' => mb_substr($subject, 0, 255),
+                'body' => $body,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+
+            return $ticketId;
+        });
+
+        static::sendAutoReply(DB::table('tomyum_tickets')->find($ticketId));
+
+        return $ticketId;
+    }
+
     // ── Mail out ─────────────────────────────────────────────────────────────────────────────
 
     public static function autoReplyText(object $ticket): string

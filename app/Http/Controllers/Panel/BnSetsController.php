@@ -30,6 +30,26 @@ class BnSetsController extends Controller
         'bancho' => "Back to bancho (osu!'s own status)",
     ];
 
+    /**
+     * TomYum: the statuses $user may set here. Ranking or approving directly skips the nominations
+     * and the qualified period, so only the NAT and admins may; full BNs set the others (a qualified
+     * set ranks after its qualified period), and BNs on probation nominate on the site only.
+     */
+    public static function settableStatuses(?User $user): array
+    {
+        if ($user === null) {
+            return [];
+        }
+        if ($user->isNAT() || $user->isAdmin()) {
+            return static::SETTABLE_STATUSES;
+        }
+        if ($user->isFullBN()) {
+            return array_diff_key(static::SETTABLE_STATUSES, array_flip(['ranked', 'approved']));
+        }
+
+        return [];
+    }
+
     /** osu-web `approved` value => label. */
     public const APPROVED_LABELS = [
         -2 => 'Graveyard',
@@ -110,6 +130,9 @@ class BnSetsController extends Controller
                 $beatmapset->beatmapsetNominations()->current()->select('user_id'),
             )->orderBy('username')->get(['user_id', 'username']),
             'canSetNominators' => static::canUseAdmin(Auth::user()),
+            // TomYum: the statuses this user may set, and whether they may open an osu! graveyard/WIP set for nominations.
+            'settableStatuses' => static::settableStatuses(Auth::user()),
+            'canOpen' => $beatmapset !== null && $beatmapset->tomyumIsOsuUnranked() && Beatmapset::tomyumCanOpenForNominations(Auth::user()),
             'difficulties' => $server->successful() ? $server->json() : [],
             'serverError' => $server->successful() ? null : "Couldn't load the game server's copy (HTTP {$server->status()}).",
             'entries' => $entries,
@@ -178,6 +201,12 @@ class BnSetsController extends Controller
         $status = Request::input('status');
         if (!array_key_exists($status, static::SETTABLE_STATUSES)) {
             return $this->back($setId, 'error', 'Pick a status.');
+        }
+        // TomYum: ranking directly is the NAT's and admins'; probation BNs nominate on the site.
+        if (!array_key_exists($status, static::settableStatuses(Auth::user()))) {
+            return $this->back($setId, 'error', in_array($status, ['ranked', 'approved'], true) && Auth::user()->isFullBN()
+                ? 'Only the NAT and admins rank directly. Nominate it on the site (or qualify it here): it ranks after the qualified period.'
+                : 'BNs on probation nominate on the site: the set qualifies with enough nominations.');
         }
 
         $beatmapIds = array_values(array_map('intval', Request::input('beatmaps') ?? []));
@@ -262,6 +291,27 @@ class BnSetsController extends Controller
             'epicfactor' => 8,
             'date' => Carbon::now(),
         ]);
+    }
+
+    /**
+     * TomYum: opens an osu! graveyard or WIP set for nominations (pending here and in-game), as the
+     * button on its discussion page does; see Beatmapset::tomyumOpenForNominations.
+     */
+    public function open(string $set)
+    {
+        $setId = (int) $set;
+        $beatmapset = Beatmapset::find($setId);
+        if ($beatmapset === null) {
+            return $this->back($setId, 'error', "The website doesn't have this set yet.");
+        }
+        $this->ensure(Beatmapset::tomyumCanOpenForNominations(Auth::user()));
+        if (!$beatmapset->tomyumIsOsuUnranked()) {
+            return $this->back($setId, 'error', 'Only sets osu! has as graveyard or WIP can be opened for nominations.');
+        }
+
+        $beatmapset->tomyumOpenForNominations(Auth::user());
+
+        return $this->back($setId, 'success', "It's open for nominations: pending now, so BNs can nominate it on its discussion page.");
     }
 
     public function refresh(string $set)

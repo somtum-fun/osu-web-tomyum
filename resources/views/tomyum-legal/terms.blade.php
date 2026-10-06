@@ -7,8 +7,8 @@
 
 @section('legal-body')
 <p>
-    Welcome to production! These terms apply when you use our website (osu.example.com and the other
-    example.com sites), our game servers, chat and IRC, and our clients and tools. By making an account or
+    Welcome to production! These terms apply when you use our website ({{ parse_url($GLOBALS['cfg']['app']['url'], PHP_URL_HOST) }} and our other
+    sites), our game servers, chat and IRC, and our clients and tools. By making an account or
     playing here, you agree to them. If you don't agree, please don't use the service.
 </p>
 
@@ -16,7 +16,7 @@
 <p>
     production is a community osu! private server run by Server Operator in Thailand, with the help of our
     staff. When these terms say "we" or "us", they mean the people who run production. You can reach us at
-    <a href="mailto:support@example.com">support@example.com</a>.
+    <a href="mailto:{{ App\Libraries\TomYumTickets::address('support') }}">{{ App\Libraries\TomYumTickets::address('support') }}</a>.
 </p>
 
 <h2>Your account</h2>
@@ -25,13 +25,13 @@
         this by yourself where you live, a parent or guardian must agree for you.</li>
     <li>One account per person. Don't share your account or use someone else's.</li>
     <li>Keep your password safe. Please don't use the same password as your official osu! account.</li>
-    <li>Your username must follow the <a href="{{ wiki_url('Rules') }}">rules</a>. We may change a name that
+    <li>Your username must follow the <a href="{{ route('legal', ['locale' => app()->getLocale(), 'path' => 'Rules']) }}">rules</a>. We may change a name that
         doesn't.</li>
 </ul>
 
 <h2>Play fair and be nice</h2>
 <p>
-    Follow the <a href="{{ wiki_url('Rules') }}">community rules</a>. In short: be kind to other players, don't
+    Follow the <a href="{{ route('legal', ['locale' => app()->getLocale(), 'path' => 'Rules']) }}">community rules</a>. In short: be kind to other players, don't
     harass, spam or share anything illegal or hateful, and don't cheat.
 </p>
 <p>
@@ -43,7 +43,7 @@
     If you break the rules, we may warn you, silence you in chat, remove scores (including rolling back
     scores after a date), restrict your account, or ban you, depending on what happened. Restricted accounts
     are hidden from rankings and other players. If you think we made a mistake, write to
-    <a href="mailto:support@example.com">support@example.com</a> and we'll take another look.
+    <a href="mailto:{{ App\Libraries\TomYumTickets::address('support') }}">{{ App\Libraries\TomYumTickets::address('support') }}</a> and we'll take another look.
 </p>
 
 <h2>What you share</h2>
@@ -66,7 +66,7 @@
         rankings.</li>
     <li>Payments are handled by TrueMoney and Stripe. Donations are non-refundable, except where the law says
         otherwise. If something went wrong with a payment, write to
-        <a href="mailto:support@example.com">support@example.com</a>.</li>
+        <a href="mailto:{{ App\Libraries\TomYumTickets::address('support') }}">{{ App\Libraries\TomYumTickets::address('support') }}</a>.</li>
     <li>Supporter time you get by voting for us on server lists works the same way and has no cash value.</li>
     <li>If your account is banned for breaking the rules, you lose any supporter time left on it.</li>
 </ul>

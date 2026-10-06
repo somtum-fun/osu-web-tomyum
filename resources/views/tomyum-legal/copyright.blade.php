@@ -20,13 +20,13 @@
 
 <h2>Sending a takedown notice</h2>
 <p>
-    Email <a href="mailto:dmca@example.com">dmca@example.com</a> with:
+    Email <a href="mailto:{{ App\Libraries\TomYumTickets::address('dmca') }}">{{ App\Libraries\TomYumTickets::address('dmca') }}</a> with:
 </p>
 <ol>
     <li>Your name and how to contact you (email, and a phone number if you like).</li>
     <li>The work you own (or represent), and how to find it (a link, or a description).</li>
     <li>The link to each thing on production you want removed, for example the beatmap page
-        (osu.example.com/beatmapsets/&hellip;), user profile or file.</li>
+        ({{ parse_url($GLOBALS['cfg']['app']['url'], PHP_URL_HOST) }}/beatmapsets/&hellip;), user profile or file.</li>
     <li>A statement that you believe in good faith that this use isn't allowed by you, your agent or the
         law.</li>
     <li>A statement that the information in your notice is accurate, and that you are the owner or allowed
@@ -42,7 +42,7 @@
 <h2>Counter-notice</h2>
 <p>
     If your content was removed and you believe it was a mistake, or that you have the right to use it, email
-    <a href="mailto:dmca@example.com">dmca@example.com</a> with: your name and contact details, what was removed and
+    <a href="mailto:{{ App\Libraries\TomYumTickets::address('dmca') }}">{{ App\Libraries\TomYumTickets::address('dmca') }}</a> with: your name and contact details, what was removed and
     where it was, why you believe it was removed by mistake, a statement that this is true to the best of your
     knowledge, and your signature. We'll pass it on to the person who sent the original notice and may put the
     content back if they don't take further action.

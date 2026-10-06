@@ -79,10 +79,12 @@ return [
         'favourite_limit_supporter' => intval(env('BEATMAPSET_USER_FAVOURITE_LIMIT_SUPPORTER', 1000)),
         'guest_advanced_search' => get_bool(env('BEATMAPSET_GUEST_ADVANCED_SEARCH')) ?? false,
         'maximum_disqualified_rank_penalty_days' => get_int(env('BEATMAPSET_MAXIMUM_DISQUALIFIED_RANK_PENALTY_DAYS')) ?? 7,
-        'minimum_days_for_rank' => get_int(env('BEATMAPSET_MINIMUM_DAYS_FOR_RANK')) ?? 7,
-        'rank_per_day' => get_int(env('BEATMAPSET_RANK_PER_DAY')) ?? 8,
-        'rank_per_run' => get_int(env('BEATMAPSET_RANK_PER_RUN')) ?? 2,
-        'required_hype' => get_int(env('BEATMAPSET_REQUIRED_HYPE')) ?? 5,
+        // TomYum: the old server's way by default: ranked a day after qualifying, with no daily cap
+        // (0: no limit, per day or per run), and one hype before BNs nominate. osu!: 7, 8, 2, 5.
+        'minimum_days_for_rank' => get_int(env('BEATMAPSET_MINIMUM_DAYS_FOR_RANK')) ?? 1,
+        'rank_per_day' => get_int(env('BEATMAPSET_RANK_PER_DAY')) ?? 0,
+        'rank_per_run' => get_int(env('BEATMAPSET_RANK_PER_RUN')) ?? 0,
+        'required_hype' => get_int(env('BEATMAPSET_REQUIRED_HYPE')) ?? 1,
         'required_nominations' => get_int(env('BEATMAPSET_REQUIRED_NOMINATIONS')) ?? 2,
         'upload_allowed' => get_int(env('BEATMAPSET_UPLOAD_ALLOWED')) ?? 4,
         'upload_allowed_supporter' => get_int(env('BEATMAPSET_UPLOAD_ALLOWED_SUPPORTER')) ?? 8,
@@ -266,8 +268,9 @@ return [
         'testflight.public' => env('TESTFLIGHT_LINK'),
         'testflight.supporter' => env('TESTFLIGHT_LINK_SUPPORTER'),
         'user.recover' => '/wiki/Help_centre/Account#sign-in',
-        'user.restriction' => presence(env('OSU_URL_USER_RESTRICTION')) ?? '/wiki/Help_centre/Account_restrictions',
-        'user.rules' => '/wiki/Osu!:Rules',
+        // TomYum: our Restrictions & Appeals and Rules pages (LegalController), on this site.
+        'user.restriction' => presence(env('OSU_URL_USER_RESTRICTION')) ?? rtrim((string) env('APP_URL'), '/').'/legal/Restrictions',
+        'user.rules' => presence(env('OSU_URL_USER_RULES')) ?? rtrim((string) env('APP_URL'), '/').'/legal/Rules',
         'youtube-tutorial-playlist' => 'PLmWVQsxi34bMYwAawZtzuptfMmszUa_tl',
     ],
     'user' => [

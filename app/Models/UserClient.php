@@ -63,6 +63,32 @@ class UserClient extends Model
         }
     }
 
+    /**
+     * TomYum: the client hash of the account's newest device still waiting to be confirmed (seen in the
+     * last day), for when the game didn't send one (older builds, the hook, or opening /p/verify by hand).
+     * The adapters part isn't stored and splitHash doesn't read it, so it's left as "-".
+     */
+    public static function pendingHash($userId): ?string
+    {
+        $client = static::where('user_id', $userId)
+            ->where('verified', false)
+            ->where('timestamp', '>', now()->subDay())
+            ->orderByDesc('timestamp')
+            ->first();
+
+        if ($client === null) {
+            return null;
+        }
+
+        return implode(':', [
+            bin2hex($client->osu_md5),
+            '-',
+            bin2hex($client->mac_md5),
+            bin2hex($client->unique_md5),
+            bin2hex($client->disk_md5),
+        ]);
+    }
+
     public static function splitHash(?string $hash)
     {
         $hashes = explode(':', $hash ?? '');

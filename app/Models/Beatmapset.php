@@ -952,7 +952,14 @@ class Beatmapset extends Model implements AfterCommit, CommentableInterface, Ind
         DB::transaction(function () {
             $this->events()->create(['type' => BeatmapsetEvent::RANK]);
 
-            $this->setApproved('ranked', null);
+            // TomYum: staff can qualify single difficulties (BN panel, !map qualify map). Only those
+            // are ranked then: ranking clears a difficulty's leaderboard, and the others weren't qualified.
+            $beatmapIds = null;
+            if ($this->beatmaps()->where('approved', '<>', static::STATES['qualified'])->exists()) {
+                $beatmapIds = $this->beatmaps()->where('approved', static::STATES['qualified'])->pluck('beatmap_id')->all();
+            }
+
+            $this->setApproved('ranked', null, $beatmapIds === [] ? null : $beatmapIds);
             $this->bssProcessQueues()->create();
 
             // global event
@@ -1173,7 +1180,47 @@ class Beatmapset extends Model implements AfterCommit, CommentableInterface, Ind
 
     public function canBeHyped()
     {
-        return in_array($this->approved, static::HYPEABLE_STATES, true);
+        // TomYum: osu!'s graveyard sets too: a hype there asks the BNs to open it for nominations.
+        return in_array($this->approved, static::HYPEABLE_STATES, true) || $this->tomyumIsOsuUnranked();
+    }
+
+    /**
+     * TomYum: a set from osu! (not uploaded here) that osu! has as graveyard or WIP. The old server
+     * ranked those: players hype them to ask the BNs to look, and a BN, NAT or admin opens them for
+     * nominations (pending), then they go the usual way (nominations, qualified, ranked).
+     */
+    public function tomyumIsOsuUnranked(): bool
+    {
+        return $this->getKey() < \App\Http\Controllers\Panel\BnController::CUSTOM_ID_FLOOR
+            && in_array($this->approved, [static::STATES['graveyard'], static::STATES['wip']], true);
+    }
+
+    /** TomYum: who may open an osu! graveyard or WIP set for nominations: BNs (probation too), NAT and admins. */
+    public static function tomyumCanOpenForNominations(?User $user): bool
+    {
+        return $user !== null && !$user->isRestricted() && ($user->isBNG() || $user->isNAT() || $user->isAdmin());
+    }
+
+    /**
+     * TomYum: opens an osu! graveyard or WIP set for nominations: it's pending here and in-game
+     * (setApproved passes it on to TomYum, which keeps it over osu!'s status), so BNs can nominate it.
+     * Logged in TomYum's staff log, which the Discord bot posts in the BNs' channel.
+     */
+    public function tomyumOpenForNominations(User $user): void
+    {
+        $this->setApproved('pending', $user);
+        $this->refreshCache();
+
+        try {
+            (new \App\Libraries\TomYumAdmin($user))->post('/log', [
+                'action' => 'beatmapset.open',
+                'targetId' => $this->getKey(),
+                'summary' => "Opened {$this->artist} - {$this->title} for nominations",
+                'result' => 'pending',
+            ]);
+        } catch (\Throwable $e) {
+            log_error($e);
+        }
     }
 
     public function validateHypeBy($user)
@@ -1323,7 +1370,9 @@ class Beatmapset extends Model implements AfterCommit, CommentableInterface, Ind
             ->withModesForRanking($modes)
             ->where('queued_at', '<', $queuedAt)
             ->count();
-        $days = ceil($queueSize / $GLOBALS['cfg']['osu']['beatmapset']['rank_per_day']);
+        // TomYum: no daily cap (rank_per_day 0): the queue doesn't wait on other sets.
+        $rankPerDay = $GLOBALS['cfg']['osu']['beatmapset']['rank_per_day'];
+        $days = $rankPerDay > 0 ? ceil($queueSize / $rankPerDay) : 0;
 
         $minDays = $GLOBALS['cfg']['osu']['beatmapset']['minimum_days_for_rank'] - (int) $queuedAt->diffInDays();
         $days = max($minDays, $days);

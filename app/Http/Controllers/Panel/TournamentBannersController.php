@@ -60,6 +60,11 @@ class TournamentBannersController extends Controller
 
         return ext_view('panel.admin.tournament_banners', [
             'banners' => $banners,
+            // TomYum: the Tournaments page's ones without banners yet, to give banners to.
+            'tournaments' => Tournament::where('is_banner_only', false)
+                ->whereNotIn('tournament_id', $banners->pluck('tournament_id'))
+                ->orderByDesc('tournament_id')
+                ->get(['tournament_id', 'name']),
             'holders' => $holders,
             'images' => $images,
             'problems' => $problems,
@@ -68,7 +73,14 @@ class TournamentBannersController extends Controller
 
     public function store()
     {
-        $name = trim((string) Request::input('name'));
+        // TomYum: banners for a tournament made on the Tournaments page (its name and dates are its own).
+        $existing = (int) Request::input('tournament_id');
+        $existingTournament = $existing > 0 ? Tournament::find($existing) : null;
+        if ($existing > 0 && ($existingTournament === null || TournamentBanner::where('tournament_id', $existing)->exists())) {
+            return $this->back('error', 'That tournament has banners already (or is gone).');
+        }
+
+        $name = $existingTournament?->name ?? trim((string) Request::input('name'));
         if ($name === '' || mb_strlen($name) > 255) {
             return $this->back('error', 'A banner needs its tournament\'s name (up to 255 characters).');
         }
@@ -87,9 +99,9 @@ class TournamentBannersController extends Controller
             return $this->back('error', 'That date isn\'t one.');
         }
 
-        $tournament = DB::transaction(function () use ($name, $infoUrl, $when, $folder) {
-            // Held (and over) on the day given: the tournaments page lists it with the previous ones.
-            $tournament = Tournament::create([
+        $tournament = DB::transaction(function () use ($name, $infoUrl, $when, $folder, $existingTournament) {
+            // Held (and over) on the day given; only for its banners, so not on the tournaments list.
+            $tournament = $existingTournament ?? Tournament::create([
                 'name' => $name,
                 'description' => '',
                 'play_mode' => (int) Request::input('mode', 0),
@@ -98,6 +110,7 @@ class TournamentBannersController extends Controller
                 'start_date' => $when,
                 'end_date' => $when,
                 'info_url' => $infoUrl,
+                'is_banner_only' => true, // TomYum
             ]);
             TournamentBanner::create([
                 'tournament_id' => $tournament->getKey(),
@@ -237,7 +250,10 @@ class TournamentBannersController extends Controller
         DB::transaction(function () use ($row) {
             ProfileBanner::where('tournament_id', $row->getKey())->delete();
             $row->delete();
-            $row->tournament?->delete();
+            // TomYum: a tournament from the Tournaments page stays (with its registrations).
+            if ($row->tournament?->is_banner_only) {
+                $row->tournament->delete();
+            }
         });
         // A banner made before had its image with the website's uploads; the assets host's stay (the Assets page removes them).
         foreach (glob(public_path("uploads/tournament-banners/{$row->getKey()}/*.jpg")) ?: [] as $file) {

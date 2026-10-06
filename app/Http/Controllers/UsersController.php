@@ -13,11 +13,11 @@ use App\Libraries\RateLimiter;
 use App\Libraries\Search\ForumSearch;
 use App\Libraries\Search\ForumSearchRequestParams;
 use App\Libraries\Search\ScoreSearchParams;
+use App\Libraries\TomYumRegistrationGuard;
 use App\Libraries\User\FindForProfilePage;
 use App\Libraries\UserRegistration;
 use App\Models\Beatmap;
 use App\Models\BeatmapDiscussion;
-use App\Models\IpBan;
 use App\Models\Log;
 use App\Models\Solo\Score;
 use App\Models\User;
@@ -117,7 +117,8 @@ class UsersController extends Controller
     public function create()
     {
         if (!$GLOBALS['cfg']['osu']['user']['registration_mode']['web']) {
-            return abort(403, osu_trans('users.store.from_client'));
+            // TomYum: accounts are made in the game; this page (and legacy clients' p/register) says how.
+            return ext_view('users.register_in_game');
         }
 
         return ext_view('users.create');
@@ -226,7 +227,7 @@ class UsersController extends Controller
             return error_popup(osu_trans('users.store.from_client'), 403);
         }
 
-        return $this->storeUser($request->all(), ClientCheck::parseToken($request));
+        return $this->storeUser($request->all(), ClientCheck::parseToken($request), 'lazer');
     }
 
     public function storeWeb()
@@ -263,7 +264,7 @@ class UsersController extends Controller
             }
         }
 
-        return $this->storeUser($rawParams, null);
+        return $this->storeUser($rawParams, null, 'web');
     }
 
     /**
@@ -732,6 +733,8 @@ class UsersController extends Controller
             $userArray['tomyum_default_variant'] = \App\Libraries\TomYumModeScores::defaultVariant($user);
             // TomYum: starred modes (vanilla/relax/autopilot) the player wants pinned.
             $userArray['tomyum_favorite_modes'] = \App\Libraries\TomYumModeScores::favoriteModes($user);
+            // TomYum: their highest osu!dan course per key count (the tomyum.dan plugin's clears).
+            $userArray['tomyum_dan'] = \App\Libraries\TomYumDan::highestFor($user);
             $currentUser = \Auth::user();
             if ($currentUser !== null && $currentUser->getKey() === $user->getKey()) {
                 $userCoverPresets = app('user-cover-presets')->json();
@@ -1095,7 +1098,7 @@ class UsersController extends Controller
         return $userJson;
     }
 
-    private function storeUser(array $rawParams, ?array $clientTokenData)
+    private function storeUser(array $rawParams, ?array $clientTokenData, string $source)
     {
         if (!$GLOBALS['cfg']['osu']['user']['allow_registration']) {
             return abort(403, 'User registration is currently disabled');
@@ -1103,9 +1106,7 @@ class UsersController extends Controller
 
         $ip = Request::ip();
 
-        if (IpBan::where('ip', '=', $ip)->exists()) {
-            return error_popup('Account registration currently unavailable', 403);
-        }
+        // TomYum: banned addresses are refused by TomYumRegistrationGuard below, with a message that says why.
 
         $params = get_params($rawParams, 'user', [
             'password',
@@ -1122,7 +1123,15 @@ class UsersController extends Controller
         try {
             $registration->assertValid();
 
-            if (get_bool($rawParams['check'] ?? null)) {
+            // TomYum: the sign-up rules (IP bans, 1 account per network a day, no VPN, proxy or
+            // hosting network), the same ones stable's sign-up goes through (TomYumRegistrationGuard).
+            $isCheck = get_bool($rawParams['check'] ?? null) ?? false;
+            $blocked = TomYumRegistrationGuard::check($ip, $source, $isCheck, $params['username'], $countryCode);
+            if ($blocked !== null) {
+                return error_popup($blocked['message'], 403);
+            }
+
+            if ($isCheck) {
                 return response()->noContent();
             }
 
@@ -1144,6 +1153,8 @@ class UsersController extends Controller
             app(RateLimiter::class)->hit($throttleKey, 600);
 
             $user = $registration->user();
+            // TomYum: counts for the 1 account per network a day rule.
+            TomYumRegistrationGuard::created($ip, $source, $user->getKey(), $user->username, $countryCode);
 
             // report unknown country code but ignore non-country from cloudflare
             if (

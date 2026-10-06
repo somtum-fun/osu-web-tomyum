@@ -46,6 +46,8 @@ interface UserExtendedAdditionalAttributes {
   // TomYum: the song Last.fm says they are listening to (profile pages only).
   tomyum_listening?: { artist: string; image: string | null; title: string; url: string | null } | null;
   tomyum_lastfm?: boolean;
+  // TomYum: their highest osu!dan course per key count (profile pages only).
+  tomyum_dan?: { course_id: number; keys: number; name: string }[];
   playmode: Ruleset;
   playstyle: string[];
   post_count: number;

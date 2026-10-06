@@ -37,7 +37,7 @@
                     <span class="tomyum-panel__link-icon"><i class="fas fa-trophy"></i></span>
                     <span class="tomyum-panel__kicker">Tournament Committee</span>
                     <h2>TC panel</h2>
-                    <p class="tomyum-panel__hint">Live multiplayer matches (abort, close, talk to the room), tournament banners and badges.</p>
+                    <p class="tomyum-panel__hint">Tournaments and their registrations, live multiplayer matches (abort, close, talk to the room), tournament banners and badges.</p>
                 </a>
             @endif
             @if ($panels['tickets'])
@@ -62,6 +62,30 @@
                     <span class="tomyum-panel__kicker">Admins and developers</span>
                     <h2>Kudosu</h2>
                     <p class="tomyum-panel__hint">Give or take a player's kudosu, with a reason that shows on their profile.</p>
+                </a>
+            @endif
+            @if ($panels['packs'] ?? false)
+                <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('panel.packs.index') }}">
+                    <span class="tomyum-panel__link-icon"><i class="fas fa-box-open"></i></span>
+                    <span class="tomyum-panel__kicker">Admins and the NAT</span>
+                    <h2>Beatmap packs</h2>
+                    <p class="tomyum-panel__hint">Make the beatmap packs: their sets, mode and download.</p>
+                </a>
+            @endif
+            @if ($panels['changelog'] ?? false)
+                <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('panel.changelog.index') }}">
+                    <span class="tomyum-panel__link-icon"><i class="fas fa-code-branch"></i></span>
+                    <span class="tomyum-panel__kicker">Admins and developers</span>
+                    <h2>Changelog</h2>
+                    <p class="tomyum-panel__hint">Write versions of lazer-fork, the stable hook, the legacy clients, the server and the website, and what changed in each.</p>
+                </a>
+            @endif
+            @if ($panels['dan'] ?? false)
+                <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('panel.dan.index') }}">
+                    <span class="tomyum-panel__link-icon"><i class="fas fa-graduation-cap"></i></span>
+                    <span class="tomyum-panel__kicker">Admins and the NAT</span>
+                    <h2>osu!dan</h2>
+                    <p class="tomyum-panel__hint">The osu!dan courses: their maps, accuracy, mods and order, and the latest attempts.</p>
                 </a>
             @endif
             @if ($panels['admin'])

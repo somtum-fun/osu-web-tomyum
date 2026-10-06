@@ -22,10 +22,12 @@
         'gmt' => ['GMT', 'panel.gmt.index', PanelController::canUseGmt($user), [
             ['Overview', 'panel.gmt.index', ['panel.gmt.index', 'panel.gmt.users.']],
             ['Chat log', 'panel.gmt.chat', ['panel.gmt.chat']],
+            ['Sign-ups', 'panel.gmt.registrations.index', ['panel.gmt.registrations.']],
         ]],
         // The Tournament Committee: live matches, and the banners and badges pages (also the admin's).
         'tc' => ['TC', 'panel.tc.index', PanelController::canUseTc($user), [
             ['Matches', 'panel.tc.index', ['panel.tc.index', 'panel.tc.matches.']],
+            ['Tournaments', 'panel.tc.tournaments.index', ['panel.tc.tournaments.']], // TomYum
             ['Banners', 'panel.tc.tournament-banners.index', ['panel.tc.tournament-banners.']],
             ['Badges', 'panel.tc.badges.index', ['panel.tc.badges.']],
             ['Assets', 'panel.tc.assets.index', ['panel.tc.assets.']],
@@ -40,10 +42,12 @@
             ['Badges', 'panel.admin.badges.index', ['panel.admin.badges.']],
             ['Assets', 'panel.admin.assets.index', ['panel.admin.assets.']],
             ['Titles', 'panel.admin.titles.index', ['panel.admin.titles.']],
+            ['Tournaments', 'panel.admin.tournaments.index', ['panel.admin.tournaments.']], // TomYum
             ['Banners', 'panel.admin.tournament-banners.index', ['panel.admin.tournament-banners.']],
             ['News', 'panel.admin.news.index', ['panel.admin.news.']],
             ['Backgrounds', 'panel.admin.seasonal-backgrounds.index', ['panel.admin.seasonal-backgrounds.']],
             ['Artists', 'panel.admin.artists.index', ['panel.admin.artists.']],
+            ['Contests', 'panel.admin.contests.index', ['panel.admin.contests.']],
         ]],
     ];
 

@@ -1376,7 +1376,24 @@ class OsuAuthorize
             return 'contest.voting.over';
         }
 
+        // TomYum: voters must have played: at least one ranked play (ranked score in any mode).
+        if (!static::tomyumHasRankedPlay($user)) {
+            return 'contest.voting.ranked_play';
+        }
+
         return 'ok';
+    }
+
+    /** TomYum: whether $user has a play on a ranked map (some ranked score) in any mode. */
+    private static function tomyumHasRankedPlay(User $user): bool
+    {
+        foreach (array_keys(Beatmap::MODES) as $mode) {
+            if (\App\Models\UserStatistics\Model::getClass($mode)::where('user_id', $user->getKey())->where('ranked_score', '>', 0)->exists()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

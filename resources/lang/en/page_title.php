@@ -103,6 +103,10 @@ return [
         'loved_controller' => [
             '_' => 'project loved',
         ],
+        // TomYum: osu!dan.
+        'dan_controller' => [
+            '_' => 'osu!dan',
+        ],
         'news_controller' => [
             '_' => 'news',
         ],
@@ -120,6 +124,10 @@ return [
         ],
         'tomyum_scores_controller' => [
             '_' => 'performance',
+        ],
+        // TomYum: the appeal form (/home/appeal).
+        'tomyum_appeals_controller' => [
+            '_' => 'appeals',
         ],
         'seasons_controller' => [
             '_' => 'rankings',

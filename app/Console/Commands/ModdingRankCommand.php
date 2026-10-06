@@ -36,8 +36,11 @@ class ModdingRankCommand extends Command
             ->where('approved_date', '>=', now()->subDays())
             ->count();
 
+        // TomYum: rank_per_day 0 is no daily cap (the old server ranked every set once its time was up).
+        $rankPerDay = $GLOBALS['cfg']['osu']['beatmapset']['rank_per_day'];
+
         return [
-            'availableQuota' => $GLOBALS['cfg']['osu']['beatmapset']['rank_per_day'] - $rankedTodayCount,
+            'availableQuota' => $rankPerDay > 0 ? $rankPerDay - $rankedTodayCount : PHP_INT_MAX,
             'inQueue' => Beatmapset::toBeRanked($ruleset)->count(),
             'rankedToday' => $rankedTodayCount,
         ];
@@ -86,18 +89,23 @@ class ModdingRankCommand extends Command
         $this->info("Ranking beatmapsets with at least mode: {$ruleset->name}");
         $stats = static::getStats($ruleset);
 
-        $this->info("{$stats['rankedToday']} beatmapsets ranked last 24 hours. Can rank {$stats['availableQuota']} more");
+        $quota = $stats['availableQuota'] === PHP_INT_MAX ? 'any number' : $stats['availableQuota'];
+        $this->info("{$stats['rankedToday']} beatmapsets ranked last 24 hours. Can rank {$quota} more");
 
         if ($stats['availableQuota'] <= 0) {
             return;
         }
 
-        $toRankLimit = min($GLOBALS['cfg']['osu']['beatmapset']['rank_per_run'], $stats['availableQuota']);
+        // TomYum: rank_per_run 0 is no limit per run either.
+        $rankPerRun = $GLOBALS['cfg']['osu']['beatmapset']['rank_per_run'];
+        $toRankLimit = min($rankPerRun > 0 ? $rankPerRun : PHP_INT_MAX, $stats['availableQuota']);
 
         $toBeRanked = Beatmapset::tobeRanked($ruleset)
-            ->orderBy('queued_at', 'ASC')
-            ->limit($toRankLimit)
-            ->get();
+            ->orderBy('queued_at', 'ASC');
+        if ($toRankLimit < PHP_INT_MAX) {
+            $toBeRanked->limit($toRankLimit);
+        }
+        $toBeRanked = $toBeRanked->get();
 
         $this->info("{$stats['inQueue']} beatmapset(s) in ranking queue");
         $this->info("Ranking {$toBeRanked->count()} beatmapset(s)");

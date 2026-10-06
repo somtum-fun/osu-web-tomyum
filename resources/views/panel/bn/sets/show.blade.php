@@ -45,6 +45,12 @@
                 is refreshed from bancho, and takes effect in-game immediately. Existing scores are recalculated (pp, bests,
                 players' stats and rankings). "Back to bancho" undoes staff changes: the difficulties follow osu!'s status again.
             </p>
+            {{-- TomYum: the old server's ranking rules --}}
+            <p class="tomyum-panel__hint">
+                Ranking or approving here skips the nominations and the qualified period, so it's for the NAT and admins.
+                A qualified set is ranked by itself after the qualified period. A difficulty that becomes ranked or approved
+                starts with an empty leaderboard: its scores are deleted, in every mode.
+            </p>
             @if ($serverError !== null)
                 <p>{{ $serverError }}</p>
             @endif
@@ -81,19 +87,38 @@
                         </tr>
                     @endforelse
                 </table>
-                <div class="tomyum-panel__row" style="margin-top: 12px">
-                    <label class="input-container input-container--select tomyum-panel__field" style="flex: 0 1 220px">
-                        <span class="input-container__label">New status</span>
-                        <select class="input-text" name="status" required>
-                            @foreach (BnSetsController::SETTABLE_STATUSES as $value => $label)
-                                <option value="{{ $value }}">{{ $label }}</option>
-                            @endforeach
-                        </select>
-                    </label>
-                    <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Change status</button>
-                </div>
+                @if (count($settableStatuses) > 0)
+                    <div class="tomyum-panel__row" style="margin-top: 12px">
+                        <label class="input-container input-container--select tomyum-panel__field" style="flex: 0 1 220px">
+                            <span class="input-container__label">New status</span>
+                            <select class="input-text" name="status" required>
+                                @foreach ($settableStatuses as $value => $label)
+                                    <option value="{{ $value }}">{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </label>
+                        <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Change status</button>
+                    </div>
+                @else
+                    <p class="tomyum-panel__hint">BNs on probation nominate on the set's discussion page.</p>
+                @endif
             </form>
         </div>
+
+        {{-- TomYum: osu!'s graveyard and WIP sets enter the nomination flow from here (BnSetsController@open) --}}
+        @if ($canOpen)
+            <div class="tomyum-panel__card">
+                <h2><i class="fas fa-door-open"></i>Open for nominations</h2>
+                <p class="tomyum-panel__hint">
+                    osu! has this set as {{ $beatmapset->isGraveyard() ? 'graveyard' : 'WIP' }}. Opening it makes it pending here
+                    and in-game, so BNs can nominate it on its discussion page (players' hypes ask for this).
+                </p>
+                <form method="POST" action="{{ route('panel.bn.sets.open', ['set' => $setId]) }}">
+                    @csrf
+                    <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Open for nominations</button>
+                </form>
+            </div>
+        @endif
 
         {{-- TomYum: who nominated it; admins can set them by hand (BnSetsController@nominators) --}}
         @if ($beatmapset !== null)

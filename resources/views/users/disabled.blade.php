@@ -15,10 +15,11 @@
         </p>
 
         <ul>
+            {{-- TomYum: the community rules link goes to our Rules page. --}}
             <li>
                 {!! osu_trans('users.disabled.reasons.tos._', [
                     'community_rules' => link_to(
-                        osu_url('user.rules'),
+                        route('legal', ['locale' => app()->getLocale(), 'path' => 'Rules']),
                         osu_trans('users.disabled.reasons.tos.community_rules')
                     ),
                     'tos' => link_to(

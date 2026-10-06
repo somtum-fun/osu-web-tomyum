@@ -6,7 +6,13 @@
 @extends('master')
 
 @php
-    $legalPages = ['terms' => 'Terms of Service', 'privacy' => 'Privacy Policy', 'copyright' => 'Copyright (DMCA)'];
+    $legalPages = [
+        'rules' => 'Rules',
+        'restrictions' => 'Restrictions & Appeals',
+        'terms' => 'Terms of Service',
+        'privacy' => 'Privacy Policy',
+        'copyright' => 'Copyright (DMCA)',
+    ];
 @endphp
 
 @section('content')

@@ -65,4 +65,43 @@
     padding-top: 20px;
     padding-bottom: $padding-top;
   }
+
+  // TomYum: who can register (ticked or crossed for the player looking), why they can't, and
+  // the registered players.
+  &__requirements {
+    list-style: none;
+    padding: 0;
+  }
+
+  &__requirement {
+    margin: 4px 0;
+
+    &--met {
+      color: @green-light;
+    }
+
+    &--unmet {
+      color: @red-light;
+    }
+  }
+
+  &__failures {
+    margin: 10px 0;
+    color: @red-light;
+  }
+
+  &__notice {
+    font-weight: bold;
+    color: @osu-colour-l1;
+  }
+
+  &__registrants {
+    margin-top: 10px;
+
+    small {
+      font-size: 14px;
+      margin-left: 10px;
+      opacity: 0.7;
+    }
+  }
 }

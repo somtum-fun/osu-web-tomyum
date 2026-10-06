@@ -27,9 +27,21 @@
             </p>
             <form method="POST" action="{{ route($panelPrefix.'tournament-banners.store') }}" class="panel-banners__form">
                 @csrf
+                {{-- TomYum: or one made on the Tournaments page (its own name, dates and page). --}}
+                @if (count($tournaments) > 0)
+                    <label class="input-container panel-banners__wide">
+                        <span class="input-container__label">For a tournament on the Tournaments page</span>
+                        <select class="input-text" name="tournament_id">
+                            <option value="">No: a new one, just for its banners (below)</option>
+                            @foreach ($tournaments as $existing)
+                                <option value="{{ $existing->getKey() }}">{{ $existing->name }}</option>
+                            @endforeach
+                        </select>
+                    </label>
+                @endif
                 <label class="input-container panel-banners__wide">
-                    <span class="input-container__label">Tournament</span>
-                    <input class="input-text" type="text" name="name" required maxlength="255" placeholder="sundei.eu Winter Cup 2026">
+                    <span class="input-container__label">Tournament (its name; not needed for one picked above)</span>
+                    <input class="input-text" type="text" name="name" maxlength="255" placeholder="sundei.eu Winter Cup 2026">
                 </label>
                 <label class="input-container panel-banners__wide">
                     <span class="input-container__label">Its images' folder, under tournament-banners/ (use osu!'s own path to copy theirs)</span>

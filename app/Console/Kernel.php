@@ -59,6 +59,12 @@ class Kernel extends ConsoleKernel
             ->cron('35 0,3,6,9,12,15,18,21 * * *')
             ->onOneServer();
 
+        // TomYum: tournaments whose registration closed: who no longer qualifies is marked for staff.
+        $schedule->command('tomyum:tournaments-recheck')
+            ->everyTenMinutes()
+            ->withoutOverlapping(30)
+            ->onOneServer();
+
         // Ranks sets qualified here once their qualified period is over. With TomYum deciding ranked
         // status, Beatmapset::setApproved passes the change on to it (the game follows); sets imported
         // qualified from osu! have no queue date here, so they're left to osu!'s own status.
@@ -66,6 +72,15 @@ class Kernel extends ConsoleKernel
         $schedule->command('tomyum:tickets-fetch')
             ->everyMinute()
             ->withoutOverlapping(10)
+            ->onOneServer();
+
+        // TomYum: the sign-up rules' hosting network and Tor lists, and the sign-up log's 90 days.
+        $schedule->command('tomyum:registration-lists-update')
+            ->cron('40 4 * * *')
+            ->onOneServer();
+
+        $schedule->command('tomyum:registrations-prune')
+            ->cron('50 4 * * *')
             ->onOneServer();
 
         $schedule->command('modding:rank')

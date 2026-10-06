@@ -64,6 +64,8 @@
                 <label class="input-container tomyum-panel__field">
 <span class="input-container__label">Reason</span>
 <input class="input-text" type="text" name="reason" required></label>
+                {{-- TomYum: the offense sets when they may appeal. --}}
+                @include('panel.gmt._appeal_offense')
                 <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit"><i class="fas fa-ban"></i>Restrict</button>
             </form>
         @endif

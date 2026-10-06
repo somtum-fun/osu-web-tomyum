@@ -69,6 +69,12 @@ class OsuMarkdown
                 'block_name' => 'changelog-md',
             ],
         ],
+        // TomYum: changelog changes written on the changelog panel: no raw HTML.
+        'changelog_entry_tomyum' => [
+            'osu_extension' => [
+                'block_name' => 'changelog-md',
+            ],
+        ],
         'comment' => [
             'osu_markdown' => [
                 'block_modifiers' => ['comment'],

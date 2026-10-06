@@ -99,8 +99,10 @@
   }
 
   &__logo {
-    background-image: url("~@images/layout/prod-logo.png"); // TomYum
-    background-position: center;
+    // TomYum: the production wordmark is wide (480x180), so the box keeps its ratio instead of upstream's 50x50 square
+    @_logo-ratio: (480 / 180);
+    .at2x("~@images/layout/prod-logo.png");
+    background-position: left center;
     background-size: contain;
     background-repeat: no-repeat;
 
@@ -108,7 +110,7 @@
     margin-right: 10px;
 
     height: 50px;
-    width: 50px;
+    width: (50px * @_logo-ratio);
   }
 
   &__row {
@@ -207,6 +209,7 @@
     font-weight: bold;
     font-style: normal;
     margin: 0 0 0 auto;
+    text-align: right; // TomYum: stays on the right when it wraps next to the wide logo
   }
 
   &__user-avatar {

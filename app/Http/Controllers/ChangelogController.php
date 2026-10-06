@@ -170,6 +170,8 @@ class ChangelogController extends Controller
                 'defaultChangelogs.user',
                 'defaultChangelogEntries.githubUser.user',
                 'defaultChangelogEntries.repository',
+                // TomYum: the player a change written on the changelog panel credits.
+                'defaultChangelogEntries.tomyumUser',
             ])->orderBy('build_id', 'DESC')
             ->get();
 
@@ -362,6 +364,8 @@ class ChangelogController extends Controller
                 'defaultChangelogs.user',
                 'defaultChangelogEntries.githubUser.user',
                 'defaultChangelogEntries.repository',
+                // TomYum: the player a change written on the changelog panel credits.
+                'defaultChangelogEntries.tomyumUser',
             ])->firstOrFail();
         $buildJson = $this->buildJson($build);
 

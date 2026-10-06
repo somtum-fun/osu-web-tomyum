@@ -68,7 +68,8 @@ abstract class Controller extends BaseController
     {
         return static::canUseBn($user) || static::canUseGmt($user) || static::canUseTc($user) || static::canUseLoved($user) || static::canUseAdmin($user)
             || \App\Libraries\TomYumBots::canManageAll($user)
-            || TicketsController::canUseTickets($user);
+            || TicketsController::canUseTickets($user)
+            || PacksController::canUsePacks($user) || ChangelogController::canUseChangelog($user);
     }
 
     protected function ensure(bool $allowed): void

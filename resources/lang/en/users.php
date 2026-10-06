@@ -187,9 +187,10 @@ return [
         ],
     ],
     'restricted_banner' => [
+        // TomYum: plain production wording (restrictions here aren't lifted in 24 hours).
         'title' => 'Your account has been restricted!',
-        'message' => 'While restricted, you will be unable to interact with other players and your scores will only be visible to you. This is usually the result of an automated process and will usually be lifted within 24 hours. :link',
-        'message_link' => 'Check this page to learn more.',
+        'message' => 'While restricted, you can still play, but you can\'t talk to other players and only you can see your scores. If you think this is a mistake, or want to know when and how you can appeal, :link',
+        'message_link' => 'read Restrictions & Appeals.',
     ],
     'show' => [
         'age' => ':age years old',
@@ -576,7 +577,8 @@ return [
         'offline' => 'Offline',
     ],
     'store' => [
-        'from_client' => 'please register via the game client instead!',
+        // TomYum: accounts are made in the game (lazer-fork or stable).
+        'from_client' => 'Please make your account in the game instead: lazer-fork or osu! stable.',
         'from_web' => 'please complete registration using the osu! website',
         'saved' => 'User created',
     ],

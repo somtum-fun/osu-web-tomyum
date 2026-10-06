@@ -8,6 +8,7 @@ namespace App\Http\Controllers;
 use App\Libraries\Payments\PaymentCompleted;
 use App\Libraries\TomYumChatBridge;
 use App\Libraries\TomYumCountryStats;
+use App\Libraries\TomYumRegistrationGuard;
 use App\Models\Beatmapset;
 use App\Models\Store\Order;
 use App\Models\Store\Payment;
@@ -265,6 +266,50 @@ class TomYumInterOpController extends Controller
                 \DB::table('tomyum_beatmap_mappers')->insertOrIgnore(array_values($rows));
             });
         }
+
+        return response()->noContent();
+    }
+
+    /**
+     * Stable's in-game sign-up (through TomYum): whether `ip` may make an account. `check` is the
+     * keystroke check (the quick rules only). Answers {ok: true}, or {ok: false, code, message} with
+     * the message the player sees.
+     */
+    public function registrationCheck()
+    {
+        $params = get_params(request()->all(), null, [
+            'check:bool',
+            'country',
+            'ip',
+            'source',
+            'username',
+        ], ['null_missing' => true]);
+        abort_unless(present($params['ip']), 422, 'ip is required');
+
+        $blocked = TomYumRegistrationGuard::check(
+            $params['ip'],
+            $params['source'] ?? 'stable',
+            $params['check'] ?? false,
+            $params['username'],
+            $params['country'],
+        );
+
+        return $blocked === null ? ['ok' => true] : ['ok' => false] + $blocked;
+    }
+
+    /** An account stable's sign-up made (it counts for the 1 account per network a day rule). */
+    public function registrationCreated()
+    {
+        $params = get_params(request()->all(), null, [
+            'country',
+            'ip',
+            'source',
+            'user_id:int',
+            'username',
+        ], ['null_missing' => true]);
+        abort_unless(present($params['ip']) && $params['user_id'] !== null, 422, 'ip and user_id are required');
+
+        TomYumRegistrationGuard::created($params['ip'], $params['source'] ?? 'stable', $params['user_id'], $params['username'], $params['country']);
 
         return response()->noContent();
     }

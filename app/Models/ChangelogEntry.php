@@ -228,6 +228,31 @@ class ChangelogEntry extends Model
         return $this->belongsTo(Repository::class);
     }
 
+    // TomYum: who wrote a change written on the changelog panel (a player here, or just a name).
+    public function tomyumUser()
+    {
+        return $this->belongsTo(User::class, 'tomyum_user_id');
+    }
+
+    /**
+     * TomYum: the author shown for a change without a GitHub account: like ppy's legacy entries, a
+     * GitHub user that isn't saved, pointing at the player (or only carrying the name).
+     */
+    public function tomyumAuthor(): ?GithubUser
+    {
+        $userId = $this->getRawAttribute('tomyum_user_id');
+        $name = presence($this->getRawAttribute('tomyum_author'));
+        if ($userId === null && $name === null) {
+            return null;
+        }
+
+        $githubUser = new GithubUser(['user_id' => $userId]);
+        $githubUser->setRelation('user', $userId === null ? null : $this->tomyumUser);
+        $githubUser->tomyumName = $name;
+
+        return $githubUser;
+    }
+
     public function getTypeAttribute($value)
     {
         return presence($value) ?? 'fix';
@@ -274,7 +299,11 @@ class ChangelogEntry extends Model
         return $this->memoize(__FUNCTION__, function () {
             $message = $this->message;
 
-            return present($message) ? markdown($message, 'changelog_entry') : null;
+            // TomYum: changes written on the changelog panel (no repository) don't get raw HTML, unlike
+            // ppy's and the git importer's; developers write them, and they show on public pages.
+            $preset = $this->repository_id === null ? 'changelog_entry_tomyum' : 'changelog_entry';
+
+            return present($message) ? markdown($message, $preset) : null;
         });
     }
 }

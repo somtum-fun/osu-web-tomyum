@@ -70,8 +70,9 @@
                 'type' => 'alert',
                 'title' => osu_trans('users.restricted_banner.title'),
                 'message' => osu_trans('users.restricted_banner.message', [
+                    // TomYum: our Restrictions & Appeals page.
                     'link' => link_to(
-                        osu_url('user.restriction'),
+                        route('legal', ['locale' => app()->getLocale(), 'path' => 'Restrictions']),
                         osu_trans('users.restricted_banner.message_link')
                     ),
                 ]),

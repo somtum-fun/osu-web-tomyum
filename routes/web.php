@@ -54,6 +54,35 @@ Route::group(['middleware' => ['web']], function () {
         Route::get('kudosu', 'KudosuController@index')->name('kudosu.index');
         Route::post('kudosu/{user}', 'KudosuController@adjust')->name('kudosu.adjust');
 
+        // TomYum: beatmap packs (admins and the NAT).
+        Route::group(['as' => 'packs.', 'prefix' => 'packs'], function () {
+            Route::get('/', 'PacksController@index')->name('index');
+            Route::post('/', 'PacksController@store')->name('store');
+            Route::get('{pack}', 'PacksController@show')->name('show');
+            Route::post('{pack}/sets', 'PacksController@addSets')->name('sets.store');
+            Route::post('{pack}/sets/{set}/remove', 'PacksController@removeSet')->name('sets.destroy');
+            Route::post('{pack}/download', 'PacksController@download')->name('download');
+            Route::post('{pack}/remove', 'PacksController@destroy')->name('destroy');
+        });
+
+        // TomYum: the changelog by hand (admins and developers).
+        Route::group(['as' => 'changelog.', 'prefix' => 'changelog'], function () {
+            Route::get('/', 'ChangelogController@index')->name('index');
+            Route::post('streams/{stream}', 'ChangelogController@stream')->name('streams.update');
+            Route::post('builds', 'ChangelogController@storeBuild')->name('builds.store');
+            Route::get('builds/{build}', 'ChangelogController@show')->name('builds.show');
+            Route::post('builds/{build}/remove', 'ChangelogController@destroyBuild')->name('builds.destroy');
+            Route::post('builds/{build}/entries', 'ChangelogController@storeEntry')->name('builds.entries.store');
+            Route::post('builds/{build}/entries/{entry}/remove', 'ChangelogController@destroyEntry')->name('builds.entries.destroy');
+        });
+
+        // TomYum: osu!dan courses: admins and the NAT (the game server's tomyum.dan plugin reads them).
+        Route::get('dan', 'DanController@index')->name('dan.index');
+        Route::post('dan', 'DanController@store')->name('dan.store');
+        Route::get('dan/{course}', 'DanController@show')->name('dan.show');
+        Route::post('dan/{course}', 'DanController@update')->name('dan.update');
+        Route::post('dan/{course}/remove', 'DanController@destroy')->name('dan.destroy');
+
         // Bot accounts: admins/developers make them; owners manage their own.
         Route::group(['as' => 'bots.', 'prefix' => 'bots'], function () {
             Route::get('/', 'BotsController@index')->name('index');
@@ -79,6 +108,7 @@ Route::group(['middleware' => ['web']], function () {
             Route::get('sets/{set}', 'BnSetsController@show')->name('sets.show');
             Route::post('sets/{set}/status', 'BnSetsController@status')->name('sets.status');
             Route::post('sets/{set}/refresh', 'BnSetsController@refresh')->name('sets.refresh');
+            Route::post('sets/{set}/open', 'BnSetsController@open')->name('sets.open');
             Route::post('sets/{set}/nominators', 'BnSetsController@nominators')->name('sets.nominators');
             Route::post('sets/{set}/track', 'BnSetsController@track')->name('sets.track');
         });
@@ -93,6 +123,11 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('users/{user}/unsilence', 'GmtController@unsilence')->name('users.unsilence');
             Route::post('users/{user}/wipe', 'GmtController@wipe')->name('users.wipe');
             Route::post('users/{user}/scores/{score}/remove', 'GmtController@removeScore')->name('users.scores.remove');
+            // TomYum: sign-ups (made and refused), the sign-up rules and their allowlist; appeal cooldowns.
+            Route::get('registrations', 'RegistrationsController@index')->name('registrations.index');
+            Route::post('registrations/settings', 'RegistrationsController@settings')->name('registrations.settings');
+            Route::post('registrations/update-lists', 'RegistrationsController@updateLists')->name('registrations.update-lists');
+            Route::post('users/{user}/appeal-cooldown', 'GmtController@appealCooldown')->name('users.appeal-cooldown');
         });
 
         // The Tournament Committee: live matches, and the admin's banners and badges pages.
@@ -119,6 +154,18 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('tournament-banners/{banner}/move', 'TournamentBannersController@move')->name('tournament-banners.move');
             Route::post('tournament-banners/{banner}/give', 'TournamentBannersController@give')->name('tournament-banners.give');
             Route::post('tournament-banners/{banner}/take/{user}', 'TournamentBannersController@take')->name('tournament-banners.take');
+            // TomYum: tournaments and their registrations (the admin's and the TC's).
+            Route::get('tournaments', 'TournamentsController@index')->name('tournaments.index');
+            Route::post('tournaments', 'TournamentsController@store')->name('tournaments.store');
+            Route::get('tournaments/{tournament}', 'TournamentsController@show')->name('tournaments.show');
+            Route::post('tournaments/{tournament}', 'TournamentsController@update')->name('tournaments.update');
+            Route::post('tournaments/{tournament}/header', 'TournamentsController@header')->name('tournaments.header');
+            Route::post('tournaments/{tournament}/recheck', 'TournamentsController@recheck')->name('tournaments.recheck');
+            Route::post('tournaments/{tournament}/remove', 'TournamentsController@destroy')->name('tournaments.destroy');
+            Route::get('tournaments/{tournament}/registrations.csv', 'TournamentsController@export')->name('tournaments.export');
+            Route::post('tournaments/{tournament}/registrations/{user}/remove', 'TournamentsController@removeRegistration')->name('tournaments.registrations.destroy');
+            Route::post('tournament-bans', 'TournamentsController@ban')->name('tournaments.bans.store');
+            Route::post('tournament-bans/{user}/lift', 'TournamentsController@unban')->name('tournaments.bans.destroy');
         });
 
         Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
@@ -184,6 +231,18 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('tournament-banners/{banner}/move', 'TournamentBannersController@move')->name('tournament-banners.move');
             Route::post('tournament-banners/{banner}/give', 'TournamentBannersController@give')->name('tournament-banners.give');
             Route::post('tournament-banners/{banner}/take/{user}', 'TournamentBannersController@take')->name('tournament-banners.take');
+            // TomYum: tournaments and their registrations (the admin's and the TC's).
+            Route::get('tournaments', 'TournamentsController@index')->name('tournaments.index');
+            Route::post('tournaments', 'TournamentsController@store')->name('tournaments.store');
+            Route::get('tournaments/{tournament}', 'TournamentsController@show')->name('tournaments.show');
+            Route::post('tournaments/{tournament}', 'TournamentsController@update')->name('tournaments.update');
+            Route::post('tournaments/{tournament}/header', 'TournamentsController@header')->name('tournaments.header');
+            Route::post('tournaments/{tournament}/recheck', 'TournamentsController@recheck')->name('tournaments.recheck');
+            Route::post('tournaments/{tournament}/remove', 'TournamentsController@destroy')->name('tournaments.destroy');
+            Route::get('tournaments/{tournament}/registrations.csv', 'TournamentsController@export')->name('tournaments.export');
+            Route::post('tournaments/{tournament}/registrations/{user}/remove', 'TournamentsController@removeRegistration')->name('tournaments.registrations.destroy');
+            Route::post('tournament-bans', 'TournamentsController@ban')->name('tournaments.bans.store');
+            Route::post('tournament-bans/{user}/lift', 'TournamentsController@unban')->name('tournaments.bans.destroy');
             Route::get('groups', 'GroupsController@index')->name('groups.index');
             Route::post('groups/{group}', 'GroupsController@update')->name('groups.update');
             Route::get('titles', 'TitlesController@index')->name('titles.index');
@@ -201,6 +260,19 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('matchmaking/{pool}/remove', 'MatchmakingController@destroy')->name('matchmaking.destroy');
             Route::post('matchmaking/{pool}/beatmaps', 'MatchmakingController@addBeatmap')->name('matchmaking.add-beatmap');
             Route::post('matchmaking/{pool}/beatmaps/{entry}/remove', 'MatchmakingController@removeBeatmap')->name('matchmaking.remove-beatmap');
+            // TomYum: contests (never #1, the seasonal backgrounds).
+            Route::get('contests', 'ContestsController@index')->name('contests.index');
+            Route::post('contests', 'ContestsController@store')->name('contests.store');
+            Route::get('contests/{contest}', 'ContestsController@show')->name('contests.show');
+            Route::post('contests/{contest}/remove', 'ContestsController@destroy')->name('contests.destroy');
+            Route::post('contests/{contest}/entries/make', 'ContestsController@makeEntries')->name('contests.entries.make');
+            Route::post('contests/{contest}/entries', 'ContestsController@storeEntry')->name('contests.entries.store');
+            Route::post('contests/{contest}/entries/{entry}/remove', 'ContestsController@destroyEntry')->name('contests.entries.destroy');
+            Route::post('contests/{contest}/judges', 'ContestsController@addJudge')->name('contests.judges.store');
+            Route::post('contests/{contest}/judges/{user}/remove', 'ContestsController@removeJudge')->name('contests.judges.destroy');
+            Route::post('contests/{contest}/categories', 'ContestsController@storeCategory')->name('contests.categories.store');
+            Route::post('contests/{contest}/categories/{category}/remove', 'ContestsController@destroyCategory')->name('contests.categories.destroy');
+            Route::post('contests/{contest}/calculate', 'ContestsController@calculate')->name('contests.calculate');
         });
     });
 
@@ -281,6 +353,8 @@ Route::group(['middleware' => ['web']], function () {
             Route::put('love', 'BeatmapsetsController@love')->name('love');
             Route::delete('love', 'BeatmapsetsController@removeFromLoved')->name('remove-from-loved');
             Route::put('nominate', 'BeatmapsetsController@nominate')->name('nominate');
+            // TomYum: open an osu! graveyard/WIP set for nominations (BNs, NAT, admins).
+            Route::post('open-for-nominations', 'BeatmapsetsController@openForNominations')->name('open-for-nominations');
 
             Route::get('versions', 'BeatmapsetsController@versions')->name('versions');
 
@@ -312,6 +386,8 @@ Route::group(['middleware' => ['web']], function () {
     // TomYum: what osu!stable opens when bancho says a new device needs verifying
     // (p/verify?u=<name>&reason=bancho&ch=<client hash>): the same page, which reads ch.
     Route::get('p/verify', 'ClientVerificationsController@create')->name('client-verifications.legacy');
+    // TomYum: what old stable builds open for "register": how to make an account in the game.
+    Route::get('p/register', 'UsersController@create')->name('users.create.legacy');
 
     Route::resource('comments', 'CommentsController', ['except' => ['create', 'edit']]);
     Route::post('comments/{comment}/pin', 'CommentsController@pinStore')->name('comments.pin');
@@ -355,6 +431,10 @@ Route::group(['middleware' => ['web']], function () {
         Route::post('loved/blacklist/{beatmapset}/remove', 'LovedController@destroyBlacklist')->name('loved.blacklist.destroy');
         // Older links.
         Route::redirect('loved/requests', '/community/loved');
+
+        // TomYum: osu!dan: the courses and their clears (the game server's tomyum.dan plugin).
+        Route::get('dan', 'DanController@index')->name('dan.index');
+        Route::get('dan/{course}', 'DanController@show')->name('dan.show');
 
         Route::group(['as' => 'forum.', 'namespace' => 'Forum'], function () {
             Route::group(['prefix' => 'forums'], function () {
@@ -466,6 +546,9 @@ Route::group(['middleware' => ['web']], function () {
         Route::get('testflight', 'HomeController@testflight')->name('testflight');
         // TomYum: vote for the server on server lists.
         Route::get('vote', 'HomeController@vote')->name('vote');
+        // TomYum: a restricted player's appeal once their cooldown is over (it becomes an appeal ticket).
+        Route::get('appeal', 'TomYumAppealsController@show')->name('tomyum-appeal.show');
+        Route::post('appeal', 'TomYumAppealsController@store')->name('tomyum-appeal.store');
 
         Route::get('password-reset', 'PasswordResetController@index')->name('password-reset');
         Route::post('password-reset', 'PasswordResetController@create');
@@ -893,6 +976,9 @@ Route::group(['prefix' => '_lio', 'middleware' => 'lio', 'as' => 'interop.'], fu
     Route::post('tomyum/beatmapset-extras/{beatmapset}', 'TomYumInterOpController@beatmapsetExtras');
     // TomYum: BN groups as BN Management (QAT) decided them (applications, evaluations, resignations).
     Route::post('tomyum/bn-groups/{user}', 'TomYumInterOpController@bnGroups');
+    // TomYum: stable's in-game sign-up asks the website's sign-up rules (TomYumRegistrationGuard).
+    Route::post('tomyum/registration-check', 'TomYumInterOpController@registrationCheck');
+    Route::post('tomyum/registration-created', 'TomYumInterOpController@registrationCreated');
 
     Route::group(['namespace' => 'InterOp'], function () {
         Route::post('artist-tracks/reindex-all', 'ArtistTracksController@reindexAll');

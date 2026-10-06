@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Libraries\TomYumChangelog;
 use App\Models\Build;
 use App\Models\ChangelogEntry;
 use App\Models\Count;
@@ -36,19 +37,12 @@ class TomYumChangelogImport extends Command
         {--repository= : e.g. sundeiii/TomYum}
         {--author=* : "email=github login:github id:user id", who a commit author is}
         {--skip=* : commits (hash or its start) not to list}
-        {--reset : first remove every change and version imported so far}';
+        {--reset : first remove every change and version imported so far (not the ones written on the panel)}';
 
     protected $description = 'Adds new git commits (piped in) to the changelog.';
 
     /** name => [id, name on the page]. Colours: resources/css (changelog-stream--name). */
-    public const STREAMS = [
-        'stable40' => [5, 'Stable'],
-        'lazer' => [6, 'Lazer'],
-        'server' => [10, 'Server'],
-        'discord' => [11, 'Discord'],
-        'web' => [1, 'Web'],
-        'wiki' => [12, 'Wiki'],
-    ];
+    public const STREAMS = TomYumChangelog::STREAMS;
 
     /** Changes per version. */
     private const PER_BUILD = 5;
@@ -138,26 +132,32 @@ class TomYumChangelogImport extends Command
 
     private function setUpStreams(): void
     {
-        $rows = [];
-        foreach (static::STREAMS as $name => [$id, $pretty]) {
-            $rows[] = ['stream_id' => $id, 'name' => $name, 'pretty_name' => $pretty, 'default_allow_bancho' => false];
-        }
-        DB::connection('mysql-updates')->table('streams')->upsert($rows, ['stream_id'], ['name', 'pretty_name']);
+        // TomYum: only the missing ones, so names changed on the changelog panel stay.
+        TomYumChangelog::ensureStreams();
     }
 
-    /** Everything imported so far goes, so it can come back in the current layout. */
+    /**
+     * Everything imported so far goes, so it can come back in the current layout. TomYum: only what
+     * this command imported (versions with a commit hash, changes from a repository without a pull
+     * request); versions and changes written on the changelog panel stay.
+     */
     private function reset(): void
     {
-        $streamIds = array_column(static::STREAMS, 0);
+        $streamIds = TomYumChangelog::streamIds();
         DB::transaction(function () use ($streamIds) {
-            $buildIds = Build::whereIn('stream_id', $streamIds)->pluck('build_id');
-            $entryIds = DB::table('build_changelog_entry')->whereIn('build_id', $buildIds)->pluck('changelog_entry_id');
-            DB::table('build_changelog_entry')->whereIn('build_id', $buildIds)->delete();
-            ChangelogEntry::whereIn('id', $entryIds)->whereNull('github_pull_request_id')->delete();
-            Build::whereIn('build_id', $buildIds)->delete();
+            $buildIds = Build::whereIn('stream_id', $streamIds)->whereNotNull('hash')->pluck('build_id');
+            $entryIds = ChangelogEntry::whereIn(
+                'id',
+                DB::table('build_changelog_entry')->whereIn('build_id', $buildIds)->select('changelog_entry_id'),
+            )->whereNotNull('repository_id')->whereNull('github_pull_request_id')->pluck('id');
+            DB::table('build_changelog_entry')->whereIn('changelog_entry_id', $entryIds)->delete();
+            ChangelogEntry::whereIn('id', $entryIds)->delete();
+            // A version keeps going when something else (written by hand) is still in it.
+            $kept = DB::table('build_changelog_entry')->whereIn('build_id', $buildIds)->distinct()->pluck('build_id');
+            Build::whereIn('build_id', $buildIds->diff($kept))->delete();
             Count::where('name', 'like', 'tomyum_changelog_%')->delete();
         });
-        $this->info('Removed the changelog imported so far.');
+        $this->info('Removed the changelog imported so far (changes written on the panel stay).');
     }
 
     /** "email=login:github id:user id" → GitHub accounts (made or updated), by email. */
@@ -297,16 +297,18 @@ class TomYumChangelogImport extends Command
             ]);
 
             // Up to PER_BUILD changes per version, numbered through the day: 2026.930.0, 2026.930.1, …
+            // TomYum: only into an imported version (one with a commit hash), never one written on the panel.
             $day = $at->format('Y').'.'.$at->format('n').$at->format('d');
-            $build = Build::where('stream_id', $streamId)->where('version', 'like', "{$day}.%")->orderByDesc('build_id')->first();
+            $build = Build::where('stream_id', $streamId)->where('version', 'like', "{$day}.%")->whereNotNull('hash')->orderByDesc('build_id')->first();
             $full = $build !== null && DB::table('build_changelog_entry')->where('build_id', $build->getKey())->count() >= static::PER_BUILD;
             if ($build === null || $full) {
-                $next = $build === null ? 0 : ((int) substr($build->version, strrpos($build->version, '.') + 1)) + 1;
                 $build = Build::create([
                     'stream_id' => $streamId,
-                    'version' => "{$day}.{$next}",
+                    'version' => TomYumChangelog::nextVersion($streamId, $at),
                     'date' => $at,
                     'allow_bancho' => false,
+                    // Not a client: a game client sending this hash mustn't count as this build.
+                    'allow_ranking' => false,
                     'hash' => hex2bin(substr($commit['hash'], 0, 32)),
                 ]);
             } elseif ($build->date < $at) {
