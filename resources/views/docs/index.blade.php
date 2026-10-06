@@ -24,6 +24,8 @@
     <link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="{{ unmix('css/docs.css') }}">
+    {{-- TomYum: this server's logo (TomYumBranding). --}}
+    <style>:root{ {!! App\Libraries\TomYumBranding::cssVariables() !!} }</style>
 
     <style>
         @foreach($metadata['example_languages'] as $lang)

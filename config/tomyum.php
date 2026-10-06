@@ -109,6 +109,19 @@ return [
         'name' => presence(env('MAIL_STORE_SENDER')) ?? 'production store',
     ],
 
+    // This server's name, logo, favicons and contact addresses (App\Libraries\TomYumBranding). These are
+    // the defaults; staff change them in Admin panel > Branding. They're production's, the server this
+    // branding was first written for, so its site looks the same without any settings.
+    'branding' => [
+        'name' => presence(env('BRAND_NAME')) ?? 'production',
+        // support@, dmca@, store@… on this domain; the tickets' (TICKETS_DOMAIN) if unset.
+        'email_domain' => presence(env('BRAND_EMAIL_DOMAIN')),
+        // prod (the example.com wordmark), osu (osu!'s logo) or an image's address.
+        'logo' => presence(env('BRAND_LOGO')) ?? 'prod',
+        // prod or osu.
+        'favicon' => presence(env('BRAND_FAVICON')) ?? 'prod',
+    ],
+
     // Sign-up rules for accounts made in lazer and stable (App\Libraries\TomYumRegistrationGuard):
     // IP bans, 1 account per network a day, Tor and hosting networks, then proxycheck.io (works without
     // a key for about 100 checks a day; a free key gives 1,000). Staff switch the rules and keep the

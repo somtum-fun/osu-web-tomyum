@@ -169,6 +169,8 @@ Route::group(['middleware' => ['web']], function () {
         });
 
         Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
+            Route::get('branding', 'BrandingController@index')->name('branding.index');
+            Route::post('branding', 'BrandingController@update')->name('branding.update');
             Route::get('menu-banners', 'MenuBannersController@index')->name('menu-banners.index');
             Route::post('menu-banners', 'MenuBannersController@store')->name('menu-banners.store');
             Route::post('menu-banners/{index}/remove', 'MenuBannersController@destroy')->name('menu-banners.destroy')->where('index', '[0-9]+');
@@ -1023,4 +1025,6 @@ Route::group(['prefix' => '_lio', 'middleware' => 'lio', 'as' => 'interop.'], fu
 });
 
 Route::get('opensearch.xml', 'HomeController@opensearch')->name('opensearch');
+// TomYum: the web app manifest with this server's name and favicons (public/site.webmanifest is production's).
+Route::get('brand.webmanifest', 'HomeController@webmanifest')->name('brand.webmanifest');
 Route::any('{catchall}', 'FallbackController@index')->where('catchall', '.*')->fallback();

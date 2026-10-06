@@ -54,8 +54,8 @@
   }
 
   &__logo {
-    .at2x("~@images/layout/prod-logo.png"); // TomYum
-    width: (@logo-size * 2.67);
+    .at2x-simple-var(--brand-logo); // TomYum: this server's logo (TomYumBranding)
+    width: calc(@logo-size * var(--brand-logo-ratio, 1));
     height: @logo-size;
     background-size: contain;
     background-repeat: no-repeat;
@@ -129,7 +129,7 @@
   }
 
   &__pippi-logo {
-    .at2x("~@images/layout/prod-logo.png"); // TomYum
+    .at2x-simple-var(--brand-logo); // TomYum: this server's logo (TomYumBranding)
     width: 100%;
     height: 100%;
     background-size: contain;

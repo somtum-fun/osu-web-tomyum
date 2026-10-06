@@ -56,14 +56,14 @@
                     playsinline is for iphone autoplay
                     reference: https://webkit.org/blog/6784/new-video-policies-for-ios/
                 --}}
-                @if ($GLOBALS['cfg']['osu']['landing']['video_url'] !== null) {{-- TomYum --}}
+                @if (App\Libraries\TomYumBranding::landingVideoUrl() !== null) {{-- TomYum --}}
                 <video
                     class="landing-hero__bg"
                     autoplay
                     loop
                     muted
                     playsinline
-                    src="{{ $GLOBALS['cfg']['osu']['landing']['video_url'] }}"
+                    src="{{ App\Libraries\TomYumBranding::landingVideoUrl() }}"
                 ></video>
                 @endif
             </div>

@@ -47,6 +47,7 @@
             ['News', 'panel.admin.news.index', ['panel.admin.news.']],
             ['Backgrounds', 'panel.admin.seasonal-backgrounds.index', ['panel.admin.seasonal-backgrounds.']],
             ['Menu banners', 'panel.admin.menu-banners.index', ['panel.admin.menu-banners.']],
+            ['Branding', 'panel.admin.branding.index', ['panel.admin.branding.']],
             ['Artists', 'panel.admin.artists.index', ['panel.admin.artists.']],
             ['Contests', 'panel.admin.contests.index', ['panel.admin.contests.']],
         ]],

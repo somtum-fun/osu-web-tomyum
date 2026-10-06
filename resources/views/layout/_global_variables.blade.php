@@ -7,6 +7,8 @@
     var canonicalUrl = "{{ $canonicalUrl ?? '' }}";
     {{-- TomYum: the domain of this server's ticket addresses (dmca@, support@, …). --}}
     var ticketsDomain = {!! json_encode(App\Libraries\TomYumTickets::domain()) !!};
+    {{-- TomYum: this server's name, ":brand" in the texts (TomYumBranding). --}}
+    var brandName = {!! json_encode(App\Libraries\TomYumBranding::name()) !!};
 </script>
 
 @include ('layout._current_user')

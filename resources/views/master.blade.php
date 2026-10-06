@@ -33,7 +33,7 @@
             // Titles ending with phrase containing "osu!" like "osu!store" don't need the suffix.
             // TomYum: the suffix is this site's name.
             if (strpos($titlePart, 'osu!') === false) {
-                $title .= " | \u{202d}production\u{202c}";
+                $title .= " | \u{202d}".e(App\Libraries\TomYumBranding::name())."\u{202c}";
             }
         } else {
             $title .= ' · ';

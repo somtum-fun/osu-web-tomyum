@@ -35,7 +35,7 @@
     </label>
     <label class="input-container">
         <span class="input-container__label">Name</span>
-        <input class="input-text" type="text" name="name" maxlength="255" required value="{{ $pack?->name }}" placeholder="production Beatmap Pack #1">
+        <input class="input-text" type="text" name="name" maxlength="255" required value="{{ $pack?->name }}" placeholder="{{ App\Libraries\TomYumBranding::name() }} Beatmap Pack #1">
     </label>
     <label class="input-container">
         <span class="input-container__label">Author (empty: you)</span>

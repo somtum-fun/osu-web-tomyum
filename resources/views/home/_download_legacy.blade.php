@@ -2,24 +2,24 @@
     Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
     See the LICENCE file in the repository root for full licence text.
 --}}
-{{-- TomYum: osu!(stable) from 2008 to 2015, patched for production (dl.example.com/legacy). --}}
+{{-- TomYum: osu!(stable) from 2008 to 2015, patched for this server (dl.example.com/legacy). --}}
 <div class="download-page__legacy" id="legacy">
     <div class="download-page__text download-page__text--title">
         Legacy osu! clients (2008-2015)
     </div>
     <div class="download-page__text download-page__text--description">
-        Old osu!(stable) builds, rebuilt to play on production: today's beatmaps load, Relax and
+        Old osu!(stable) builds, rebuilt to play on {{ App\Libraries\TomYumBranding::name() }}: today's beatmaps load, Relax and
         Autopilot scores submit, and the updater stays off. Unzip one anywhere and run osu!.exe.
         They need Windows and .NET Framework 3.5 (a few 2015 builds use .NET Framework 4).
     </div>
     @if (isset($hook['url']))
         <div class="download-page__text download-page__text--description">
             Rather play an unmodified build? Put the
-            <a href="{{ $hook['url'] }}">production hook</a>
+            <a href="{{ $hook['url'] }}">{{ App\Libraries\TomYumBranding::name() }} hook</a>
             @if (isset($hook['version']))
                 ({{ $hook['version'] }})
             @endif
-            next to its osu!.exe and start the game with production.exe. The hook may not work with
+            next to its osu!.exe and start the game with {{ App\Libraries\TomYumBranding::name() }}.exe. The hook may not work with
             every build; if one doesn't start, try the rebuilt one above.
         </div>
     @endif
@@ -59,6 +59,6 @@
     <div class="download-page__text download-page__text--description download-page__legacy-footer">
         The original builds come from <a href="https://osu.titanic.sh/download/">Titanic</a>, as do most of the notes.
         osu! is a registered trademark of ppy Pty Ltd. These clients are unofficial and unsupported by ppy, and are offered as is.
-        To have something taken down, email <a href="mailto:dmca@example.com">dmca@example.com</a>.
+        To have something taken down, email <a href="mailto:{{ App\Libraries\TomYumBranding::email('dmca') }}">{{ App\Libraries\TomYumBranding::email('dmca') }}</a>.
     </div>
 </div>

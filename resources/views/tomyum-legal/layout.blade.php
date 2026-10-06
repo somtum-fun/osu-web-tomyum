@@ -2,7 +2,7 @@
     Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
     See the LICENCE file in the repository root for full licence text.
 --}}
-{{-- TomYum: production's own legal pages (LegalController), in place of ppy's. --}}
+{{-- TomYum: this server's own legal pages (LegalController), in place of ppy's. --}}
 @extends('master')
 
 @php
@@ -34,7 +34,7 @@
         <p class="tomyum-legal__updated">@yield('legal-updated', 'Last updated: 5 October 2026')</p>
 
         <div class="tomyum-legal__notice">
-            production is an unofficial, fan-run osu! private server. It is not affiliated with, endorsed by
+            {{ App\Libraries\TomYumBranding::name() }} is an unofficial, fan-run osu! private server. It is not affiliated with, endorsed by
             or connected to ppy Pty Ltd. osu! is a trademark of ppy Pty Ltd.
         </div>
 

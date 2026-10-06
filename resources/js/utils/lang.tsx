@@ -36,7 +36,15 @@ export function trans(key: string, replacements: Replacements = {}, locale?: str
     locale = fallbackLocale;
   }
 
-  return window.Lang.get(key, replacements, locale);
+  return window.Lang.get(key, withBrand(replacements), locale);
+}
+
+// TomYum: ":brand" in a text is this server's name (layout/_global_variables).
+function withBrand(replacements: Replacements): Replacements {
+  if ('brand' in replacements) return replacements;
+
+  // A page without the global variables (they set it) still translates.
+  return { brand: typeof brandName === 'string' ? brandName : 'osu!', ...replacements };
 }
 
 export function transArray(array: Replacement[], key = 'common.array_and') {
@@ -61,7 +69,7 @@ export function transChoice(key: string, count: number, replacements: Replacemen
   }
 
   replacements.count_delimited = formatNumber(count, undefined, undefined, locale);
-  const translated = window.Lang.choice(key, count, replacements, locale);
+  const translated = window.Lang.choice(key, count, withBrand(replacements), locale);
 
   if (!isFallbackLocale && translated == null) {
     delete replacements.count;

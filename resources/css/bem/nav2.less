@@ -80,9 +80,8 @@
   &__logo-link {
     @__logo-whitespace: 5px;
     @_logo-size: (@nav2-avatar-height + @__logo-whitespace * 2);
-    // TomYum: the production wordmark is wide (about 8:3).
-    @_logo-ratio: 2.67;
-    width: (@_logo-size * @_logo-ratio);
+    // TomYum: as wide as this server's logo (TomYumBranding; production's wordmark is about 8:3).
+    width: calc(@_logo-size * var(--brand-logo-ratio, 1));
     height: @_logo-size;
     margin: -@__logo-whitespace;
     transition:
@@ -92,7 +91,7 @@
 
     .@{header-pinned} & {
       height: @nav2-avatar-height--pinned;
-      width: (@nav2-avatar-height--pinned * @_logo-ratio);
+      width: calc(@nav2-avatar-height--pinned * var(--brand-logo-ratio, 1));
     }
   }
 

@@ -8,13 +8,13 @@ Welcome to the documentation for osu!api v2. You can use this API to get informa
 
 Note that while we endeavour to keep this documentation up to date, consider it a work-in-progress and note that it will likely contain errors.
 
-This is production's copy of the osu! API, an unofficial private server not affiliated with ppy Pty Ltd. If you notice any errors or encounter problems using the API, mail [support@example.com](mailto:support@example.com).
+This is {{ App\Libraries\TomYumBranding::name() }}'s copy of the osu! API, an unofficial private server not affiliated with ppy Pty Ltd. If you notice any errors or encounter problems using the API, mail [{{ App\Libraries\TomYumBranding::email('support') }}](mailto:{{ App\Libraries\TomYumBranding::email('support') }}).
 
 Code examples are provided in the dark area to the right, you can use the tabs at the top of the page to switch between bash and javascript samples.
 
 # Terms of Use
 
-Use the API for good. Don't overdo it. If in doubt, [ask](mailto:support@example.com) before serious long term use.
+Use the API for good. Don't overdo it. If in doubt, [ask](mailto:{{ App\Libraries\TomYumBranding::email('support') }}) before serious long term use.
 
 Examples of good practices:
 

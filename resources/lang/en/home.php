@@ -149,7 +149,7 @@ return [
         ],
         'buttons' => [
             'download' => 'Download osu!',
-            'support' => 'Support production',
+            'support' => 'Support :brand',
             'store' => 'store',
         ],
         'livestream' => [

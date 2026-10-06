@@ -12,11 +12,10 @@
             @endforeach
         </div>
     @endif
-    {{-- TomYum: not ppy's site. --}}
-    <div class="footer__row">
-        production {{ date('Y') }} · an unofficial osu! private server, not affiliated with ppy Pty Ltd.
-        osu! is a trademark of ppy Pty Ltd.
-    </div>
+    {{-- TomYum: not ppy's site (Admin panel > Branding). --}}
+    @if (present($brandFooter = App\Libraries\TomYumBranding::text('footer')))
+        <div class="footer__row">{{ $brandFooter }}</div>
+    @endif
 
     <div class="js-sync-height--target" data-sync-height-id="permanent-fixed-footer"></div>
 </footer>

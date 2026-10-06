@@ -99,9 +99,8 @@
   }
 
   &__logo {
-    // TomYum: the production wordmark is wide (480x180), so the box keeps its ratio instead of upstream's 50x50 square
-    @_logo-ratio: (480 / 180);
-    .at2x("~@images/layout/prod-logo.png");
+    // TomYum: this server's logo (TomYumBranding), the box at its ratio instead of upstream's 50x50 square
+    .at2x-simple-var(--brand-logo);
     background-position: left center;
     background-size: contain;
     background-repeat: no-repeat;
@@ -110,7 +109,7 @@
     margin-right: 10px;
 
     height: 50px;
-    width: (50px * @_logo-ratio);
+    width: calc(50px * var(--brand-logo-ratio, 1));
   }
 
   &__row {

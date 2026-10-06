@@ -11,7 +11,7 @@
 
 <div class="osu-page osu-page--generic">
     <div class="vote-page">
-        <h1 class="vote-page__title">Vote for production</h1>
+        <h1 class="vote-page__title">Vote for {{ App\Libraries\TomYumBranding::name() }}</h1>
         <p class="vote-page__text">
             Like playing here? A vote on a server list helps new players find us. It only takes a minute,
             and you can vote again every day.
@@ -26,7 +26,7 @@
                             Coming soon.
                         @elseif ($site['rewarded'] && $daysPerVote > 0)
                             Each vote gives you {{ $daysPerVote }} {{ $daysPerVote === 1 ? 'day' : 'days' }} of
-                            production supporter. Vote with your production username
+                            {{ App\Libraries\TomYumBranding::name() }} supporter. Vote with your {{ App\Libraries\TomYumBranding::name() }} username
                             @if ($user !== null)
                                 (<strong>{{ $user->username }}</strong>)
                             @endif

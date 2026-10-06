@@ -12,8 +12,8 @@
     <div class="download-page">
         <div class="download-page__header">
             <div class="download-page__banner">
-                @if ($GLOBALS['cfg']['osu']['urls']['download_video'] !== null) {{-- TomYum --}}
-                <video class="download-page__banner-video" src="{{ $GLOBALS['cfg']['osu']['urls']['download_video'] }}" autoplay muted loop playsinline>
+                @if (App\Libraries\TomYumBranding::downloadVideoUrl() !== null) {{-- TomYum --}}
+                <video class="download-page__banner-video" src="{{ App\Libraries\TomYumBranding::downloadVideoUrl() }}" autoplay muted loop playsinline>
                 </video>
                 @else
                     <div class="download-page__banner-logo"></div>
@@ -53,18 +53,18 @@
                     </div>
                 </div>
             </div>
-            {{-- TomYum: the production patcher for today's osu!(stable), in place of ppy's installer. --}}
+            {{-- TomYum: this server's patcher for today's osu!(stable), in place of ppy's installer. --}}
             <div class="download-page__banner-tail">
                 <div class="download-page__banner-content download-page__banner-content--tail">
                     <div class="download-page__text download-page__text--download-stable">
-                        Playing on osu!(stable)? Patch it to play on production (required):
+                        Playing on osu!(stable)? Patch it to play on {{ App\Libraries\TomYumBranding::name() }} (required):
                     </div>
                     <a class="btn-osu-big btn-osu-big--download btn-osu-big--download-stable" href="{{ $patcherUrl }}">
                         <div class="btn-osu-big__content">
                             <div class="btn-osu-big__left">
                                 <div>
                                     <div class="btn-osu-big__text-top btn-osu-big__text-top--download">
-                                        production patcher
+                                        {{ App\Libraries\TomYumBranding::name() }} patcher
                                     </div>
                                     Windows and Linux (no macOS)
                                 </div>

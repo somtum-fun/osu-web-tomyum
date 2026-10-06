@@ -25,7 +25,7 @@
                 @csrf
                 <label class="input-container">
                     <span class="input-container__label">Name</span>
-                    <input class="input-text" type="text" name="name" required maxlength="255" placeholder="production World Cup 2026">
+                    <input class="input-text" type="text" name="name" required maxlength="255" placeholder="{{ App\Libraries\TomYumBranding::name() }} World Cup 2026">
                 </label>
                 <label class="input-container input-container--select">
                     <span class="input-container__label">Mode</span>

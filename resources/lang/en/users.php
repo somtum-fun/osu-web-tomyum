@@ -187,7 +187,7 @@ return [
         ],
     ],
     'restricted_banner' => [
-        // TomYum: plain production wording (restrictions here aren't lifted in 24 hours).
+        // TomYum: plain wording for this server (restrictions here aren't lifted in 24 hours).
         'title' => 'Your account has been restricted!',
         'message' => 'While restricted, you can still play, but you can\'t talk to other players and only you can see your scores. If you think this is a mistake, or want to know when and how you can appeal, :link',
         'message_link' => 'read Restrictions & Appeals.',
@@ -197,7 +197,7 @@ return [
         'change_avatar' => 'change your avatar!',
         'first_members' => 'Here since the beginning',
         'is_developer' => 'osu!developer',
-        'is_supporter' => 'production supporter',
+        'is_supporter' => ':brand supporter',
         'joined_at' => 'Joined :date',
         'lastvisit' => 'Last seen :date',
         'lastvisit_online' => 'Currently online',
@@ -253,7 +253,7 @@ return [
 
                     'restriction_info' => [
                         '_' => 'Upload available for :link only',
-                        'link' => 'production supporters',
+                        'link' => ':brand supporters',
                     ],
                 ],
             ],
@@ -275,7 +275,7 @@ return [
 
                 'supporter' => [
                     '_' => 'Custom colour themes available for :link only',
-                    'link' => 'production supporters',
+                    'link' => ':brand supporters',
                 ],
             ],
         ],
@@ -517,7 +517,7 @@ return [
 
             'restriction_info' => [
                 '_' => 'You need to be an :link to unlock this feature.',
-                'link' => 'production supporter',
+                'link' => ':brand supporter',
             ],
         ],
         'post_count' => [

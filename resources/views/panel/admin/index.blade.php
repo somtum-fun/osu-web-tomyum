@@ -46,6 +46,7 @@
                 ['panel.admin.news.index', 'fa-newspaper', 'website & lazer', 'News', 'Write and edit posts'],
                 ['panel.admin.seasonal-backgrounds.index', 'fa-image', 'lazer & stable', 'Seasonal backgrounds', "Menu backgrounds and the season's end"],
                 ['panel.admin.menu-banners.index', 'fa-images', 'lazer', 'Menu banners', 'The main menu\'s rotating banners'],
+                ['panel.admin.branding.index', 'fa-signature', 'website', 'Branding', 'Name, logo, favicons and texts'],
                 ['panel.admin.artists.index', 'fa-music', 'website', 'Featured artists', 'Artists, albums and tracks'],
                 ['panel.admin.contests.index', 'fa-award', 'website', 'Contests', 'Art, beatmap and music contests'],
                 ['panel.packs.index', 'fa-box-open', 'website', 'Beatmap packs', 'Make packs and their downloads'],

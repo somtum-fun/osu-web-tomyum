@@ -37,8 +37,8 @@
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    // TomYum: the production wordmark is wide (about 8:3).
-    width: ((@navbar-mobile--content-height + 10px) * 2.67);
+    // TomYum: as wide as this server's logo (TomYumBranding).
+    width: calc((@navbar-mobile--content-height + 10px) * var(--brand-logo-ratio, 1));
     height: (@navbar-mobile--content-height + 10px);
     margin: -5px;
   }

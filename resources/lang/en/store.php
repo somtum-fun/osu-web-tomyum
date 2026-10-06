@@ -188,7 +188,7 @@ return [
         'gift_message' => 'add an optional message to your gift! (up to :length characters)',
 
         'require_login' => [
-            '_' => 'You need to be :link to get an production supporter tag!',
+            '_' => 'You need to be :link to get an :brand supporter tag!',
             'link_text' => 'signed in',
         ],
     ],

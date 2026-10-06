@@ -651,6 +651,9 @@ function osu_trans($key = null, $replace = [], $locale = null)
         $locale = $GLOBALS['cfg']['app']['fallback_locale'];
     }
 
+    // TomYum: ":brand" in a text is this server's name (TomYumBranding).
+    $replace += ['brand' => App\Libraries\TomYumBranding::name()];
+
     return $translator->get($key, $replace, $locale, false);
 }
 
@@ -667,6 +670,7 @@ function osu_trans_choice($key, $number, array $replace = [], $locale = null)
     if (!isset($replace['count_delimited'])) {
         $replace['count_delimited'] = i18n_number_format($number, null, null, null, $locale);
     }
+    $replace += ['brand' => App\Libraries\TomYumBranding::name()];
 
     return app('translator')->choice($key, $number, $replace, $locale);
 }

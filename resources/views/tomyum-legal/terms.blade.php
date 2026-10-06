@@ -2,20 +2,20 @@
     Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
     See the LICENCE file in the repository root for full licence text.
 --}}
-{{-- TomYum: production's Terms of Service. --}}
+{{-- TomYum: this server's Terms of Service. --}}
 @extends('tomyum-legal.layout')
 
 @section('legal-body')
 <p>
-    Welcome to production! These terms apply when you use our website ({{ parse_url($GLOBALS['cfg']['app']['url'], PHP_URL_HOST) }} and our other
+    Welcome to {{ App\Libraries\TomYumBranding::name() }}! These terms apply when you use our website ({{ parse_url($GLOBALS['cfg']['app']['url'], PHP_URL_HOST) }} and our other
     sites), our game servers, chat and IRC, and our clients and tools. By making an account or
     playing here, you agree to them. If you don't agree, please don't use the service.
 </p>
 
 <h2>Who we are</h2>
 <p>
-    production is a community osu! private server run by Server Operator in Thailand, with the help of our
-    staff. When these terms say "we" or "us", they mean the people who run production. You can reach us at
+    {{ App\Libraries\TomYumBranding::name() }} is a community osu! private server run by Server Operator in Thailand, with the help of our
+    staff. When these terms say "we" or "us", they mean the people who run {{ App\Libraries\TomYumBranding::name() }}. You can reach us at
     <a href="mailto:{{ App\Libraries\TomYumTickets::address('support') }}">{{ App\Libraries\TomYumTickets::address('support') }}</a>.
 </p>
 
@@ -73,14 +73,14 @@
 
 <h2>The service is as-is</h2>
 <p>
-    production is run by volunteers on a best-effort basis. We provide it "as is", without warranties of
+    {{ App\Libraries\TomYumBranding::name() }} is run by volunteers on a best-effort basis. We provide it "as is", without warranties of
     any kind. It may be down, lose data, or change at any time, and we may shut it down. As far as the law
     allows, we aren't liable for any loss that comes from using it.
 </p>
 
 <h2>Not official</h2>
 <p>
-    production is not osu!. It is not affiliated with, endorsed by or connected to ppy Pty Ltd. osu! is a
+    {{ App\Libraries\TomYumBranding::name() }} is not osu!. It is not affiliated with, endorsed by or connected to ppy Pty Ltd. osu! is a
     trademark of ppy Pty Ltd. Please don't contact ppy about anything here; contact us instead.
 </p>
 

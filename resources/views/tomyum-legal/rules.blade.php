@@ -2,7 +2,7 @@
     Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
     See the LICENCE file in the repository root for full licence text.
 --}}
-{{-- TomYum: production's rules, as on example.com, with the in-game sign-up rule added. --}}
+{{-- TomYum: this server's rules, as on example.com, with the in-game sign-up rule added. --}}
 @php
     $serverName = $GLOBALS['cfg']['tomyum']['server_name'];
     $discord = osu_url('dev');

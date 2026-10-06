@@ -21,9 +21,9 @@ return [
     'donation_thanks' => [
         'benefit_more' => 'More new supporter benefits will appear over time, as well!',
         'feedback' => "If you have any questions or feedback, don't hesitate to reply to this mail; I'll get back to you as soon as possible!",
-        'keep_free' => 'It is thanks to people like you that production can keep the server running without any advertisements or forced payments.',
-        'keep_running' => 'Your support keeps production running for around :minutes! It may not seem like much, but it all adds up :).',
-        'subject' => 'Thanks, production <3s you',
+        'keep_free' => 'It is thanks to people like you that :brand can keep the server running without any advertisements or forced payments.',
+        'keep_running' => 'Your support keeps :brand running for around :minutes! It may not seem like much, but it all adds up :).',
+        'subject' => 'Thanks, :brand <3s you',
         'translation' => 'A community-provided translation for informational purposes follows:',
 
         'benefit' => [
@@ -32,7 +32,7 @@ return [
         ],
 
         'support' => [
-            '_' => 'Thanks a lot for your :support towards production.',
+            '_' => 'Thanks a lot for your :support towards :brand.',
             'first' => 'support',
             'repeat' => 'continued support',
         ],
@@ -40,15 +40,15 @@ return [
 
     'forum_new_reply' => [
         'new' => 'Just letting you know that there has been a new reply in ":title" since your last visit.',
-        'subject' => '[production] New reply for topic ":title"',
+        'subject' => '[:brand] New reply for topic ":title"',
         'unwatch' => 'If you no longer wish to watch this topic, you can either click the "Unsubscribe topic" link found at the bottom of the topic above, or from topic subscriptions management page:',
         'visit' => 'Jump straight to the latest reply using the following link:',
     ],
 
     'password_reset' => [
         'code' => 'Your verification code is:',
-        'requested' => 'Either you or someone pretending to be you has requested a password reset on your production account.',
-        'subject' => 'production account recovery',
+        'requested' => 'Either you or someone pretending to be you has requested a password reset on your :brand account.',
+        'subject' => ':brand account recovery',
     ],
 
     'store_payment_completed' => [
@@ -56,8 +56,8 @@ return [
         'processing' => 'We have received your payment and are currently processing your order. You can follow the progress of your order here:',
         'questions' => "If you have any questions, don't hesitate to reply to this email.",
         'shipping' => 'Shipping',
-        'subject' => 'We received your production store order!',
-        'thank_you' => 'Thanks for your production store order!',
+        'subject' => 'We received your :brand store order!',
+        'thank_you' => 'Thanks for your :brand store order!',
         'total' => 'Total',
     ],
 
@@ -66,34 +66,34 @@ return [
         'anonymous_gift_maybe_not' => 'But you likely already know who it is ;).',
         'duration' => 'Thanks to them, you have access to osu!direct and other supporter perks for the next :duration.',
         'features' => 'You can find out more details on these features here:',
-        'gifted' => 'Someone has just gifted you an production supporter tag!',
+        'gifted' => 'Someone has just gifted you an :brand supporter tag!',
         'gift_message' => 'The person who gifted you this tag left you a message:',
-        'subject' => 'You have been gifted an production supporter tag!',
+        'subject' => 'You have been gifted an :brand supporter tag!',
     ],
 
     'user_email_updated' => [
-        'changed_to' => 'This is a confirmation email to inform you that your production email address has been changed to: ":email".',
-        'check' => 'Please ensure that you received this email at your new address to prevent losing access your production account in the future.',
+        'changed_to' => 'This is a confirmation email to inform you that your :brand email address has been changed to: ":email".',
+        'check' => 'Please ensure that you received this email at your new address to prevent losing access your :brand account in the future.',
         'sent' => 'For security reasons, this email has been sent both to your new and old email address.',
-        'subject' => 'production email change confirmation',
+        'subject' => ':brand email change confirmation',
     ],
 
     'user_force_reactivation' => [
         'main' => 'Your account is suspected to have been compromised, has recent suspicious activity or a VERY weak password. As a result, we require you to set a new password. Please make sure to choose a SECURE password.',
         'perform_reset' => 'You can perform the reset from :url',
         'reason' => 'Reason:',
-        'subject' => 'production Account Reactivation Required',
+        'subject' => ':brand Account Reactivation Required',
     ],
 
     'user_notification_digest' => [
         'new' => 'Just letting you know that there have been new updates on items you are watching.',
         'settings' => 'Change email notification preferences:',
-        'subject' => 'New production notifications',
+        'subject' => 'New :brand notifications',
     ],
 
     'user_password_updated' => [
-        'confirmation' => 'This is just a confirmation that your production password has been changed.',
-        'subject' => 'production password change confirmation',
+        'confirmation' => 'This is just a confirmation that your :brand password has been changed.',
+        'subject' => ':brand password change confirmation',
     ],
 
     'user_verification' => [
@@ -101,7 +101,7 @@ return [
         'code_hint' => 'You can enter the code with or without spaces.',
         'link' => 'Alternatively, you can also visit this link below to finish verification:',
         'report' => 'If you did not request this, please REPLY IMMEDIATELY as your account may be in danger.',
-        'subject' => 'production account verification',
+        'subject' => ':brand account verification',
 
         'action_from' => [
             '_' => 'An action performed on your account from :country requires verification.',

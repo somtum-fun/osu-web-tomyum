@@ -7,16 +7,16 @@ return [
     'support' => [
         'convinced' => [
             'title' => 'I\'m convinced! :D',
-            'support' => 'support production',
+            'support' => 'support :brand',
             'gift' => 'or gift supporter to other players',
             'instructions' => 'click the heart button to go to the store',
         ],
         'why-support' => [
-            'title' => 'Why should I support production? Where does the money go?',
+            'title' => 'Why should I support :brand? Where does the money go?',
 
             'team' => [
                 'title' => 'Run by Volunteers',
-                'description' => 'production is a free, unofficial server run in our spare time by a couple of volunteers in Thailand. Nobody here gets paid.',
+                'description' => ':brand is a free, unofficial server run in our spare time by a couple of volunteers in Thailand. Nobody here gets paid.',
             ],
             'infra' => [
                 'title' => 'Server Infrastructure',
@@ -29,7 +29,7 @@ return [
             ],
             'ads' => [
                 'title' => 'No Ads, No Pay-to-Win',
-                'description' => 'production stays free of ads. Supporter perks are cosmetic or handy extras and never give a competitive advantage.',
+                'description' => ':brand stays free of ads. Supporter perks are cosmetic or handy extras and never give a competitive advantage.',
             ],
             'tournaments' => [
                 'title' => 'Official Tournaments',
@@ -39,7 +39,7 @@ return [
             // TomYum
             'vote' => [
                 'title' => 'Can\'t Pay? Vote!',
-                'description' => 'Every vote for production on a server list gives you supporter time for free, and helps new players find us.',
+                'description' => 'Every vote for :brand on a server list gives you supporter time for free, and helps new players find us.',
                 'link_text' => 'Vote for us &raquo;',
             ],
             'bounty-program' => [
@@ -50,10 +50,10 @@ return [
         ],
         'perks' => [
             'title' => 'Cool! What perks do I get?',
-            // TomYum: production's own perks (example.com).
+            // TomYum: this server's own perks (:brand is its name, TomYumBranding).
             'discord_role' => [
                 'title' => 'Supporter Role on Discord',
-                'description' => 'Get an exclusive supporter role on our Discord server! Make sure to link your Discord account with production first.',
+                'description' => 'Get an exclusive supporter role on our Discord server! Make sure to link your Discord account with :brand first.',
             ],
 
             'unlimited_name_changes' => [
@@ -171,7 +171,7 @@ return [
         ],
         'supporter_status' => [
             'contribution_with_duration' => 'Thank you for your ongoing support! So far, you\'ve contributed a total of :dollars, earning you the "Supporter" tag for :duration.',
-            'not_yet' => "You haven't ever had an production supporter tag :(",
+            'not_yet' => "You haven't ever had an :brand supporter tag :(",
             'valid_until' => 'Your current supporter tag is valid until :date!',
             'was_valid_until' => 'Your supporter tag was valid until :date.',
 

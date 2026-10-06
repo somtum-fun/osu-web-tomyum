@@ -10,25 +10,28 @@
 
     $opengraph['description'] ??= $pageDescription ?? null;
 @endphp
-<link rel="apple-touch-icon" sizes="180x180" href="{{ $appUrl }}/images/favicon/apple-touch-icon.png">
-<link rel="icon" sizes="32x32" href="{{ $appUrl }}/images/favicon/favicon-32x32.png">
-<link rel="icon" sizes="16x16" href="{{ $appUrl }}/images/favicon/favicon-16x16.png">
-<link rel="manifest" href="{{ $appUrl }}/site.webmanifest">
+{{-- TomYum: this server's favicons and logo (Admin panel > Branding). --}}
+<link rel="apple-touch-icon" sizes="180x180" href="{{ $appUrl }}{{ App\Libraries\TomYumBranding::favicon('apple-touch-icon.png') }}">
+<link rel="icon" sizes="32x32" href="{{ $appUrl }}{{ App\Libraries\TomYumBranding::favicon('favicon-32x32.png') }}">
+<link rel="icon" sizes="16x16" href="{{ $appUrl }}{{ App\Libraries\TomYumBranding::favicon('favicon-16x16.png') }}">
+<link rel="shortcut icon" href="{{ $appUrl }}{{ App\Libraries\TomYumBranding::favicon() }}">
+<link rel="manifest" href="{{ route('brand.webmanifest') }}">
+<style>:root{ {!! App\Libraries\TomYumBranding::cssVariables() !!} }</style>
 <meta name="msapplication-TileColor" content="#603cba">
 <meta name="theme-color" content="{{ hsl_to_hex($currentHue, 0.1, 0.4) }}"> {{-- @osu-colour-b1 --}}
 
 <meta charset="utf-8">
 <meta name="description" content="{{ $opengraph['description'] ?? osu_trans('layout.defaults.page_description') }}">
 {{-- TomYum: this server's keywords and name. --}}
-<meta name="keywords" content="production, prod, osu! private server, osu private server, thailand, rhythm game, relax, autopilot">
+<meta name="keywords" content="{{ App\Libraries\TomYumBranding::text('keywords') }}">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <meta name="turbo-cache-control" content="no-preview">
 <meta name="turbo-prefetch" content="false">
 
-<link rel="search" type="application/opensearchdescription+xml" title="production search" href="{{ $appUrl }}/opensearch.xml">
+<link rel="search" type="application/opensearchdescription+xml" title="{{ App\Libraries\TomYumBranding::name() }} search" href="{{ $appUrl }}/opensearch.xml">
 
-<meta property="og:site_name" content="production">
+<meta property="og:site_name" content="{{ App\Libraries\TomYumBranding::name() }}">
 <meta property="og:type" content="website">
 
 @if (isset($canonicalUrl))

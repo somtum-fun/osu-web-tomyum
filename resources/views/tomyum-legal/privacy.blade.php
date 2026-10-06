@@ -2,7 +2,7 @@
     Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
     See the LICENCE file in the repository root for full licence text.
 --}}
-{{-- TomYum: production's Privacy Policy, as on example.com. --}}
+{{-- TomYum: this server's Privacy Policy, as on example.com. --}}
 @extends('tomyum-legal.layout')
 
 @section('legal-updated', 'Effective Date: 7 June 2026')
@@ -10,12 +10,12 @@
 @section('legal-body')
 <h2>1. Introduction</h2>
 <p>
-    production ("we," "us," or "our") is a private osu! server operated by an individual person and managed by
-    the prod!team. Your privacy is important to us, and this Privacy Policy explains how we collect, use, and
+    {{ App\Libraries\TomYumBranding::name() }} ("we," "us," or "our") is a private osu! server operated by an individual person and managed by
+    the {{ Appibrariestomyumbranding::name() }} team. Your privacy is important to us, and this Privacy Policy explains how we collect, use, and
     protect your personal data.
 </p>
 <p>
-    By registering and using production, you agree to the collection and use of information in accordance with
+    By registering and using {{ App\Libraries\TomYumBranding::name() }}, you agree to the collection and use of information in accordance with
     this policy.
 </p>
 
@@ -81,7 +81,7 @@
 
 <h3>2.5 Anti-Cheat System</h3>
 <p>
-    Our anti-cheat system (circlecore-prod) operates entirely on our private servers. We do not inject code
+    Our anti-cheat system operates entirely on our private servers. We do not inject code
     into your osu! client, nor do we spy on or violate your privacy. We strive to avoid tracking any personally
     identifiable data while processing replays for anti-cheat purposes.
 </p>
@@ -97,7 +97,7 @@
         community.</li>
 </ul>
 <p>
-    We do not share, sell, or distribute your data to third parties. Only the prod!team has access to this
+    We do not share, sell, or distribute your data to third parties. Only the {{ Appibrariestomyumbranding::name() }} team has access to this
     data.
 </p>
 
@@ -172,5 +172,5 @@
 <h2>11. Contact Information</h2>
 <p>For any privacy concerns, contact us at:</p>
 <p>Email: <a href="mailto:{{ App\Libraries\TomYumTickets::address('privacy') }}">{{ App\Libraries\TomYumTickets::address('privacy') }}</a></p>
-<p>By using production, you acknowledge that you have read and understood this Privacy Policy.</p>
+<p>By using {{ App\Libraries\TomYumBranding::name() }}, you acknowledge that you have read and understood this Privacy Policy.</p>
 @endsection

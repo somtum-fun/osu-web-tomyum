@@ -23,16 +23,31 @@ class TomYumSiteSettings
 
     public static function get(string $name, ?string $default = null): ?string
     {
-        // Not kept in a static: Octane workers live across requests, and a change wouldn't show.
-        $settings = Cache::remember(static::CACHE_KEY, 300, fn () => DB::table('tomyum_site_settings')->pluck('value', 'name')->all());
-
-        return $settings[$name] ?? $default;
+        return static::all()[$name] ?? $default;
     }
 
     public static function set(string $name, ?string $value): void
     {
         DB::table('tomyum_site_settings')->updateOrInsert(['name' => $name], ['value' => $value, 'updated_at' => now(), 'created_at' => now()]);
         Cache::forget(static::CACHE_KEY);
+        request()?->attributes->remove(static::CACHE_KEY);
+    }
+
+    /**
+     * Every setting, read once per request (the branding's name is in most translated texts). Not
+     * kept in a static: Octane workers live across requests, and a change wouldn't show.
+     */
+    private static function all(): array
+    {
+        $attributes = request()?->attributes;
+        if ($attributes?->has(static::CACHE_KEY)) {
+            return $attributes->get(static::CACHE_KEY);
+        }
+
+        $settings = Cache::remember(static::CACHE_KEY, 300, fn () => DB::table('tomyum_site_settings')->pluck('value', 'name')->all());
+        $attributes?->set(static::CACHE_KEY, $settings);
+
+        return $settings;
     }
 
     /** Whether the development banner shows: the panel's switch, else IS_DEVELOPMENT_DEPLOY. */

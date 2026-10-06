@@ -53,3 +53,5 @@ declare const currentLocale: string;
 
 // TomYum: the domain of the server's ticket addresses (layout/_global_variables).
 declare const ticketsDomain: string;
+// TomYum: this server's name, ":brand" in the texts (layout/_global_variables).
+declare const brandName: string;

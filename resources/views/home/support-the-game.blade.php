@@ -77,29 +77,26 @@
 
     <div class="osu-page osu-page--supporter">
         <div class="supporter">
-            {{-- TomYum: a note from this server's team, in place of peppy's letter (osu!'s, not ours). --}}
+            {{-- TomYum: a note from this server's team, in place of peppy's letter (osu!'s, not ours); Admin panel > Branding. --}}
+            @php
+                $supportNote = App\Libraries\TomYumBranding::text('support_note');
+                $supportSignature = App\Libraries\TomYumBranding::text('support_signature');
+            @endphp
             <div class="supporter-quote">
-                <div class="supporter-quote__body">
-                    <div class="supporter-quote__quote-mark supporter-quote__quote-mark--left"><i class="fas fa-quote-left"></i></div>
-                    <blockquote class="supporter-quote__content">
-                        Running production isn't easy or cheap.
-                        <br/><br/>
-                        We're committed to making production a free-to-win experience. We put in a lot of time, effort,
-                        and technical skill to keep everything running smoothly and constantly improving.
-                        <br/><br/>
-                        If you enjoy playing here and want to support our work, consider supporting us. Your support
-                        helps us keep production alive and growing. Can't pay? You can also earn supporter for free by
-                        <a href="{{ route('vote') }}">voting for us</a>.
-                        <br/><br/>
-                        A huge thank you to all our donors - you're the reason we can keep doing this.
-                    </blockquote>
-                    <div class="supporter-quote__quote-mark supporter-quote__quote-mark--right"><i class="fas fa-quote-right"></i></div>
-                </div>
-                <div class="supporter-quote__signature">— Server Operator, production</div>
+                @if (present($supportNote))
+                    <div class="supporter-quote__body">
+                        <div class="supporter-quote__quote-mark supporter-quote__quote-mark--left"><i class="fas fa-quote-left"></i></div>
+                        <blockquote class="supporter-quote__content">{!! markdown_plain($supportNote) !!}</blockquote>
+                        <div class="supporter-quote__quote-mark supporter-quote__quote-mark--right"><i class="fas fa-quote-right"></i></div>
+                    </div>
+                    @if (present($supportSignature))
+                        <div class="supporter-quote__signature">— {{ $supportSignature }}</div>
+                    @endif
+                @endif
                 <p class="supporter-quote__signature">
                     Make sure to support osu! (<a href="https://osu.ppy.sh/home/support">osu.ppy.sh/home/support</a>) as well!
                     Huge thanks to peppy for creating this amazing game!
-                    production is not affiliated with ppy Pty Ltd or osu!.
+                    {{ App\Libraries\TomYumBranding::name() }} is not affiliated with ppy Pty Ltd or osu!.
                 </p>
             </div>
             <h3 class="supporter__title">

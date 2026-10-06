@@ -193,6 +193,26 @@ class HomeController extends Controller
         return ext_view('home.opensearch', null, 'opensearch')->header('Cache-Control', 'max-age=86400');
     }
 
+    /** TomYum: the web app manifest, with this server's name and favicons (TomYumBranding). */
+    public function webmanifest()
+    {
+        $name = \App\Libraries\TomYumBranding::name();
+        $icon = fn (int $size) => [
+            'src' => \App\Libraries\TomYumBranding::favicon("android-chrome-{$size}x{$size}.png"),
+            'sizes' => "{$size}x{$size}",
+            'type' => 'image/png',
+        ];
+
+        return response()->json([
+            'name' => $name,
+            'short_name' => $name,
+            'icons' => [$icon(192), $icon(512)],
+            'theme_color' => '#ffffff',
+            'background_color' => '#ffffff',
+            'display' => 'standalone',
+        ], 200, ['Content-Type' => 'application/manifest+json', 'Cache-Control' => 'max-age=3600']);
+    }
+
     public function quickSearch()
     {
         $quickSearch = new QuickSearch(Request::all(), ['user' => auth()->user()]);
