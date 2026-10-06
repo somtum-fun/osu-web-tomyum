@@ -45,6 +45,7 @@
                 ['panel.admin.tournament-banners.index', 'fa-trophy', 'profiles', 'Tournament banners', 'Banners under players\' headers'],
                 ['panel.admin.news.index', 'fa-newspaper', 'website & lazer', 'News', 'Write and edit posts'],
                 ['panel.admin.seasonal-backgrounds.index', 'fa-image', 'lazer & stable', 'Seasonal backgrounds', "Menu backgrounds and the season's end"],
+                ['panel.admin.menu-banners.index', 'fa-images', 'lazer', 'Menu banners', 'The main menu\'s rotating banners'],
                 ['panel.admin.artists.index', 'fa-music', 'website', 'Featured artists', 'Artists, albums and tracks'],
             ] as [$route, $icon, $kicker, $title, $hint])
                 <a class="tomyum-panel__link" href="{{ route($route) }}">

@@ -122,6 +122,9 @@ Route::group(['middleware' => ['web']], function () {
         });
 
         Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
+            Route::get('menu-banners', 'MenuBannersController@index')->name('menu-banners.index');
+            Route::post('menu-banners', 'MenuBannersController@store')->name('menu-banners.store');
+            Route::post('menu-banners/{index}/remove', 'MenuBannersController@destroy')->name('menu-banners.destroy')->where('index', '[0-9]+');
             Route::get('/', 'AdminController@index')->name('index');
             Route::post('pp-rework', 'AdminController@ppRework')->name('pp-rework');
             Route::post('pp-library', 'AdminController@ppLibrary')->name('pp-library');
