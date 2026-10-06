@@ -28,7 +28,7 @@
                 $osuLink = App\Libraries\TomYumConnections::status($target, false)['osu_bancho'];
             @endphp
             <tr>
-                <td><i class="fas fa-circle"></i> osu!</td>
+                <td><i class="fal fa-extra-mode-osu"></i> osu!</td>
                 @if ($osuLink['linked'])
                     <td>
                         <a href="https://osu.ppy.sh/users/{{ $osuLink['id'] }}" rel="nofollow noreferrer" target="_blank">{{ $osuLink['name'] ?? $osuLink['id'] }}</a>

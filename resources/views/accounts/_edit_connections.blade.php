@@ -6,7 +6,7 @@
 @php
     $connections = App\Libraries\TomYumConnections::status(Auth::user());
     $connectionsStatus = session('connections_status');
-    $icons = ['discord' => 'fab fa-discord', 'osu_bancho' => 'fas fa-circle'];
+    $icons = ['discord' => 'fab fa-discord', 'osu_bancho' => 'fal fa-extra-mode-osu'];
 @endphp
 <div class="account-edit" id="connections">
     <div class="account-edit__section">
