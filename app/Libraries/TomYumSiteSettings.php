@@ -44,7 +44,13 @@ class TomYumSiteSettings
             return $attributes->get(static::CACHE_KEY);
         }
 
-        $settings = Cache::remember(static::CACHE_KEY, 300, fn () => DB::table('tomyum_site_settings')->pluck('value', 'name')->all());
+        try {
+            $settings = Cache::remember(static::CACHE_KEY, 300, fn () => DB::table('tomyum_site_settings')->pluck('value', 'name')->all());
+        } catch (\Throwable $e) {
+            // Without the cache or database (the asset build runs artisan commands that translate,
+            // and translating reads the branding's name): the defaults, not a failure.
+            return [];
+        }
         $attributes?->set(static::CACHE_KEY, $settings);
 
         return $settings;
