@@ -52,24 +52,25 @@
     margin: 0;
     padding-top: 6px;
 
+    // A little larger than the design's 10px, as clear as the game's (it draws them 1.4x).
     .beatmapsets-search-filter__header {
       color: hsl(var(--hsl-c1));
-      font-size: @font-size--small;
+      font-size: @font-size--normal;
       font-weight: 700;
-      margin: 0 0 4px;
+      margin: 0 0 5px;
     }
 
     .beatmapsets-search-filter__items {
       align-items: flex-start;
       flex-direction: column;
       flex-wrap: nowrap;
-      gap: 1px;
+      gap: 2px;
     }
 
     .beatmapsets-search-filter__item {
       --colour: hsl(var(--hsl-c2));
       --colour-hover: hsl(var(--hsl-c1));
-      font-size: @font-size--small;
+      font-size: @font-size--normal;
       position: relative;
 
       // the lime dot before a selected one
@@ -93,22 +94,23 @@
   // Categories: each status a pill in its colour
   &--pill {
     .beatmapsets-search-filter__items {
-      gap: 3px;
+      gap: 4px;
     }
 
     .beatmapsets-search-filter__item {
       background-color: var(--bg);
       border-radius: 10000px;
       color: var(--colour);
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 700;
-      line-height: 14px;
+      line-height: 18px;
+      outline: none;
       max-width: 100%;
       opacity: 0.55;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      width: 90px;
+      width: 110px;
       text-align: center;
       text-transform: uppercase;
 
@@ -148,7 +150,7 @@
     }
 
     .score-rank {
-      font-size: 16px;
+      font-size: 20px;
     }
   }
 }

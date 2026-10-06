@@ -138,6 +138,7 @@ export default class Info extends React.Component<Props> {
         <button
           className='btn-circle'
           onClick={this.onEditDescriptionClick}
+          title='Edit description'
           type='button'
         >
           <span className='btn-circle__content'>
@@ -154,10 +155,11 @@ export default class Info extends React.Component<Props> {
         <button
           className='btn-circle'
           onClick={this.onEditMetadataClick}
+          title='Edit genre and language'
           type='button'
         >
           <span className='btn-circle__content'>
-            <span className='fas fa-pencil-alt' />
+            <span className='fas fa-tags' />
           </span>
         </button>
       </div>
