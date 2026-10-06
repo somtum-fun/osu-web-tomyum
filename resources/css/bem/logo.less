@@ -4,12 +4,15 @@
 .logo {
   @_top: logo;
   display: flex;
-  width: @logo-size;
+  width: (@logo-size * 480 / 180); // TomYum: the production wordmark is 480x180, not square
   height: @logo-size;
+  position: relative; // TomYum: keep __main inside the box
 
   &__main {
-    .at2x("~@images/layout/osu-logo.png");
+    .at2x("~@images/layout/prod-logo.png"); // TomYum
     background-size: contain;
+    background-repeat: no-repeat;
+    background-position: left center; // TomYum
 
     position: absolute;
     width: 100%;

@@ -12,8 +12,9 @@
     opacity 200ms ease-in-out;
 
   &--body {
-    --nav-logo: url("~@images/layout/osu-logo-white.svg");
-    --nav-logo-bg: url("~@images/layout/osu-logo-triangles.svg");
+    // TomYum: the production wordmark (example.com), without the hover triangles.
+    --nav-logo: url("~@images/layout/prod-logo@2x.png");
+    --nav-logo-bg: none;
 
     background-color: @osu-colour-b6;
   }
@@ -38,8 +39,8 @@
   }
 
   &--body-lazer {
-    --nav-logo: url("~@images/layout/osu-lazer-logo-white.svg");
-    --nav-logo-bg: url("~@images/layout/osu-lazer-logo-triangles.svg");
+    --nav-logo: url("~@images/layout/prod-logo@2x.png");
+    --nav-logo-bg: none;
   }
 
   &--full {

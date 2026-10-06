@@ -7,7 +7,7 @@ return [
     'cart' => [
         'checkout' => 'Завршите куповину',
         'empty_cart' => 'Уклоните све производе из корпе',
-        'info' => ':count_delimited производа у корпи ($:subtotal)|:count_delimited производа у корпи ($:subtotal)',
+        'info' => ':count_delimited производа у корпи (:subtotal)|:count_delimited производа у корпи (:subtotal)',
         'more_goodies' => 'Желим да погледам још ствари пре него што завршим куповину',
         'shipping_fees' => 'накнада за отпрему',
         'title' => 'Корпа',

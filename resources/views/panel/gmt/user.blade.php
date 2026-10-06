@@ -83,11 +83,72 @@
                         <span class="input-container__label">Reason (shown in their account history)</span>
                         <input class="input-text" type="text" name="reason" required maxlength="2000">
                     </label>
+                    {{-- TomYum: the offense sets when they may appeal. --}}
+                    @if (!$target->isRestricted())
+                        @include('panel.gmt._appeal_offense')
+                    @endif
                     <button class="btn-osu-big btn-osu-big--rounded-thin {{ $target->isRestricted() ? '' : 'btn-osu-big--danger' }}" type="submit">
                         {{ $target->isRestricted() ? 'Unrestrict' : 'Restrict' }}
                     </button>
                 </form>
             </div>
+
+            {{-- TomYum: when a restricted player may appeal (the Restrictions & Appeals page). --}}
+            @if ($target->isRestricted())
+                <div class="tomyum-panel__card">
+                    <h2><i class="fas fa-hourglass-half"></i>Appeal cooldown</h2>
+                    {{-- TomYum: where it stands as tiles like the account's facts above, then the form on a grid (bem/panel-gmt.less). --}}
+                    <div class="tomyum-panel__facts" style="margin-bottom: 12px">
+                        <div class="tomyum-panel__fact">
+                            <span class="tomyum-panel__kicker">Can appeal</span>
+                            <span class="tomyum-panel__fact-value">
+                                @if ($appealAfter !== null && $appealAfter->isFuture())
+                                    from {{ $appealAfter->format('j M Y') }}
+                                @else
+                                    now
+                                @endif
+                            </span>
+                            @if ($appealAfter !== null && $appealAfter->isFuture())
+                                <span class="panel-gmt__fact-note">{!! timeago($appealAfter) !!}</span>
+                            @endif
+                        </div>
+                        @if ($appealCooldown !== null)
+                            <div class="tomyum-panel__fact">
+                                <span class="tomyum-panel__kicker">Offense</span>
+                                <span class="tomyum-panel__fact-value">{{ App\Libraries\TomYumAppeals::OFFENSES[$appealCooldown->offense] ?? $appealCooldown->offense }}</span>
+                            </div>
+                            <div class="tomyum-panel__fact">
+                                <span class="tomyum-panel__kicker">Cheating offenses</span>
+                                <span class="tomyum-panel__fact-value">{{ $appealCooldown->cheating_offenses }}</span>
+                            </div>
+                            <div class="tomyum-panel__fact">
+                                <span class="tomyum-panel__kicker">Denied appeals</span>
+                                <span class="tomyum-panel__fact-value">{{ $appealCooldown->denied_appeals }}</span>
+                            </div>
+                        @endif
+                    </div>
+                    <p class="tomyum-panel__hint">
+                        @if ($appealCooldown === null)
+                            No offense was picked for this restriction (BanchoBot, the anti-cheat, or before cooldowns were kept): they can appeal 3 months from it.
+                        @endif
+                        @if ($appealAfter === null || !$appealAfter->isFuture())
+                            They appeal on <a href="{{ route('tomyum-appeal.show') }}">the appeal page</a>.
+                        @endif
+                        Pick an offense to start the wait again from today (or from the date you pick), or leave it
+                        at "no new offense" and only pick a date to move it. A denied appeal adds 3 months by itself
+                        (close the appeal ticket as denied).
+                    </p>
+                    <form method="POST" action="{{ route('panel.gmt.users.appeal-cooldown', ['user' => $userId]) }}" class="panel-gmt__form panel-gmt__form--appeal">
+                        @csrf
+                        <label class="input-container">
+                            <span class="input-container__label">Another offense while restricted: reason</span>
+                            <input class="input-text" type="text" name="reason" maxlength="2000">
+                        </label>
+                        @include('panel.gmt._appeal_offense', ['optional' => true])
+                        <button class="btn-osu-big btn-osu-big--rounded-thin panel-gmt__submit" type="submit"><i class="fas fa-save"></i>Save</button>
+                    </form>
+                </div>
+            @endif
 
             <div class="tomyum-panel__card">
                 <h2><i class="fas fa-comment-slash"></i>Silence</h2>

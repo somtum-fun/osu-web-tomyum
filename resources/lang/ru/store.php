@@ -7,7 +7,7 @@ return [
     'cart' => [
         'checkout' => 'Оплатить',
         'empty_cart' => 'Удалить все товары из корзины',
-        'info' => ':count_delimited товар в корзине ($:subtotal)|:count_delimited товара в корзине ($:subtotal)|:count_delimited товаров в корзине ($:subtotal)',
+        'info' => ':count_delimited товар в корзине (:subtotal)|:count_delimited товара в корзине (:subtotal)|:count_delimited товаров в корзине (:subtotal)',
         'more_goodies' => 'Я хочу посмотреть другие товары перед завершением заказа',
         'shipping_fees' => 'стоимость доставки',
         'title' => 'Корзина',

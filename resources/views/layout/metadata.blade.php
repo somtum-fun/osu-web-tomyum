@@ -14,21 +14,21 @@
 <link rel="icon" sizes="32x32" href="{{ $appUrl }}/images/favicon/favicon-32x32.png">
 <link rel="icon" sizes="16x16" href="{{ $appUrl }}/images/favicon/favicon-16x16.png">
 <link rel="manifest" href="{{ $appUrl }}/site.webmanifest">
-<link rel="mask-icon" href="{{ $appUrl }}/images/favicon/safari-pinned-tab.svg" color="#e2609a">
 <meta name="msapplication-TileColor" content="#603cba">
 <meta name="theme-color" content="{{ hsl_to_hex($currentHue, 0.1, 0.4) }}"> {{-- @osu-colour-b1 --}}
 
 <meta charset="utf-8">
 <meta name="description" content="{{ $opengraph['description'] ?? osu_trans('layout.defaults.page_description') }}">
-<meta name="keywords" content="osu, peppy, ouendan, elite, beat, agents, ds, windows, game, taiko, tatsujin, simulator, sim, xna, ddr, beatmania, osu!, osume">
+{{-- TomYum: this server's keywords and name. --}}
+<meta name="keywords" content="production, prod, osu! private server, osu private server, thailand, rhythm game, relax, autopilot">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <meta name="turbo-cache-control" content="no-preview">
 <meta name="turbo-prefetch" content="false">
 
-<link rel="search" type="application/opensearchdescription+xml" title="osu! search" href="{{ $appUrl }}/opensearch.xml">
+<link rel="search" type="application/opensearchdescription+xml" title="production search" href="{{ $appUrl }}/opensearch.xml">
 
-<meta property="og:site_name" content="osu!">
+<meta property="og:site_name" content="production">
 <meta property="og:type" content="website">
 
 @if (isset($canonicalUrl))

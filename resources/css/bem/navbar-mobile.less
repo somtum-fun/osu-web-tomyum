@@ -37,8 +37,9 @@
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    width: (@navbar-mobile--content-height + 10px);
-    height: $width;
+    // TomYum: the production wordmark is wide (about 8:3).
+    width: ((@navbar-mobile--content-height + 10px) * 2.67);
+    height: (@navbar-mobile--content-height + 10px);
     margin: -5px;
   }
 

@@ -8,8 +8,8 @@ return [
         'checkout' => 'Plati',
         'empty_cart' => '',
         'info' => ':count_delimited artikl u košarici
-($:subtotal)|:count_delimited artikala u košarici
-($:subtotal)',
+(:subtotal)|:count_delimited artikala u košarici
+(:subtotal)',
         'more_goodies' => 'Želim dodati još artikala u košaricu prije dovršetka narudžbe',
         'shipping_fees' => 'troškovi dostave',
         'title' => 'Košarica',

@@ -34,7 +34,8 @@ class ChangelogEntryTransformer extends TransformerAbstract
 
     public function includeGithubUser(ChangelogEntry $entry)
     {
-        return $this->item($entry->githubUser ?? new GithubUser(), new GithubUserTransformer());
+        // TomYum: changes written on the changelog panel credit a player or a name instead.
+        return $this->item($entry->githubUser ?? $entry->tomyumAuthor() ?? new GithubUser(), new GithubUserTransformer());
     }
 
     public function includeMessage(ChangelogEntry $entry)

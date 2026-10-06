@@ -145,7 +145,9 @@
     --segment: hsl(var(--hsl-b3));
     --segment-filled: #82bb48;
     flex: var(--segments) 1 0;
-    min-width: 80px;
+    // TomYum: never narrower than its label (which doesn't wrap): with fewer hypes required than
+    // osu!'s 5, the hype stage got narrower than "Hype Train 1/1" and its label ran into the next one.
+    min-width: min-content;
 
     &--hype {
       flex-grow: calc(var(--segments) * 0.3);
@@ -171,6 +173,7 @@
     font-size: @font-size--normal;
     font-weight: 600;
     gap: 8px;
+    min-width: 80px;
     padding-left: 12px;
     position: relative;
     white-space: nowrap;

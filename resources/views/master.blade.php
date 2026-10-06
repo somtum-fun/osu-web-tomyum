@@ -31,8 +31,9 @@
 
         if ($i + 1 === count($titleTree)) {
             // Titles ending with phrase containing "osu!" like "osu!store" don't need the suffix.
+            // TomYum: the suffix is this site's name.
             if (strpos($titlePart, 'osu!') === false) {
-                $title .= " | \u{202d}osu!\u{202c}";
+                $title .= " | \u{202d}production\u{202c}";
             }
         } else {
             $title .= ' · ';
@@ -69,8 +70,9 @@
                 'type' => 'alert',
                 'title' => osu_trans('users.restricted_banner.title'),
                 'message' => osu_trans('users.restricted_banner.message', [
+                    // TomYum: our Restrictions & Appeals page.
                     'link' => link_to(
-                        osu_url('user.restriction'),
+                        route('legal', ['locale' => app()->getLocale(), 'path' => 'Restrictions']),
                         osu_trans('users.restricted_banner.message_link')
                     ),
                 ]),

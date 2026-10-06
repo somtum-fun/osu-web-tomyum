@@ -57,6 +57,7 @@
     .full-size();
     background-size: contain;
     background-repeat: no-repeat;
+    background-position: center;
     transition: all 100ms ease-in-out;
 
     background-image: var(--nav-logo);
@@ -79,7 +80,9 @@
   &__logo-link {
     @__logo-whitespace: 5px;
     @_logo-size: (@nav2-avatar-height + @__logo-whitespace * 2);
-    width: @_logo-size;
+    // TomYum: the production wordmark is wide (about 8:3).
+    @_logo-ratio: 2.67;
+    width: (@_logo-size * @_logo-ratio);
     height: @_logo-size;
     margin: -@__logo-whitespace;
     transition:
@@ -89,7 +92,7 @@
 
     .@{header-pinned} & {
       height: @nav2-avatar-height--pinned;
-      width: @nav2-avatar-height--pinned;
+      width: (@nav2-avatar-height--pinned * @_logo-ratio);
     }
   }
 

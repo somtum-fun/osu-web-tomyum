@@ -41,6 +41,18 @@
     padding: 10px;
   }
 
+  // TomYum: the name, for a tournament with no header image.
+  &__name {
+    font-size: 20px;
+    font-weight: bold;
+    padding-bottom: 5px;
+    word-break: break-word;
+
+    @media @mobile {
+      font-size: 14px;
+    }
+  }
+
   &__tournament-date {
     font-size: @font-size--title-small-4;
     font-weight: bold;

@@ -2,6 +2,7 @@
     Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
     See the LICENCE file in the repository root for full licence text.
 --}}
+{{-- TomYum: store support mail goes to this server's store address (osu!'s was osustore@ppy.sh). --}}
 @extends('store/layout', ['titlePrepend' => osu_trans('store.invoice.title_compact')])
 
 @section('content')
@@ -13,7 +14,7 @@
                 <h1 class="store-text store-text--title">{{ osu_trans('store.order.thanks.title') }}</h1>
                 <p>
                     {!! osu_trans('store.order.thanks.line_1._', [
-                        'link' => link_to('mailto:osustore@ppy.sh', osu_trans('store.order.thanks.line_1.link_text')),
+                        'link' => link_to('mailto:'.$GLOBALS['cfg']['tomyum']['store_mail']['address'], osu_trans('store.order.thanks.line_1.link_text')),
                     ]) !!}
                 </p>
             </div>

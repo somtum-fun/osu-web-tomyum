@@ -13,7 +13,7 @@ return [
         'see_more_news' => 'see more news',
 
         'slogan' => [
-            'main' => 'the bestest free-to-win rhythm game',
+            'main' => 'Yet another osu!private server', // TomYum
             'sub' => 'rhythm is just a click away',
         ],
     ],
@@ -149,8 +149,8 @@ return [
         ],
         'buttons' => [
             'download' => 'Download osu!',
-            'support' => 'Support osu!',
-            'store' => 'osu!store',
+            'support' => 'Support production',
+            'store' => 'store',
         ],
         'livestream' => [
             'title' => 'Featured Livestream',

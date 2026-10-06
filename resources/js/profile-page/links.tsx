@@ -199,11 +199,39 @@ function ListeningLink({ user }: Props) {
   );
 }
 
+// TomYum: their highest osu!dan course per key count, linked to the course.
+function DanLink({ user }: Props) {
+  const dans = user.tomyum_dan ?? [];
+  if (dans.length === 0) return null;
+
+  return (
+    <div className='profile-links__item'>
+      <span className='profile-links__icon' title='osu!dan'>
+        <span className='fa-fw fas fa-graduation-cap' />
+      </span>
+      <span className='profile-links__value'>
+        {dans.map((dan, index) => (
+          <React.Fragment key={dan.course_id}>
+            {index > 0 && ', '}
+            <a href={`/community/dan/${dan.course_id}`}>
+              {`${dan.name} (${dan.keys}K)`}
+            </a>
+          </React.Fragment>
+        ))}
+      </span>
+    </div>
+  );
+}
+
 export default class Links extends React.PureComponent<Props> {
   render() {
     const rows = [
       textKeys.map(this.renderText),
-      [...bioKeys.map(this.renderLink), this.props.user.tomyum_lastfm ? <ListeningLink key='listening' user={this.props.user} /> : null],
+      [
+        ...bioKeys.map(this.renderLink),
+        this.props.user.tomyum_lastfm ? <ListeningLink key='listening' user={this.props.user} /> : null,
+        (this.props.user.tomyum_dan ?? []).length > 0 ? <DanLink key='dan' user={this.props.user} /> : null,
+      ],
       mediaKeys.map(this.renderLink),
     ].map((row) => compact(row)).filter((x) => x.length > 0);
 

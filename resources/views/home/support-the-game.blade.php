@@ -19,7 +19,7 @@
     ]])
         @slot('contentAppend')
             <div class="supporter-status">
-                <div class="supporter-status__pippi"></div>
+                {{-- TomYum: no pippi (ppy's mascot). --}}
                 @if (!empty($supporterStatus))
                     <!-- supporter status  -->
                     <div class="supporter-status__flex-container">
@@ -77,21 +77,30 @@
 
     <div class="osu-page osu-page--supporter">
         <div class="supporter">
+            {{-- TomYum: a note from this server's team, in place of peppy's letter (osu!'s, not ours). --}}
             <div class="supporter-quote">
                 <div class="supporter-quote__body">
                     <div class="supporter-quote__quote-mark supporter-quote__quote-mark--left"><i class="fas fa-quote-left"></i></div>
                     <blockquote class="supporter-quote__content">
-                        I've always tried to run osu! exactly how I'd want to see it run if I were a player. While this does mean osu! will never be a super-profitable business, that was never the goal (nor will it ever be!). We intentionally avoid advertising, partnerships, etc because I feel that would detract from the core experience.
+                        Running production isn't easy or cheap.
                         <br/><br/>
-                        osu! is free-to-win – supporting osu! won’t give you any competitive advantage (but it might make you cooler amongst your friends!). I am hugely grateful, and honestly astounded, that we have come this far purely on donations, but this is where we are! Your contributions cover completely our small team's salaries, licensing efforts via the Featured Artist program, prizes and funding for official tournaments, but most importantly make sure we have quality servers and bandwidth available around the globe.
+                        We're committed to making production a free-to-win experience. We put in a lot of time, effort,
+                        and technical skill to keep everything running smoothly and constantly improving.
                         <br/><br/>
-                        I would like to offer thanks and gratitude on behalf of myself and the rest of the team, to those who have supported osu!.
+                        If you enjoy playing here and want to support our work, consider supporting us. Your support
+                        helps us keep production alive and growing. Can't pay? You can also earn supporter for free by
+                        <a href="{{ route('vote') }}">voting for us</a>.
                         <br/><br/>
-                        You keep osu! running.
+                        A huge thank you to all our donors - you're the reason we can keep doing this.
                     </blockquote>
                     <div class="supporter-quote__quote-mark supporter-quote__quote-mark--right"><i class="fas fa-quote-right"></i></div>
                 </div>
-                <div class="supporter-quote__signature">— Dean "peppy" Herbert, creator of osu!</div>
+                <div class="supporter-quote__signature">— Server Operator, production</div>
+                <p class="supporter-quote__signature">
+                    Make sure to support osu! (<a href="https://osu.ppy.sh/home/support">osu.ppy.sh/home/support</a>) as well!
+                    Huge thanks to peppy for creating this amazing game!
+                    production is not affiliated with ppy Pty Ltd or osu!.
+                </p>
             </div>
             <h3 class="supporter__title">
                 {{ osu_trans('community.support.why-support.title') }}

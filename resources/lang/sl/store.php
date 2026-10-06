@@ -7,7 +7,7 @@ return [
     'cart' => [
         'checkout' => 'Plačilo',
         'empty_cart' => '',
-        'info' => ':count_delimited izdelek v košarici ($:subtotal)|:count_delimited izdelkov v košarici ($:subtotal)',
+        'info' => ':count_delimited izdelek v košarici (:subtotal)|:count_delimited izdelkov v košarici (:subtotal)',
         'more_goodies' => 'Želim si preveriti več dobrot, preden dokončam svoje naročilo',
         'shipping_fees' => 'stroški pošiljanja',
         'title' => 'Nakupovalna košarica',

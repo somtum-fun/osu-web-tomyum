@@ -45,7 +45,7 @@
                 {{ osu_trans_choice('common.count.item', $i->quantity) }}
             </div>
             <div class="order-line-items__data order-line-items__data--value">
-                {{ currency($i->subtotal()) }}
+                {{ currency($i->subtotal(), 2, true, store_currency($order->user)) }}
             </div>
         </li>
     @endforeach
@@ -56,7 +56,7 @@
                 {{ osu_trans('store.order.subtotal') }}
             </div>
             <div class="order-line-items__data order-line-items__data--value">
-                {{ currency($order->getSubtotal()) }}
+                {{ currency($order->getSubtotal(), 2, true, store_currency($order->user)) }}
             </div>
         </li>
 
@@ -65,7 +65,7 @@
                 {{ osu_trans('store.order.shipping_and_handling') }}
             </div>
             <div class="order-line-items__data order-line-items__data--value">
-                {{ currency($order->shipping) }}
+                {{ currency($order->shipping, 2, true, store_currency($order->user)) }}
             </div>
         </li>
     @endif
@@ -76,7 +76,7 @@
                 {{ osu_trans('store.order.total') }}
             </div>
             <div class="order-line-items__data order-line-items__data--value">
-                {{ currency($order->getSubtotal()) }}
+                {{ currency($order->getSubtotal(), 2, true, store_currency($order->user)) }}
             </div>
         </li>
     @endif

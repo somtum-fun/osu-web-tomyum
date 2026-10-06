@@ -8,13 +8,13 @@ Welcome to the documentation for osu!api v2. You can use this API to get informa
 
 Note that while we endeavour to keep this documentation up to date, consider it a work-in-progress and note that it will likely contain errors.
 
-If you notice any errors in the documentation or encounter problems using the API, please check for (or create if necessary) [issues on GitHub](https://github.com/ppy/osu-web/issues). Alternatively, you can ask in `#osu-web` [on the development discord](https://discord.gg/ppy).
+This is production's copy of the osu! API, an unofficial private server not affiliated with ppy Pty Ltd. If you notice any errors or encounter problems using the API, mail [support@example.com](mailto:support@example.com).
 
 Code examples are provided in the dark area to the right, you can use the tabs at the top of the page to switch between bash and javascript samples.
 
 # Terms of Use
 
-Use the API for good. Don't overdo it. If in doubt, [ask](mailto:pe@ppy.sh) before serious long term use.
+Use the API for good. Don't overdo it. If in doubt, [ask](mailto:support@example.com) before serious long term use.
 
 Examples of good practices:
 
@@ -29,7 +29,7 @@ Examples of incorrect / abusive usage:
 - Polling more than once a minute for the same user/beatmap.
 - Using the API to try to gain a competitive advantage.
 - Using the API as if it is your database, re-requesting the same data every time it is needed.
-- Harvesting mass score/user/beatmap data (consider using [data.ppy.sh](https://data.ppy.sh) instead if looking for seed or sample data).
+- Harvesting mass score/user/beatmap data.
 
 Please **limit your usage to no more than 60 requests per minute (generally 1 request per second)**. The internal rate limits are higher than this and allow some degree of bursting, but exceeding this specified limit may lead to your API tokens being revoked, or in serious abuse cases your access to the API being restricted.
 

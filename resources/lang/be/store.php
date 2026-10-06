@@ -7,7 +7,7 @@ return [
     'cart' => [
         'checkout' => 'Завяршэнне пакупкі',
         'empty_cart' => 'Выдаліць усе тавары з кошыка',
-        'info' => ':count_delimited тавар у кошыку ($:subtotal)|:count_delimited прадметы ў кошыку  ($:subtotal)',
+        'info' => ':count_delimited тавар у кошыку (:subtotal)|:count_delimited прадметы ў кошыку  (:subtotal)',
         'more_goodies' => 'Я хачу праглядзець іншыя тавары перад завяршэннем пакупкі',
         'shipping_fees' => 'кошт дастаўкі',
         'title' => 'Кошык',

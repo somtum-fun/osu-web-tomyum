@@ -7,7 +7,7 @@ return [
     'cart' => [
         'checkout' => 'Paiement',
         'empty_cart' => 'Supprimer tous les articles du panier',
-        'info' => ':count_delimited article dans le panier ($:subtotal)|:count_delimited articles dans le panier ($:subtotal)',
+        'info' => ':count_delimited article dans le panier (:subtotal)|:count_delimited articles dans le panier (:subtotal)',
         'more_goodies' => 'Je souhaite chercher d\'autres articles avant de passer commande',
         'shipping_fees' => 'frais de livraison',
         'title' => 'Panier',

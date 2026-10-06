@@ -7,7 +7,7 @@ return [
     'cart' => [
         'checkout' => 'Zaplatit',
         'empty_cart' => 'Odebrat všechny položky z košíku',
-        'info' => ':count_delimited položka v košíku ($:subtotal)|:count_delimited položky v košíku ($:subtotal)|:count_delimited položek v košíku ($:subtotal)',
+        'info' => ':count_delimited položka v košíku (:subtotal)|:count_delimited položky v košíku (:subtotal)|:count_delimited položek v košíku (:subtotal)',
         'more_goodies' => 'Chci se ještě podívat na nějaké dobroty než dokončím objednávku',
         'shipping_fees' => 'poplatky za dopravu',
         'title' => 'Nákupní košík',

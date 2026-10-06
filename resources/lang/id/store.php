@@ -7,7 +7,7 @@ return [
     'cart' => [
         'checkout' => 'Checkout',
         'empty_cart' => 'Hapus semua item dari keranjang',
-        'info' => ':count_delimited item dalam keranjang ($:subtotal)|:count_delimited item dalam keranjang ($:subtotal)',
+        'info' => ':count_delimited item dalam keranjang (:subtotal)|:count_delimited item dalam keranjang (:subtotal)',
         'more_goodies' => 'Saya ingin melihat produk lainnya sebelum merampungkan pesanan',
         'shipping_fees' => 'biaya pengiriman',
         'title' => 'Keranjang Belanja',

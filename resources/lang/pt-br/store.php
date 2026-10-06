@@ -7,7 +7,7 @@ return [
     'cart' => [
         'checkout' => 'Pagar',
         'empty_cart' => 'Remover todos os itens do carrinho',
-        'info' => ':count_delimited item no carrinho ($:subtotal)|:count_delimited itens no carrinho ($:subtotal)',
+        'info' => ':count_delimited item no carrinho (:subtotal)|:count_delimited itens no carrinho (:subtotal)',
         'more_goodies' => 'Gostaria de conferir mais coisas antes de finalizar meu pedido',
         'shipping_fees' => 'taxas de envio',
         'title' => 'Carrinho de Compras',

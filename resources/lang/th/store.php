@@ -7,7 +7,7 @@ return [
     'cart' => [
         'checkout' => 'ชำระเงิน',
         'empty_cart' => 'ลบรายการทั้งหมดออกจากรถเข็น',
-        'info' => ':count_delimited รายการในตะกร้า ($:subtotal)|:count_delimited รายการในตะกร้า ($:subtotal)',
+        'info' => ':count_delimited รายการในตะกร้า (:subtotal)|:count_delimited รายการในตะกร้า (:subtotal)',
         'more_goodies' => 'ฉันอยากจะดูของอย่างอื่นก่อนที่จะดําเนินการสั่งซื้อ',
         'shipping_fees' => 'ค่าส่ง',
         'title' => 'ตะกร้าสินค้า',

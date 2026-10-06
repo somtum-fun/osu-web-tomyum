@@ -7,7 +7,7 @@ return [
     'cart' => [
         'checkout' => 'Apmokėti',
         'empty_cart' => 'Pašalinti visas prekes iš krepšelio',
-        'info' => ':count_delimited pirkinis krepšelyje ($:subtotal)|:count_delimited pirkiniai krepšelyje ($:subtotal)',
+        'info' => ':count_delimited pirkinis krepšelyje (:subtotal)|:count_delimited pirkiniai krepšelyje (:subtotal)',
         'more_goodies' => 'Noriu išsirinkti daugiau prekių prieš apmokant',
         'shipping_fees' => 'pristatymo mokesčiai',
         'title' => 'Prekių Krepšelis',

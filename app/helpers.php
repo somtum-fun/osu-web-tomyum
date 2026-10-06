@@ -822,17 +822,18 @@ function obscure_email($email)
     return mb_substr($email[0], 0, 1).'***'.'@'.$email[1];
 }
 
-function currency($price, $precision = 2, $zeroShowFree = true)
+function currency($price, $precision = 2, $zeroShowFree = true, ?string $currency = null)
 {
     $price = round($price, $precision);
     if ($price === 0.00 && $zeroShowFree) {
         return osu_trans('store.free');
     }
 
-    // TomYum: the store sells in Thai baht; players outside Thailand see (and pay) US$ instead,
-    // osu!'s own prices (SupporterTag::BAHT_PER_DOLLAR).
-    if (store_currency() === 'usd') {
-        return 'US$'.i18n_number_format(round($price / App\Models\SupporterTag::BAHT_PER_DOLLAR, $precision), null, null, $precision);
+    // TomYum: the store sells in Thai baht; players outside Thailand see (and pay) US$ instead, at
+    // half osu!'s prices (SupporterTag::BAHT_PER_US_DOLLAR). $currency is whose prices to show
+    // (store_currency()), the viewer's by default.
+    if (($currency ?? store_currency()) === 'usd') {
+        return 'US$'.i18n_number_format(store_usd($price, $precision), null, null, $precision);
     }
 
     return currency_thb($price, $precision);
@@ -844,14 +845,23 @@ function currency_thb($price, $precision = 2)
     return '฿'.i18n_number_format(round($price, $precision), null, null, $precision);
 }
 
-/**
- * TomYum: the store's currency for whoever is looking: "thb" for players in Thailand (their account's
- * country; before signing in, Cloudflare's for their connection), "usd" for everyone else. Without
- * either (queued mail), baht.
- */
-function store_currency(): string
+/** TomYum: what a store amount in baht costs in US$ (players outside Thailand). */
+function store_usd($price, $precision = 2): float
 {
-    $country = auth()->user()?->country_acronym ?? presence(request()?->header('CF-IPCountry'));
+    // to the nearest 50 cents: baht prices are rounded up to whole baht (US$2.52 is osu!'s US$5).
+    return round(round($price / App\Models\SupporterTag::BAHT_PER_US_DOLLAR * 2) / 2, $precision);
+}
+
+/**
+ * TomYum: the store's currency: "thb" for players in Thailand, "usd" for everyone else. It's the
+ * given user's (an order's owner, for mail and invoices), else the viewer's: their account's country,
+ * or before signing in, Cloudflare's for their connection. Without either, baht.
+ */
+function store_currency(?App\Models\User $user = null): string
+{
+    $country = $user !== null
+        ? $user->country_acronym
+        : (auth()->user()?->country_acronym ?? presence(request()?->header('CF-IPCountry')));
 
     return $country === null || strtoupper($country) === 'TH' ? 'thb' : 'usd';
 }
@@ -1278,6 +1288,7 @@ function nav_links()
         'layout.menu.home.team' => wiki_url('People/osu!_team'),
         'page_title.main.changelog_controller._' => route('changelog.index'),
         'page_title.main.home_controller.get_download' => route('download'),
+        'page_title.main.home_controller.vote' => route('vote'),
         'page_title.main.home_controller.search' => route('search'),
     ];
     $links['beatmaps'] = [
@@ -1295,9 +1306,13 @@ function nav_links()
         'page_title.main.contests_controller._' => route('contests.index'),
         'page_title.main.tournaments_controller._' => route('tournaments.index'),
         'page_title.main.loved_controller._' => route('loved.index'),
+        'page_title.main.dan_controller._' => route('dan.index'), // TomYum: osu!dan
         'page_title.main.livestreams_controller._' => route('livestreams.index'),
-        'layout.menu.community.dev' => osu_url('dev'),
     ];
+    // TomYum: our Discord, when there's an invite (OSU_URL_DISCORD).
+    if (osu_url('dev') !== null) {
+        $links['community']['layout.menu.community.dev'] = osu_url('dev');
+    }
     // TomYum: the store sells osu!supporter (TrueMoney and cards, through payments-service), when
     // it's switched on (see TomYumStoreUnavailable).
     if (App\Http\Middleware\TomYumStoreUnavailable::enabled()) {
@@ -1310,7 +1325,8 @@ function nav_links()
     $links['help'] = [
         'page_title.main.wiki_controller._' => wiki_url('Main_page'),
         'layout.menu.help.getFaq' => wiki_url('FAQ'),
-        'layout.menu.help.getRules' => wiki_url('Rules'),
+        // TomYum: our own rules (LegalController), not ppy's.
+        'layout.menu.help.getRules' => route('legal', ['locale' => app()->getLocale(), 'path' => 'Rules']),
         'layout.menu.help.getAbuse' => wiki_url('Reporting_bad_behaviour/Abuse'),
         'layout.menu.help.getSupport' => wiki_url('Help_centre'),
     ];
@@ -1326,6 +1342,7 @@ function footer_landing_links()
             'changelog-index' => route('changelog.index'),
             'beatmaps' => action('BeatmapsetsController@index'),
             'download' => route('download'),
+            'vote' => route('vote'),
         ],
         'help' => [
             'faq' => wiki_url('FAQ'),
@@ -1342,17 +1359,18 @@ function footer_legal_links(): array
     $locale = app()->getLocale();
 
     $ret = [];
-    $ret['rules'] = wiki_url('Rules');
+    // TomYum: our own Rules and Restrictions & Appeals pages (LegalController).
+    $ret['rules'] = route('legal', ['locale' => $locale, 'path' => 'Rules']);
+    $ret['restrictions'] = route('legal', ['locale' => $locale, 'path' => 'Restrictions']);
     $ret['terms'] = route('legal', ['locale' => $locale, 'path' => 'Terms']);
-    if ($locale === 'ja') {
-        $ret['jp_sctl'] = route('legal', ['locale' => $locale, 'path' => 'SCTL']);
-    }
+    // TomYum: no 特定商取引法 page (that's ppy's, for their store in Japan).
     $ret['privacy'] = route('legal', ['locale' => $locale, 'path' => 'Privacy']);
     $ret['copyright'] = route('legal', ['locale' => $locale, 'path' => 'Copyright']);
     $ret['server_status'] = osu_url('server_status');
     $ret['source_code'] = osu_url('source_code');
 
-    return $ret;
+    // TomYum: links left unset (OSU_URL_SERVER_STATUS) aren't shown.
+    return array_filter($ret, fn ($link) => $link !== null);
 }
 
 function presence($string, $valueIfBlank = null)

@@ -3,4 +3,4 @@
     See the LICENCE file in the repository root for full licence text.
 --}}
 --
-osu! | {{ $GLOBALS['cfg']['app']['url'] }}
+production | {{ $GLOBALS['cfg']['app']['url'] }}

@@ -79,10 +79,12 @@ return [
         'favourite_limit_supporter' => intval(env('BEATMAPSET_USER_FAVOURITE_LIMIT_SUPPORTER', 1000)),
         'guest_advanced_search' => get_bool(env('BEATMAPSET_GUEST_ADVANCED_SEARCH')) ?? false,
         'maximum_disqualified_rank_penalty_days' => get_int(env('BEATMAPSET_MAXIMUM_DISQUALIFIED_RANK_PENALTY_DAYS')) ?? 7,
-        'minimum_days_for_rank' => get_int(env('BEATMAPSET_MINIMUM_DAYS_FOR_RANK')) ?? 7,
-        'rank_per_day' => get_int(env('BEATMAPSET_RANK_PER_DAY')) ?? 8,
-        'rank_per_run' => get_int(env('BEATMAPSET_RANK_PER_RUN')) ?? 2,
-        'required_hype' => get_int(env('BEATMAPSET_REQUIRED_HYPE')) ?? 5,
+        // TomYum: the old server's way by default: ranked a day after qualifying, with no daily cap
+        // (0: no limit, per day or per run), and one hype before BNs nominate. osu!: 7, 8, 2, 5.
+        'minimum_days_for_rank' => get_int(env('BEATMAPSET_MINIMUM_DAYS_FOR_RANK')) ?? 1,
+        'rank_per_day' => get_int(env('BEATMAPSET_RANK_PER_DAY')) ?? 0,
+        'rank_per_run' => get_int(env('BEATMAPSET_RANK_PER_RUN')) ?? 0,
+        'required_hype' => get_int(env('BEATMAPSET_REQUIRED_HYPE')) ?? 1,
         'required_nominations' => get_int(env('BEATMAPSET_REQUIRED_NOMINATIONS')) ?? 2,
         'upload_allowed' => get_int(env('BEATMAPSET_UPLOAD_ALLOWED')) ?? 4,
         'upload_allowed_supporter' => get_int(env('BEATMAPSET_UPLOAD_ALLOWED_SUPPORTER')) ?? 8,
@@ -170,7 +172,8 @@ return [
     ],
     'is_development_deploy' => get_bool(env('IS_DEVELOPMENT_DEPLOY')) ?? true,
     'landing' => [
-        'video_url' => env('LANDING_VIDEO_URL', 'https://assets.ppy.sh/media/landing.mp4'),
+        // TomYum: our own videos (public/media), not ppy's (they show osu!'s logo and pippi).
+        'video_url' => presence(env('LANDING_VIDEO_URL')) ?? '/media/landing.mp4',
     ],
     'legacy' => [
         'bancho_bot_user_id' => get_int(env('BANCHO_BOT_USER_ID')) ?? 3,
@@ -242,8 +245,9 @@ return [
     'urls' => [
         'base' => 'https://osu.ppy.sh',
         'bounty-form' => env('OS_BOUNTY_URL'),
-        'dev' => 'https://discord.gg/ppy',
-        'download_video' => env('OSU_URL_DOWNLOAD_VIDEO', 'https://assets.ppy.sh/media/festive.mp4'),
+        // TomYum: our own Discord, status page and socials; empty, the link isn't shown.
+        'dev' => presence(env('OSU_URL_DISCORD')),
+        'download_video' => presence(env('OSU_URL_DOWNLOAD_VIDEO')) ?? '/media/download.mp4',
         'installer' => 'https://m1.ppy.sh/r/osu!install.exe',
         'installer-mirror' => 'https://m2.ppy.sh/r/osu!install.exe',
         'lazer_dl.android' => presence(env('OSU_URL_LAZER_ANDROID')) ?? 'https://github.com/ppy/osu/releases/latest/download/sh.ppy.osulazer.apk',
@@ -256,15 +260,17 @@ return [
         'lazer_info' => presence(env('OSU_URL_LAZER_INFO')),
         'menu_content' => presence(env('OSU_URL_MENU_CONTENT_JSON')) ?? 'https://assets.ppy.sh/menu-content.json',
         'osx' => 'https://osx.ppy.sh',
-        'server_status' => 'https://status.ppy.sh',
+        'server_status' => presence(env('OSU_URL_SERVER_STATUS')),
         'smilies' => '/forum/images/smilies',
-        'social.twitter' => '/wiki/Twitter',
-        'source_code' => 'https://github.com/ppy',
+        'social.twitter' => presence(env('OSU_URL_TWITTER')),
+        // TomYum: this site is built on ppy's osu-web (AGPL-3.0).
+        'source_code' => presence(env('OSU_URL_SOURCE_CODE')) ?? 'https://github.com/ppy/osu-web',
         'testflight.public' => env('TESTFLIGHT_LINK'),
         'testflight.supporter' => env('TESTFLIGHT_LINK_SUPPORTER'),
         'user.recover' => '/wiki/Help_centre/Account#sign-in',
-        'user.restriction' => presence(env('OSU_URL_USER_RESTRICTION')) ?? '/wiki/Help_centre/Account_restrictions',
-        'user.rules' => '/wiki/Osu!:Rules',
+        // TomYum: our Restrictions & Appeals and Rules pages (LegalController), on this site.
+        'user.restriction' => presence(env('OSU_URL_USER_RESTRICTION')) ?? rtrim((string) env('APP_URL'), '/').'/legal/Restrictions',
+        'user.rules' => presence(env('OSU_URL_USER_RULES')) ?? rtrim((string) env('APP_URL'), '/').'/legal/Rules',
         'youtube-tutorial-playlist' => 'PLmWVQsxi34bMYwAawZtzuptfMmszUa_tl',
     ],
     'user' => [

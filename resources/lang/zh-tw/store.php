@@ -7,7 +7,7 @@ return [
     'cart' => [
         'checkout' => '結帳',
         'empty_cart' => '清空購物車',
-        'info' => '購物車裡有 :count_delimited 件商品（$:subtotal）|購物車裡有 :count_delimited 件商品（$:subtotal）',
+        'info' => '購物車裡有 :count_delimited 件商品（:subtotal）|購物車裡有 :count_delimited 件商品（:subtotal）',
         'more_goodies' => '我想在完成訂單之前查看更多的東西',
         'shipping_fees' => '運費',
         'title' => '購物車',

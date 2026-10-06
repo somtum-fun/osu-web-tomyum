@@ -1,0 +1,67 @@
+<?php
+
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
+// See the LICENCE file in the repository root for full licence text.
+
+namespace App\Libraries;
+
+use Cache;
+use Exception;
+use Http;
+
+/**
+ * TomYum: what the download page offers, from the file host's manifest.json (dl.example.com):
+ * lazer-fork (lazer) for Windows and Linux, the production patcher, the hook, and the patched
+ * legacy clients (2008 to 2015).
+ */
+class TomYumDownloads
+{
+    const PATCHER_URL = 'https://github.com/example-org/private-repo/releases/download/v1.1/patcher-ui.exe';
+
+    public static function baseUrl(): string
+    {
+        return rtrim(presence(env('TOMYUM_DL_URL')) ?? 'https://dl.example.com', '/');
+    }
+
+    public static function manifest(): array
+    {
+        $cached = Cache::get('tomyum_downloads_manifest');
+        if (is_array($cached)) {
+            return $cached;
+        }
+
+        try {
+            $manifest = Http::timeout(5)->get(static::baseUrl().'/manifest.json')->throw()->json();
+        } catch (Exception $e) {
+            $manifest = null;
+        }
+
+        if (!is_array($manifest)) {
+            // Try again in a minute; the page still has the patcher and a link to the file host.
+            Cache::put('tomyum_downloads_manifest', [], 60);
+
+            return [];
+        }
+
+        Cache::put('tomyum_downloads_manifest', $manifest, 600);
+
+        return $manifest;
+    }
+
+    /** The legacy clients by year, newest first. */
+    public static function legacyByYear(array $manifest): array
+    {
+        $years = [];
+        foreach ($manifest['legacy'] ?? [] as $build) {
+            $years[$build['year']][] = $build;
+        }
+        krsort($years);
+
+        return $years;
+    }
+
+    public static function size(?int $bytes): string
+    {
+        return $bytes === null ? '' : number_format($bytes / 1048576, 1).' MB';
+    }
+}

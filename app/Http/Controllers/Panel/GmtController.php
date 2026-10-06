@@ -5,6 +5,7 @@
 
 namespace App\Http\Controllers\Panel;
 
+use App\Libraries\TomYumAppeals;
 use App\Libraries\TomYumCountryStats;
 use App\Models\User;
 use App\Models\UserAccountHistory;
@@ -101,6 +102,9 @@ class GmtController extends Controller
             'canModerate' => static::canModerate($target),
             'silencedUntil' => static::silencedUntil($target),
             'online' => $online->successful() && in_array($target->getKey(), array_column($online->json(), 'userId'), true),
+            // TomYum: when they may appeal (restricted players only).
+            'appealCooldown' => TomYumAppeals::currentCooldown($target),
+            'appealAfter' => TomYumAppeals::appealAfter($target),
             'history' => $target->accountHistories()->with('actor')->orderByDesc('timestamp')->orderByDesc('ban_id')->limit(50)->get(),
             'reports' => UserReport::with('reporter')->where('user_id', $target->getKey())->orderByDesc('report_id')->limit(30)->get(),
             'best' => $best,
@@ -122,12 +126,56 @@ class GmtController extends Controller
             return $this->back($target, 'error', 'Already restricted.');
         }
 
-        DB::transaction(function () use ($target, $reason) {
+        // TomYum: the offense sets when they may appeal (the Restrictions & Appeals page's cooldowns).
+        $offense = Request::input('offense');
+        $offense = array_key_exists($offense, TomYumAppeals::OFFENSES) ? $offense : 'other';
+        $appealAfter = static::appealDate();
+
+        DB::transaction(function () use ($target, $reason, $offense, $appealAfter) {
             $target->update(['user_warnings' => 1]);
             $this->history($target, UserAccountHistory::TYPES['restriction'], $reason, 0, true);
+            TomYumAppeals::restricted($target, $offense, Auth::user()->getKey(), $appealAfter, $reason);
         });
+        $after = TomYumAppeals::appealAfter($target->fresh());
 
-        return $this->done($target, 'user.restrict', "Restricted {$target->username}: {$reason}", 'Restricted.');
+        return $this->done(
+            $target,
+            'user.restrict',
+            "Restricted {$target->username} (".TomYumAppeals::OFFENSES[$offense]."): {$reason}",
+            'Restricted. They can appeal from '.$after?->format('j M Y').'.',
+        );
+    }
+
+    /**
+     * TomYum: a restricted player's appeal cooldown: another offense (it starts again from today), or
+     * a date set by hand.
+     */
+    public function appealCooldown(string $user)
+    {
+        $target = $this->moderatable($user);
+        if (!$target->isRestricted()) {
+            return $this->back($target, 'error', 'Not restricted.');
+        }
+
+        $offense = Request::input('offense');
+        $appealAfter = static::appealDate();
+        if (array_key_exists($offense, TomYumAppeals::OFFENSES)) {
+            $reason = $this->reason();
+            if ($reason === null) {
+                return $this->back($target, 'error', 'Give a reason for the new offense.');
+            }
+            TomYumAppeals::restricted($target, $offense, Auth::user()->getKey(), $appealAfter, $reason);
+            $this->history($target, UserAccountHistory::TYPES['note'], 'Another offense while restricted ('.TomYumAppeals::OFFENSES[$offense]."): {$reason}");
+            $summary = "New offense for {$target->username} (".TomYumAppeals::OFFENSES[$offense]."): {$reason}";
+        } elseif ($appealAfter !== null) {
+            TomYumAppeals::setDate($target, $appealAfter, Auth::user()->getKey());
+            $summary = "Appeal date for {$target->username} set to {$appealAfter->format('j M Y')}";
+        } else {
+            return $this->back($target, 'error', 'Pick an offense or a date.');
+        }
+        $this->staffLog('user.appeal-cooldown', $target->getKey(), $summary);
+
+        return $this->back($target, 'success', 'They can appeal from '.TomYumAppeals::appealAfter($target)?->format('j M Y').'.');
     }
 
     public function unrestrict(string $user)
@@ -285,6 +333,22 @@ class GmtController extends Controller
         $this->ensure(static::canModerate($target));
 
         return $target;
+    }
+
+    /** TomYum: the appeal date picked by hand (a date in the future), else null. */
+    private static function appealDate(): ?Carbon
+    {
+        $date = trim(Request::input('appeal_after') ?? '');
+        if ($date === '') {
+            return null;
+        }
+        try {
+            $parsed = Carbon::createFromFormat('Y-m-d', $date)->startOfDay();
+        } catch (\Throwable) {
+            return null;
+        }
+
+        return $parsed->isFuture() ? $parsed : null;
     }
 
     private function reason(): ?string

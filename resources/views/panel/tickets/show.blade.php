@@ -158,6 +158,10 @@
                         <span class="input-container__label">Reason</span>
                         <input class="input-text" type="text" name="reason" maxlength="500" required placeholder="Resolved / Duplicate of #… / No reply">
                     </label>
+                    {{-- TomYum: a denied appeal waits 3 more months (TomYumAppeals). --}}
+                    @if ($ticket->category === 'appeal' && $ticket->user_id !== null)
+                        <label class="tomyum-panel__check"><input type="checkbox" name="appeal_denied" value="1"> Appeal denied (next appeal in 3 months)</label>
+                    @endif
                     <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-check"></i>Close ticket</button>
                 </form>
             @else

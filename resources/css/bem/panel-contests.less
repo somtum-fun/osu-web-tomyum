@@ -1,0 +1,271 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
+// See the LICENCE file in the repository root for full licence text.
+
+// TomYum: the contests panel (inside .tomyum-panel cards). Its forms are grids of osu-web's
+// input-container fields, like the artists and badges panels.
+.panel-contests {
+  // A form: its parts one under another, a field's width.
+  &__form {
+    display: grid;
+    gap: 10px;
+
+    h3 {
+      margin: 10px 0 0;
+    }
+
+    .tomyum-panel__hint {
+      margin: 0;
+    }
+  }
+
+  // Fields side by side, all the same width, wrapping onto the next line.
+  &__grid {
+    align-items: end;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+
+    // On a phone one field a line: two side by side cut off a date or a choice.
+    @media @mobile {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    &--3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+
+      @media @mobile {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    // An entry: name, shown as and made by; then its link and thumbnail. On a phone: the name,
+    // shown as and made by side by side, then the links.
+    &--entry {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+
+      > .input-container {
+        grid-column-end: span 2;
+      }
+
+      > .input-container:nth-of-type(n + 4) {
+        grid-column-end: span 3;
+      }
+
+      @media @mobile {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+
+        > .input-container {
+          grid-column-end: span 1;
+        }
+
+        > .input-container:first-of-type,
+        > .input-container:nth-of-type(n + 4) {
+          grid-column: 1 / -1;
+        }
+      }
+    }
+  }
+
+  // Name, and a narrower field beside it.
+  &__pair {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: minmax(0, 1fr) 220px;
+
+    @media @mobile {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__wide {
+    grid-column: 1 / -1;
+  }
+
+  // A field's label on one line: a wrapped label runs into what's typed.
+  &__form,
+  &__grid,
+  &__inline,
+  &__category {
+    .input-container__label {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+
+  &__code {
+    font-family: monospace;
+  }
+
+  &__checks {
+    display: grid;
+    gap: 0 20px;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+
+    .tomyum-panel__check {
+      min-height: 34px;
+      white-space: normal;
+    }
+  }
+
+  &__buttons {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  // A button at the end of a grid of fields: at the fields' height, not stretched.
+  &__submit {
+    align-self: end;
+    justify-self: start;
+    margin-bottom: 12px;
+  }
+
+  // Entries: a row each (rank, name, shown as, by, score); a click opens its form.
+  &__entries {
+    display: grid;
+    gap: 3px;
+    margin-bottom: 10px;
+  }
+
+  &__entry-head,
+  &__entry-labels {
+    align-items: center;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 30px minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) 70px 20px;
+    padding: 7px 10px;
+
+    @media @mobile {
+      grid-template-columns: 24px minmax(0, 1fr) 60px 20px;
+
+      > :nth-child(3),
+      > :nth-child(4) {
+        display: none;
+      }
+    }
+  }
+
+  &__entry-labels {
+    color: hsl(var(--hsl-c2));
+    font-size: @font-size--normal;
+    font-weight: 600;
+    padding-bottom: 0;
+    padding-top: 0;
+  }
+
+  &__entry {
+    background: hsl(var(--hsl-b5));
+    border-radius: @border-radius-large;
+
+    > summary {
+      cursor: pointer;
+      list-style: none;
+
+      &::-webkit-details-marker {
+        display: none;
+      }
+    }
+
+    &:hover,
+    &[open] {
+      background: hsl(var(--hsl-b3));
+    }
+  }
+
+  &__edit-icon {
+    color: hsl(var(--hsl-c2));
+    font-size: 11px;
+    text-align: right;
+
+    details[open] > summary & {
+      color: hsl(var(--hsl-h1));
+    }
+  }
+
+  &__editor {
+    background: hsl(var(--hsl-b4));
+    border-radius: @border-radius-large;
+    display: grid;
+    gap: 10px;
+    margin: 0 8px 8px;
+    padding: 12px;
+  }
+
+  // Judges: a chip each, with its remove button.
+  &__judges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  &__judge {
+    align-items: center;
+    background: hsl(var(--hsl-b5));
+    border-radius: 10000px;
+    display: inline-flex;
+    font-weight: 600;
+    gap: 8px;
+    padding: 4px 4px 4px 14px;
+  }
+
+  &__icon-button {
+    .reset-input();
+    align-items: center;
+    background: hsl(var(--hsl-b3));
+    border-radius: 50%;
+    color: hsl(var(--hsl-c2));
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 11px;
+    height: 24px;
+    justify-content: center;
+    width: 24px;
+
+    &:hover {
+      background: hsla(var(--hsl-red-2), 0.3);
+      color: hsl(var(--hsl-c1));
+    }
+  }
+
+  // A one-field form and its button (find a judge).
+  &__inline {
+    align-items: end;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: minmax(0, 320px) auto;
+    justify-content: start;
+
+    .panel-contests__submit {
+      margin-bottom: 12px;
+    }
+  }
+
+  // Scoring categories: a row each, the new one last.
+  &__category {
+    align-items: end;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) 110px 180px; // the buttons' column as wide on every row
+    margin-bottom: 10px;
+
+    .panel-contests__buttons {
+      margin-bottom: 12px;
+    }
+
+    // name and top score on a line, the description and the buttons under them
+    @media @mobile {
+      grid-auto-flow: dense;
+      grid-template-columns: minmax(0, 1fr) 90px;
+
+      > :nth-child(2),
+      > :nth-child(4) {
+        grid-column: 1 / -1;
+      }
+    }
+  }
+}

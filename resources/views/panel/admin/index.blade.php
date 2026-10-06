@@ -47,6 +47,9 @@
                 ['panel.admin.seasonal-backgrounds.index', 'fa-image', 'lazer & stable', 'Seasonal backgrounds', "Menu backgrounds and the season's end"],
                 ['panel.admin.menu-banners.index', 'fa-images', 'lazer', 'Menu banners', 'The main menu\'s rotating banners'],
                 ['panel.admin.artists.index', 'fa-music', 'website', 'Featured artists', 'Artists, albums and tracks'],
+                ['panel.admin.contests.index', 'fa-award', 'website', 'Contests', 'Art, beatmap and music contests'],
+                ['panel.packs.index', 'fa-box-open', 'website', 'Beatmap packs', 'Make packs and their downloads'],
+                ['panel.changelog.index', 'fa-code-branch', 'website & lazer', 'Changelog', 'Versions and their changes'],
             ] as [$route, $icon, $kicker, $title, $hint])
                 <a class="tomyum-panel__link" href="{{ route($route) }}">
                     <span class="tomyum-panel__link-icon"><i class="fas {{ $icon }}"></i></span>

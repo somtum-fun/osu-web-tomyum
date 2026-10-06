@@ -93,7 +93,7 @@ class ChangeUsername
         }
         $next = $recent[$recent->count() - static::MONTHLY_LIMIT]->copy()->addDays(static::MONTHLY_WINDOW_DAYS);
 
-        return 'Without osu!supporter you can change your name '.static::MONTHLY_LIMIT.' times in '.static::MONTHLY_WINDOW_DAYS
+        return 'Without supporter you can change your name '.static::MONTHLY_LIMIT.' times in '.static::MONTHLY_WINDOW_DAYS
             .' days (supporters have no limit). Your next change is available '.$next->toDayDateTimeString().' UTC.';
     }
 

@@ -9,7 +9,7 @@ return [
     ],
 
     'defaults' => [
-        'page_description' => 'osu! - Rhythm is just a *click* away!  With Ouendan/EBA, Taiko and original gameplay modes, as well as a fully functional level editor.',
+        'page_description' => 'production, an unofficial osu! private server from Thailand: osu!(stable) and lazer, Relax and Autopilot leaderboards, and free name changes.',
     ],
 
     'header' => [
@@ -73,7 +73,7 @@ return [
         ],
         'community' => [
             '_' => 'community',
-            'dev' => 'development',
+            'dev' => 'discord', // TomYum: our Discord server
         ],
         'help' => [
             '_' => 'help',
@@ -101,6 +101,7 @@ return [
             'changelog-index' => 'Changelog',
             'beatmaps' => 'Beatmap Listing',
             'download' => 'Download osu!',
+            'vote' => 'Vote for us',
         ],
         'help' => [
             '_' => 'Help & Community',
@@ -115,6 +116,7 @@ return [
             'copyright' => 'Copyright (DMCA)',
             'jp_sctl' => '特定商取引法',
             'privacy' => 'Privacy',
+            'restrictions' => 'Restrictions & Appeals', // TomYum
             'rules' => 'Rules',
             'server_status' => 'Server Status',
             'source_code' => 'Source Code',

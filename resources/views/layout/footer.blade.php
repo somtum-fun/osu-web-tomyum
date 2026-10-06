@@ -12,7 +12,11 @@
             @endforeach
         </div>
     @endif
-    <div class="footer__row">ppy powered 2007-{{ date('Y') }}</div>
+    {{-- TomYum: not ppy's site. --}}
+    <div class="footer__row">
+        production {{ date('Y') }} · an unofficial osu! private server, not affiliated with ppy Pty Ltd.
+        osu! is a trademark of ppy Pty Ltd.
+    </div>
 
     <div class="js-sync-height--target" data-sync-height-id="permanent-fixed-footer"></div>
 </footer>

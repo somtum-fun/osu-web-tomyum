@@ -7,7 +7,7 @@ return [
     'cart' => [
         'checkout' => 'Gå til kassen',
         'empty_cart' => 'Fjern alle varer fra handlevognen',
-        'info' => ':count_delimited ting i kurven ($:subtotal)|:count_delimited items i vogn ($:subtotal)',
+        'info' => ':count_delimited ting i kurven (:subtotal)|:count_delimited items i vogn (:subtotal)',
         'more_goodies' => 'Jeg vil se på flere produkter før jeg fullfører bestillingen',
         'shipping_fees' => 'fraktkostnader',
         'title' => 'Handlevogn',

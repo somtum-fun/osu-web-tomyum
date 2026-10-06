@@ -8,6 +8,8 @@
     $currentUser = Auth::user();
     $userCompletedBeatmapIds = new Set($userCompletionData['beatmapset_ids']);
 @endphp
+{{-- TomYum: a pack made on the packs panel may have no download yet: no dead link then. --}}
+@if (present($pack->url))
 <div class="beatmap-pack-description">
     @if($currentUser === null)
         {!! require_login('beatmappacks.require_login._', 'beatmappacks.require_login.link_text') !!}
@@ -20,6 +22,7 @@
         </a>
     @endif
 </div>
+@endif
 @if ($pack->no_diff_reduction)
     <div class="beatmap-pack-description">
         {!! osu_trans('beatmappacks.show.no_diff_reduction._', [

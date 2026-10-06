@@ -1,0 +1,102 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
+// See the LICENCE file in the repository root for full licence text.
+
+// TomYum: the GMT panel's sign-ups page and an account's appeal cooldown (inside .tomyum-panel cards).
+// Their forms are grids of osu-web's input-container fields like the packs and changelog panels.
+.panel-gmt {
+  &__form {
+    align-items: end;
+    display: grid;
+    gap: 10px 12px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    @media @mobile {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .tomyum-panel__hint {
+      margin: 0;
+    }
+
+    // A field's label on one line: a wrapped label runs into what's typed.
+    .input-container__label {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  // Another offense: its reason, the offense, a date and Save on one line.
+  &__form--appeal {
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.5fr) minmax(180px, 1fr) auto;
+
+    @media @mobile {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  &__wide {
+    grid-column: 1 / -1;
+  }
+
+  // Ticks: a row that wraps, with room beside each, not under each.
+  &__checks {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 20px;
+
+    .tomyum-panel__check {
+      min-height: 32px;
+      white-space: normal;
+    }
+  }
+
+  &__actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  // The filter: what to show, the search and its button.
+  &__filter {
+    align-items: end;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 180px minmax(0, 1fr) auto;
+    margin-bottom: 10px;
+
+    @media @mobile {
+      grid-template-columns: minmax(0, 1fr) auto;
+
+      > :first-child {
+        grid-column: 1 / -1;
+      }
+    }
+  }
+
+  // A second, smaller line in a fact tile (when that is).
+  &__fact-note {
+    color: hsl(var(--hsl-c2));
+    font-size: @font-size--normal;
+  }
+
+  // A button beside fields: at the fields' height, not stretched.
+  &__submit {
+    align-self: end;
+    justify-self: start;
+    margin-bottom: 12px;
+  }
+
+  // A sign-up's result and why it was refused: room to read it, not a word per line.
+  &__result {
+    min-width: 180px;
+  }
+
+  // A date field: Chrome makes it 2px taller than a text field beside it.
+  &__date::-webkit-datetime-edit-fields-wrapper {
+    padding: 0;
+  }
+}

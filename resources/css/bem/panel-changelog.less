@@ -1,0 +1,96 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
+// See the LICENCE file in the repository root for full licence text.
+
+// TomYum: the changelog panel. Its forms on a grid like the artists panel's: the fields the same size in
+// columns, each row below the last with room between them, the ticks and buttons on a row of their own.
+.panel-changelog {
+  &__form {
+    align-items: end;
+    display: grid;
+    gap: 10px 12px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+
+    &--3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    @media @mobile {
+      &,
+      &--3 {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+  }
+
+  &__wide {
+    grid-column: 1 / -1;
+  }
+
+  &__span-2 {
+    grid-column: span 2;
+
+    @media @mobile {
+      grid-column: auto;
+    }
+  }
+
+  &__actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 20px;
+  }
+
+  // Remove, away from Save.
+  &__actions-end {
+    margin-left: auto;
+  }
+
+  // The streams to pick from above the versions, with room before the table.
+  &__streams {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  // A stream's name in its table row: a slim field without a label, and its button beside it.
+  &__rename {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+
+    .input-container {
+      --input-padding: 7px var(--input-padding-base);
+      flex: 1 1 auto;
+      min-width: 140px;
+    }
+
+    // On a phone the button under its field, so the table fits without scrolling.
+    @media @mobile {
+      align-items: flex-start;
+      flex-direction: column;
+
+      .input-container {
+        min-width: 120px;
+        width: 100%;
+      }
+    }
+  }
+
+  // A stream's id: not needed on a phone (its name is next to it).
+  &__id {
+    @media @mobile {
+      display: none;
+
+      + td {
+        border-radius: @border-radius-large 0 0 @border-radius-large;
+      }
+    }
+  }
+
+  // The change's title: wide enough to read on a phone (the table scrolls instead).
+  &__title {
+    min-width: 200px;
+  }
+}

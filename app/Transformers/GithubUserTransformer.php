@@ -21,6 +21,8 @@ class GithubUserTransformer extends TransformerAbstract
             'osu_username' => $githubUser->user?->username,
             'user_id' => $githubUser->user_id,
             'user_url' => $githubUser->user?->url(),
+            // TomYum: the name a change written on the changelog panel credits (no account).
+            ...($githubUser->tomyumName === null ? [] : ['tomyum_name' => $githubUser->tomyumName]),
         ];
     }
 }

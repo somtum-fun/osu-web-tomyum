@@ -27,6 +27,9 @@ class PagesController extends Controller
                 'admin' => static::canUseAdmin($user),
                 'bots' => \App\Libraries\TomYumBots::canManageAll($user),
                 'kudosu' => KudosuController::canAdjustKudosu($user),
+                'packs' => PacksController::canUsePacks($user),
+                'changelog' => ChangelogController::canUseChangelog($user),
+                'dan' => DanController::canManageDan($user), // TomYum: osu!dan courses
                 'tickets' => TicketsController::canUseTickets($user),
             ],
         ]);

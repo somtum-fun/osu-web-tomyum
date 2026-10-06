@@ -8,7 +8,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Ranking;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\RankingController;
 use App\Libraries\Score\TopPlays;
+use App\Libraries\TomYumModeScores;
 use App\Models\Beatmap;
 use App\Models\Solo\Score;
 use App\Transformers\ScoreTransformer;
@@ -27,6 +29,14 @@ class TopPlaysController extends Controller
 
         $rulesetId = Beatmap::MODES[$rulesetName] ?? abort(422, 'invalid ruleset parameter');
         $page = \Number::clamp(get_int(\Request::input('page')) ?? 1, 1, static::PAGES);
+
+        // TomYum: the Relax/Autopilot variant's top plays are the game server's.
+        $variant = presence(get_string(\Request::input('variant')));
+        if ($variant !== null && isset(RankingController::TOMYUM_VARIANTS[$rulesetName][$variant])) {
+            return $this->tomyum($rulesetName, $variant, $page);
+        }
+        $variant = null;
+
         $data = new TopPlays($rulesetId)->get();
 
         if (isset($data)) {
@@ -57,6 +67,33 @@ class TopPlaysController extends Controller
             'rulesetName',
             'scores',
             'scoresJson',
+            'variant',
+        ));
+    }
+
+    /** TomYum: a Relax/Autopilot variant's top plays, from the game server (as they are now). */
+    private function tomyum(string $rulesetName, string $variant, int $page): Response
+    {
+        $items = TomYumModeScores::topPlays($rulesetName, $variant);
+        if ($items === null) {
+            abort(503, 'The game server is unavailable.');
+        }
+        $scores = new \Illuminate\Pagination\LengthAwarePaginator(
+            array_slice($items, ($page - 1) * static::PAGE_SIZE, static::PAGE_SIZE),
+            min(count($items), static::PAGE_SIZE * static::PAGES),
+            static::PAGE_SIZE,
+            $page,
+            ['path' => route('rankings.top-plays', ['mode' => $rulesetName]), 'query' => ['variant' => $variant]],
+        );
+        $scoresJson = $scores->items();
+        $lastUpdate = now();
+
+        return ext_view('rankings.top_plays', compact(
+            'lastUpdate',
+            'rulesetName',
+            'scores',
+            'scoresJson',
+            'variant',
         ));
     }
 }

@@ -55,7 +55,7 @@ return [
     |
     */
 
-    'from' => ['address' => presence(env('MAIL_ADDRESS')) ?? 'osu@ppy.sh', 'name' => presence(env('MAIL_SENDER')) ?? 'osu!'],
+    'from' => ['address' => presence(env('MAIL_ADDRESS')) ?? 'osu@ppy.sh', 'name' => presence(env('MAIL_SENDER')) ?? 'production'],
 
     /*
     |--------------------------------------------------------------------------

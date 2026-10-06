@@ -188,12 +188,21 @@
   &__field {
     flex: 1 1 200px;
     width: auto;
+
+    // On a phone a field gets the whole line: beside a button its label wraps into what's typed.
+    @media @mobile {
+      &.input-container {
+        flex-basis: 100%;
+      }
+    }
   }
 
   // A file to upload (the only field osu-web has no input-text for): its button looks like one.
+  // It's as wide as its button and name, so the form's own button sits right after it.
   &__field:not(.input-container) {
     color: hsl(var(--hsl-c2));
     display: grid;
+    flex: 0 1 auto;
     font-size: @font-size--normal;
     gap: 6px;
 
@@ -336,6 +345,29 @@
       font-size: @font-size--normal;
       padding: 1px 5px;
     }
+  }
+
+  // Buttons on a row (each in its own form), wrapping on a phone.
+  &__buttons {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  // A line about what's below it (a room's mode, host and map).
+  &__meta {
+    color: hsl(var(--hsl-c2));
+    font-size: @font-size--normal;
+    line-height: 1.5;
+    margin: 0 0 10px;
+  }
+
+  // A row of its own on a strip (a pp update's progress).
+  &__item {
+    background: hsl(var(--hsl-b5));
+    border-radius: @border-radius-large;
+    padding: 10px 15px;
   }
 
   &__nowrap {

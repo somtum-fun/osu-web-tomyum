@@ -7,20 +7,20 @@ return [
     'support' => [
         'convinced' => [
             'title' => 'I\'m convinced! :D',
-            'support' => 'support osu!',
+            'support' => 'support production',
             'gift' => 'or gift supporter to other players',
-            'instructions' => 'click the heart button to proceed to the osu!store',
+            'instructions' => 'click the heart button to go to the store',
         ],
         'why-support' => [
-            'title' => 'Why should I support osu!? Where does the money go?',
+            'title' => 'Why should I support production? Where does the money go?',
 
             'team' => [
-                'title' => 'Support the Team',
-                'description' => 'A small team develops and runs osu!. Your support helps them to, you know... live.',
+                'title' => 'Run by Volunteers',
+                'description' => 'production is a free, unofficial server run in our spare time by a couple of volunteers in Thailand. Nobody here gets paid.',
             ],
             'infra' => [
                 'title' => 'Server Infrastructure',
-                'description' => 'Contributions go towards the servers for running the website, multiplayer services, online leaderboards, etc.',
+                'description' => 'Every bit goes to the server, the domain and the bandwidth that keep the website, multiplayer and leaderboards online.',
             ],
             'featured-artists' => [
                 'title' => 'Featured Artists',
@@ -28,13 +28,19 @@ return [
                 'link_text' => 'View the current roster &raquo;',
             ],
             'ads' => [
-                'title' => 'Keep osu! self-sustaining',
-                'description' => 'Your contributions help keep the game independent and completely free from ads and outside sponsors.',
+                'title' => 'No Ads, No Pay-to-Win',
+                'description' => 'production stays free of ads. Supporter perks are cosmetic or handy extras and never give a competitive advantage.',
             ],
             'tournaments' => [
                 'title' => 'Official Tournaments',
                 'description' => 'Help fund the running of (and the prizes for) the official osu! World Cup tournaments.',
                 'link_text' => 'Explore tournaments &raquo;',
+            ],
+            // TomYum
+            'vote' => [
+                'title' => 'Can\'t Pay? Vote!',
+                'description' => 'Every vote for production on a server list gives you supporter time for free, and helps new players find us.',
+                'link_text' => 'Vote for us &raquo;',
             ],
             'bounty-program' => [
                 'title' => 'Open Source Bounty Program',
@@ -44,6 +50,32 @@ return [
         ],
         'perks' => [
             'title' => 'Cool! What perks do I get?',
+            // TomYum: production's own perks (example.com).
+            'discord_role' => [
+                'title' => 'Supporter Role on Discord',
+                'description' => 'Get an exclusive supporter role on our Discord server! Make sure to link your Discord account with production first.',
+            ],
+
+            'unlimited_name_changes' => [
+                'title' => 'Unlimited Name Changes',
+                'description' => 'Free players get 5 name changes per month, but supporters enjoy unlimited changes!',
+            ],
+
+            'fresh_start' => [
+                'title' => 'Start Fresh',
+                'description' => 'Want a fresh start? Contact support and we\'ll wipe your scores for you!',
+            ],
+
+            'dev_team' => [
+                'title' => 'Suggest Features or Chat with the Dev Team',
+                'description' => 'Have a cool idea or want to talk to the developers? Supporters get exclusive roles on our Discord server to connect directly with the team!',
+            ],
+
+            'much_more' => [
+                'title' => 'And Much More!',
+                'description' => "We're keeping some surprises for later… stay tuned!",
+            ],
+
             'osu_direct' => [
                 'title' => 'osu!direct',
                 'description' => 'Gain quick and easy access to search for and download beatmaps without having to leave the game.',
@@ -76,7 +108,7 @@ return [
 
             'early_access' => [
                 'title' => 'Early Access',
-                'description' => 'Gain early access to new releases with new features before they go public!<br/><br/>This includes early access to new features on the website too!',
+                'description' => 'Gain early access to new features before they go public!',
             ],
 
             'customisation' => [
@@ -101,7 +133,7 @@ return [
 
             'change_username' => [
                 'title' => 'Change Username',
-                'description' => 'One free name change is included with your first supporter purchase.',
+                'description' => 'Name changes are free for everyone; supporters can change their name as often as they like.',
             ],
 
             'skinnables' => [
@@ -111,7 +143,7 @@ return [
 
             'feature_votes' => [
                 'title' => 'Feature Votes',
-                'description' => 'Votes for feature requests. (2 per month)',
+                'description' => 'Votes for feature requests.',
             ],
 
             'sort_options' => [
@@ -139,9 +171,9 @@ return [
         ],
         'supporter_status' => [
             'contribution_with_duration' => 'Thank you for your ongoing support! So far, you\'ve contributed a total of :dollars, earning you the "Supporter" tag for :duration.',
-            'not_yet' => "You haven't ever had an osu!supporter tag :(",
-            'valid_until' => 'Your current osu!supporter tag is valid until :date!',
-            'was_valid_until' => 'Your osu!supporter tag was valid until :date.',
+            'not_yet' => "You haven't ever had an production supporter tag :(",
+            'valid_until' => 'Your current supporter tag is valid until :date!',
+            'was_valid_until' => 'Your supporter tag was valid until :date.',
 
             'gifted' => [
                 '_' => 'Out of your total contributions, you’ve gifted :dollars worth of tags to :users covering :duration. That’s incredibly generous!',

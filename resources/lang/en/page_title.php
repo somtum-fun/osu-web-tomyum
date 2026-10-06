@@ -89,6 +89,7 @@ return [
             'search' => 'search',
             'support_the_game' => 'support the game',
             'testflight' => 'testflight',
+            'vote' => 'vote for us',
         ],
         'legacy_matches_controller' => [
             '_' => 'matches',
@@ -101,6 +102,10 @@ return [
         ],
         'loved_controller' => [
             '_' => 'project loved',
+        ],
+        // TomYum: osu!dan.
+        'dan_controller' => [
+            '_' => 'osu!dan',
         ],
         'news_controller' => [
             '_' => 'news',
@@ -119,6 +124,10 @@ return [
         ],
         'tomyum_scores_controller' => [
             '_' => 'performance',
+        ],
+        // TomYum: the appeal form (/home/appeal).
+        'tom_yum_appeals_controller' => [
+            '_' => 'appeals',
         ],
         'seasons_controller' => [
             '_' => 'rankings',

@@ -21,10 +21,10 @@ const jsonId = 'json-store-supporter-tag';
 
 const maxValue = 52;
 const minValue = 4;
-// TomYum: the slider keeps osu!'s US$ ladder; the price is in Thai baht at ฿25 to the dollar
-// (SupporterTag::BAHT_PER_DOLLAR in php). Players outside Thailand see the dollars, osu!'s own
-// prices; the order is still in baht.
-const bahtPerDollar = 25;
+// TomYum: the slider keeps osu!'s US$ ladder at half its price: ฿12.5 per osu! dollar, rounded up
+// to whole baht (SupporterTag::BAHT_PER_DOLLAR in php). Players outside Thailand see half osu!'s
+// dollars; the order is still in baht.
+const bahtPerDollar = 12.5;
 
 interface Props {
   currency: 'thb' | 'usd';
@@ -38,6 +38,10 @@ interface SavedState {
 }
 
 const monthPresets = [1, 2, 4, 6, 12, 18, 24] as const;
+
+function formatUsd(amount: number) {
+  return Number.isInteger(amount) ? amount.toString() : amount.toFixed(2);
+}
 
 function durationToPrice(duration: number) {
   switch (true) {
@@ -66,7 +70,7 @@ export default class StoreSupporterTag extends React.Component<Props> {
 
   @computed
   get cost() {
-    return this.dollars * bahtPerDollar;
+    return Math.ceil(this.dollars * bahtPerDollar);
   }
 
   @computed
@@ -206,7 +210,7 @@ export default class StoreSupporterTag extends React.Component<Props> {
             <div className='ui-slider-handle'>
               <div className='store-slider__fake-callout'>
                 <div className='store-slider__callout'>
-                  <div className='store-slider__bigtext'>{this.props.currency === 'usd' ? `USD ${this.dollars}` : `฿${this.cost}`}</div>
+                  <div className='store-slider__bigtext'>{this.props.currency === 'usd' ? `USD ${formatUsd(this.dollars / 2)}` : `฿${this.cost}`}</div>
                   <div>{this.durationText}</div>
                   <div className='store-slider__subtext'>{trans('store.discount', { percent: this.discount })}</div>
                 </div>

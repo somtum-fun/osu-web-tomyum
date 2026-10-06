@@ -70,6 +70,8 @@
         </div>
     </div>
     <div class="nav2__colgroup nav2__colgroup--icons js-nav-button--container">
+        {{-- TomYum: only when there's a Twitter account (OSU_URL_TWITTER). --}}
+        @if (osu_url('social.twitter') !== null)
         <div class="nav2__col js-nav-button--item">
             <a
                 href="{{ osu_url('social.twitter') }}"
@@ -80,6 +82,7 @@
                 <span class="fab fa-twitter"></span>
             </a>
         </div>
+        @endif
 
         <div class="nav2__col">
             <a

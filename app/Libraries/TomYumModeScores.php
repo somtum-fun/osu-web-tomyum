@@ -150,9 +150,11 @@ class TomYumModeScores
      * a ruleset without that variant (mania, or AP outside osu!) has no scores. $mods (acronyms, "NM"
      * for none) keeps plays with exactly those mods, as the in-game "Selected Mods" board does. $type
      * is the website's: global, or only the viewer's country, friends (and themselves) or team. $sort
-     * is "pp" or "score" (each player's best play, ordered by score).
+     * is "pp" or "score" (each player's best play, ordered by score). $stableOnly is the website's
+     * stable mode (not lazer's), as on the vanilla board: each player's best stable play, no lazer
+     * plays (stable has no custom DT speed, for one).
      */
-    public static function beatmapLeaderboard(Beatmap $beatmap, ?string $ruleset, string $variant, array $mods = [], string $type = 'global', string $sort = 'pp'): array
+    public static function beatmapLeaderboard(Beatmap $beatmap, ?string $ruleset, string $variant, array $mods = [], string $type = 'global', string $sort = 'pp', bool $stableOnly = false): array
     {
         $ruleset ??= Beatmap::modeStr($beatmap->playmode);
         $mode = static::variant($ruleset.$variant);
@@ -176,6 +178,7 @@ class TomYumModeScores
             'viewerId' => $viewer?->getKey(),
             'mods' => $mods === [] ? null : app('mods')->idsToBitset(array_diff($mods, ['NM'])),
             'sort' => $sort,
+            'stableOnly' => $stableOnly ? 'true' : null,
         ];
         $path = "/beatmaps/{$beatmap->getKey()}/mode-scores/{$mode[1]}";
         $admin = new TomYumAdmin($viewer);
@@ -209,6 +212,41 @@ class TomYumModeScores
         }
 
         return $result;
+    }
+
+    /**
+     * A mode's top plays for the rankings' "Top Plays" with the Relax/Autopilot variant: everyone's
+     * best on each map, by pp (TomYum's, up to 1000), shaped like the website's top plays (with the
+     * player). Null when the game server can't be reached.
+     */
+    public static function topPlays(string $ruleset, string $variant): ?array
+    {
+        $mode = static::variant($ruleset.$variant);
+        if ($mode === null) {
+            return [];
+        }
+        $response = (new TomYumAdmin(auth()->user()))->get("/mode-scores/top-plays/{$mode[1]}", ['limit' => 1000]);
+        if (!$response->successful()) {
+            return null;
+        }
+
+        $entries = $response->json('scores') ?? [];
+        $users = User::default()->with(['country', 'team'])->whereIn('user_id', array_column($entries, 'userId'))->get()->keyBy('user_id');
+        $beatmaps = Beatmap::with('beatmapset')->whereIn('beatmap_id', array_column(array_column($entries, 'score'), 'beatmapId'))->get()->keyBy('beatmap_id');
+        $rulesetId = Beatmap::MODES[$mode[0]];
+        $items = [];
+        foreach ($entries as $entry) {
+            $user = $users[$entry['userId']] ?? null;
+            $beatmap = $beatmaps[$entry['score']['beatmapId']] ?? null;
+            if ($user === null || $beatmap === null || $beatmap->beatmapset === null) {
+                continue;
+            }
+            $json = static::item($entry['score'], $user, $beatmap, $rulesetId, null);
+            $json['user'] = json_item($user, new UserCompactTransformer(), ['country', 'team']);
+            $items[] = $json;
+        }
+
+        return $items;
     }
 
     /** A TomYum play shaped like the website's scores. */

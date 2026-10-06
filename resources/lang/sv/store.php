@@ -7,7 +7,7 @@ return [
     'cart' => [
         'checkout' => 'Checka ut',
         'empty_cart' => 'Ta bort alla artiklar från varukorgen',
-        'info' => ':count_delimited föremål i varukorgen ($:subtotal)|:count_delimited föremål i varukorgen ($:subtotal)',
+        'info' => ':count_delimited föremål i varukorgen (:subtotal)|:count_delimited föremål i varukorgen (:subtotal)',
         'more_goodies' => 'Jag vill ta en titt på fler godsaker innan jag fullbordar beställningen',
         'shipping_fees' => 'fraktavgifter',
         'title' => 'Varukorg',

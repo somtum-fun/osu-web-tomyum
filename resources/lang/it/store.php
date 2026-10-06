@@ -7,7 +7,7 @@ return [
     'cart' => [
         'checkout' => 'Paga',
         'empty_cart' => 'Rimuovi tutti gli articoli dal carrello',
-        'info' => ':count_delimited articolo nel carrello ($:subtotal)|:count_delimited articoli nel carrello ($:subtotal)',
+        'info' => ':count_delimited articolo nel carrello (:subtotal)|:count_delimited articoli nel carrello (:subtotal)',
         'more_goodies' => 'Voglio controllare altri articoli prima di completare l\'ordine',
         'shipping_fees' => 'costi di spedizione',
         'title' => 'Carrello',

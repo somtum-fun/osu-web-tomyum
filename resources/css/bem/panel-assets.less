@@ -217,7 +217,17 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
 
     @media @mobile {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr); // TomYum: a long field can't widen the page
+    }
+
+    // TomYum: a checkbox's words wrap on a phone instead of pushing the form off the screen.
+    .tomyum-panel__check {
+      white-space: normal;
+    }
+
+    // A field's longer explanation, under it (labels stay one short line: they sit on the input).
+    .tomyum-panel__hint {
+      margin: -4px 0 0;
     }
   }
 
@@ -230,7 +240,9 @@
   }
 
   &__buttons {
+    align-items: center;
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
   }
 
@@ -338,6 +350,22 @@
       flex: 1;
       min-width: 0;
       padding: 0 15px;
+    }
+
+    // In a table row (a reason, then the button): darker than the row, and a fixed width.
+    &--row {
+      align-items: center;
+
+      .input-text {
+        background: hsl(var(--hsl-b6));
+        flex: 0 1 170px;
+        height: 30px;
+        min-width: 110px;
+      }
+
+      .btn-osu-big {
+        flex: none;
+      }
     }
   }
 

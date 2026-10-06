@@ -7,7 +7,7 @@ return [
     'cart' => [
         'checkout' => 'Semak keluar',
         'empty_cart' => 'Padam semua barang dari troli',
-        'info' => ':count_delimited barang dalam troli ($:subtotal)',
+        'info' => ':count_delimited barang dalam troli (:subtotal)',
         'more_goodies' => 'Saya nak tengok lagi cenderahati sebelum habiskan pesanan',
         'shipping_fees' => 'yuran penghantaran',
         'title' => 'Troli Beli-Belah',

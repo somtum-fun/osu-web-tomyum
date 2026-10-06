@@ -3,9 +3,10 @@
 return [
     'allow_restricted_users' => get_bool(env('STORE_ALLOW_RESTRICTED_USERS')) ?? false,
     'mail' => [
+        // TomYum: from this server's store address, not osu!'s.
         'donation_thanks' => [
-            'sender_address' => env('STORE_THANKS_SENDER_ADDRESS', 'osu@ppy.sh'),
-            'sender_name' => env('STORE_THANKS_SENDER_NAME', 'osu!'),
+            'sender_address' => presence(env('STORE_THANKS_SENDER_ADDRESS')) ?? presence(env('MAIL_STORE_ADDRESS')) ?? presence(env('MAIL_ADDRESS')),
+            'sender_name' => presence(env('STORE_THANKS_SENDER_NAME')) ?? 'production',
         ],
     ],
     'order' => [

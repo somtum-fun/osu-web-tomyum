@@ -54,10 +54,11 @@
   }
 
   &__logo {
-    .at2x("~@images/layout/osu-logo.png");
-    width: @logo-size;
+    .at2x("~@images/layout/prod-logo.png"); // TomYum
+    width: (@logo-size * 2.67);
     height: @logo-size;
     background-size: contain;
+    background-repeat: no-repeat;
     flex: none;
     margin-bottom: -3px;
     will-change: opacity;
@@ -119,7 +120,7 @@
     width: calc(100% - @side-padding);
     max-width: 328px;
     background-size: contain;
-    .at2x("~@images/layout/pippi.png");
+    // TomYum: no pippi (ppy's mascot); only the production wordmark (__pippi-logo).
     transition: all 1s;
 
     @media @mobile {
@@ -128,10 +129,12 @@
   }
 
   &__pippi-logo {
-    .at2x("~@images/landing/logo.png");
+    .at2x("~@images/layout/prod-logo.png"); // TomYum
     width: 100%;
     height: 100%;
     background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
   }
 
   &__slogan-main {

@@ -10,20 +10,23 @@ use App\Libraries\CurrentStats;
 use App\Libraries\MenuContent;
 use App\Libraries\Search\AllSearch;
 use App\Libraries\Search\QuickSearch;
+use App\Libraries\TomYumDownloads;
 use App\Models\BeatmapDownload;
 use App\Models\Beatmapset;
-use App\Models\Build;
 use App\Models\Forum\Post;
 use App\Models\LivestreamCollection;
 use App\Models\Multiplayer\Room;
 use App\Models\NewsPost;
+use App\Models\User;
 use App\Models\UserDonation;
 use App\Transformers\MenuImageTransformer;
 use App\Transformers\NewsPostTransformer;
 use App\Transformers\UserCompactTransformer;
 use Auth;
 use Carbon\CarbonImmutable;
+use DB;
 use DeviceDetector\DeviceDetector;
+use Illuminate\Database\QueryException;
 use Request;
 
 /**
@@ -64,38 +67,21 @@ class HomeController extends Controller
 
     public function getDownload()
     {
+        // TomYum: lazer-fork (lazer) is built for Windows and Linux only.
         $lazerPlatformNames = [
-            'android' => osu_trans('home.download.os_version_or_later', ['os_version' => 'Android 5']),
-            'ios' => osu_trans('home.download.os_version_or_later', ['os_version' => 'iOS 13.4']),
+            'windows_x64' => 'Windows (x64)',
             'linux_x64' => 'Linux (x64)',
-            'macos_as' => osu_trans('home.download.os_version_or_later', ['os_version' => 'macOS 12']).' (Apple Silicon)',
-            'macos_intel' => osu_trans('home.download.os_version_or_later', ['os_version' => 'macOS 12']).' (Intel)',
-            'windows_x64' => osu_trans('home.download.os_version_or_later', ['os_version' => 'Windows 10']).' (x64)',
         ];
 
         $platform = get_string(request('platform'));
         if (!array_key_exists($platform, $lazerPlatformNames)) {
             $deviceDetector = new DeviceDetector(\Request::header('User-Agent') ?? '');
             $deviceDetector->parse();
-            $family = $deviceDetector->getOs('family');
-
-            $platform = match ($family) {
-                // Try matching most likely platform first
-                'Windows' => 'windows_x64',
-                // current iPadOS declares itself as a desktop browser.
-                'iOS' => 'ios',
-                // FIXME: Figure out a way to differentiate Intel and Apple Silicon.
-                'Mac' => 'macos_as',
-                'Android' => 'android',
-                'GNU/Linux' => 'linux_x64',
-                default => 'windows_x64',
-            };
+            $platform = $deviceDetector->getOs('family') === 'GNU/Linux' ? 'linux_x64' : 'windows_x64';
         }
 
-        $version = Build::where(['stream_id' => $GLOBALS['cfg']['osu']['client']['download_stream'], 'test_build' => false])
-            ->orderBy('build_id', 'desc')
-            ->first()
-            ?->version;
+        $manifest = TomYumDownloads::manifest();
+        $lazer = $manifest['lazer'][$platform] ?? null;
 
         $items = [];
         foreach ($lazerPlatformNames as $key => $value) {
@@ -110,10 +96,53 @@ class HomeController extends Controller
         ];
 
         return ext_view('home.download', [
-            'lazerUrl' => osu_url("lazer_dl.{$platform}"),
+            'dlUrl' => TomYumDownloads::baseUrl(),
+            'hook' => $manifest['hook'] ?? null,
+            'lazer' => $lazer,
+            'lazerUrl' => $lazer['url'] ?? TomYumDownloads::baseUrl().'/lazer/',
             'lazerPlatformName' => $lazerPlatformNames[$platform],
+            'legacyYears' => TomYumDownloads::legacyByYear($manifest),
+            'patcherUrl' => $manifest['patcher']['url'] ?? TomYumDownloads::PATCHER_URL,
             'selectOptions' => $selectOptions,
-            'version' => $version,
+            'version' => $manifest['lazer']['version'] ?? null,
+        ]);
+    }
+
+    // TomYum: the server lists to vote on, the player's own votes and the top voters. The counts are
+    // the tomyum.votes plugin's (tomyum.plugin_votes), which it creates on the first vote.
+    public function vote()
+    {
+        $config = $GLOBALS['cfg']['tomyum']['votes'];
+        $user = Auth::user();
+        $myVotes = null;
+        $topVoters = [];
+
+        try {
+            if ($user !== null) {
+                $myVotes = (int) DB::table('tomyum.plugin_votes')->where('user_id', $user->getKey())->value('votes');
+            }
+
+            $counts = DB::table('tomyum.plugin_votes')
+                ->orderByDesc('votes')
+                ->orderBy('first_voted_at')
+                ->limit(10)
+                ->pluck('votes', 'user_id');
+            $users = User::default()->whereIn('user_id', $counts->keys())->get()->keyBy('user_id');
+            foreach ($counts as $userId => $votes) {
+                if (isset($users[$userId])) {
+                    $topVoters[] = ['user' => $users[$userId], 'votes' => (int) $votes];
+                }
+            }
+        } catch (QueryException) {
+            // no votes yet
+        }
+
+        return ext_view('home.vote', [
+            'daysPerVote' => $config['days_per_vote'],
+            'myVotes' => $myVotes,
+            'sites' => $config['sites'],
+            'topVoters' => $topVoters,
+            'user' => $user,
         ]);
     }
 
@@ -319,6 +348,8 @@ class HomeController extends Controller
 
         $pageLayout = [
             // why support
+            // TomYum: where this server's money goes (osu!'s Featured Artists, official tournaments and
+            // bounty program aren't ours); voting gives supporter for free.
             'support-reasons' => [
                 'type' => 'group',
                 'section' => 'why-support',
@@ -329,20 +360,12 @@ class HomeController extends Controller
                     'infra' => [
                         'icons' => ['fas fa-server'],
                     ],
-                    'featured-artists' => [
-                        'icons' => ['fas fa-user-astronaut'],
-                        'link' => route('artists.index'),
-                    ],
                     'ads' => [
                         'icons' => ['fas fa-ad', 'fas fa-slash'],
                     ],
-                    'tournaments' => [
-                        'icons' => ['fas fa-trophy'],
-                        'link' => route('tournaments.index'),
-                    ],
-                    'bounty-program' => [
-                        'icons' => ['fas fa-child'],
-                        'link' => osu_url('bounty-form'),
+                    'vote' => [
+                        'icons' => ['fas fa-vote-yea'],
+                        'link' => route('vote'),
                     ],
                 ],
             ],
@@ -352,6 +375,27 @@ class HomeController extends Controller
             // There are 5 perk rendering types: image, image-flipped, hero, group and image-group.
             // image, image-flipped, hero each show an individual perk (with image) while group and image-group show groups of perks (the latter with images)
             'perks' => [
+                // TomYum: production's own perks first (example.com).
+                [
+                    'type' => 'group',
+                    'items' => [
+                        'discord_role' => [
+                            'icons' => ['fab fa-discord'],
+                        ],
+                        'unlimited_name_changes' => [
+                            'icons' => ['fas fa-magic'],
+                        ],
+                        'fresh_start' => [
+                            'icons' => ['fas fa-broom'],
+                        ],
+                        'dev_team' => [
+                            'icons' => ['fas fa-comments'],
+                        ],
+                        'much_more' => [
+                            'icons' => ['fas fa-gift'],
+                        ],
+                    ],
+                ],
                 [
                     'type' => 'image',
                     'name' => 'osu_direct',
@@ -394,9 +438,7 @@ class HomeController extends Controller
                                 'supporter_bonus_max' => $GLOBALS['cfg']['osu']['beatmapset']['upload_bonus_per_ranked_max_supporter'],
                             ],
                         ],
-                        'early_access' => [
-                            'icons' => ['fas fa-flask'],
-                        ],
+                        // TomYum: no early access (osu!'s TestFlight) here.
                     ],
                 ],
                 [
@@ -434,9 +476,6 @@ class HomeController extends Controller
                         ],
                         'speedy_downloads' => [
                             'icons' => ['fas fa-tachometer-alt'],
-                        ],
-                        'change_username' => [
-                            'icons' => ['fas fa-magic'],
                         ],
                         'skinnables' => [
                             'icons' => ['fas fa-paint-brush'],

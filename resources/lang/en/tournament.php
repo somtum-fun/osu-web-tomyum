@@ -24,12 +24,24 @@ return [
 
     'show' => [
         'banner' => 'Support Your Team',
-        'entered' => 'You are registered for this tournament.<br><br>Please note that this does <b>not</b> mean you have been assigned to a team.<br><br>Further instructions will be sent to you via email closer to the tournament date, so please ensure your osu! account\'s email address is valid!',
+        // TomYum: solo registration; news comes on the information page.
+        'entered' => 'You are registered for this tournament!<br><br>Keep an eye on the information page for what happens next.',
         'info_page' => 'Information Page',
         'login_to_register' => 'Please :login to view registration details!',
         'not_yet_entered' => 'You are not registered for this tournament.',
         'rank_too_low' => 'Sorry, you do not meet the rank requirements for this tournament!',
         'registration_ends' => 'Registrations close on :date',
+
+        // TomYum: requirements, registered players and drafts.
+        'cannot_register' => 'You can\'t register yet:',
+        'full' => 'This tournament is full.',
+        'hidden' => 'Only staff can see this tournament right now.',
+        'none_registered' => 'Nobody has registered yet.',
+        'registered_count' => ':count registered',
+        'registered_count_max' => ':count of :max registered',
+        'registrants' => 'Registered players',
+        'registration_opens' => 'Registrations open on :date',
+        'requirements' => 'Who can register',
 
         'button' => [
             'cancel' => 'Cancel Registration',
@@ -49,4 +61,37 @@ return [
         ],
     ],
     'tournament_period' => ':start to :end',
+
+    // TomYum: who may register, and why someone can't.
+    'requirements' => [
+        'account_age' => 'An account at least :days old',
+        'countries' => 'Playing for one of: :countries (your profile\'s country)',
+        'discord' => 'A linked Discord account (Settings → Connections)',
+        'rank' => 'Global :mode rank: :range',
+        'restriction' => 'No restriction in the last :days',
+        'silence' => 'No silence in the last :days',
+        'standing' => 'Not restricted, and no tournament ban',
+
+        'failed' => [
+            'account_age' => 'Your account is :age old, and it needs to be at least :days old.',
+            'closed' => 'Registration isn\'t open right now.',
+            'country' => 'Your profile\'s country is :country, and this tournament is for players from :countries.',
+            'country_none' => 'Your profile doesn\'t have a country set, and this tournament is for players from :countries.',
+            'deleted' => 'This account doesn\'t exist any more.',
+            'discord' => 'Link your Discord account first (Settings → Connections).',
+            'full' => 'This tournament is full.',
+            'rank' => 'Your global :mode rank is #:rank, and this tournament is for :range.',
+            'rank_none' => 'You don\'t have a global :mode rank yet. Play some ranked maps first!',
+            'restricted' => 'Your account is restricted.',
+            'restriction' => 'Your account was restricted in the last :days.',
+            'silence' => 'You were silenced in the last :days.',
+            'tournament_ban' => 'You have a tournament ban.',
+        ],
+
+        'range' => [
+            'between' => '#:min to #:max',
+            'max' => '#:max or better',
+            'min' => '#:min or lower',
+        ],
+    ],
 ];

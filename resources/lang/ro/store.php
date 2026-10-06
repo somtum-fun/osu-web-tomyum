@@ -7,7 +7,7 @@ return [
     'cart' => [
         'checkout' => 'Plată',
         'empty_cart' => 'Elimină toate articolele din coș',
-        'info' => 'un obiect în coș ($:subtotal)|:count_delimited obiecte în coș ($:subtotal)|:count_delimited de obiecte în coș ($:subtotal)',
+        'info' => 'un obiect în coș (:subtotal)|:count_delimited obiecte în coș (:subtotal)|:count_delimited de obiecte în coș (:subtotal)',
         'more_goodies' => 'Vreau să-mi verific bunătățile înainte de a completa comanda',
         'shipping_fees' => 'taxe de livrare',
         'title' => 'Coșul de cumpărături',

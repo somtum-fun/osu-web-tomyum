@@ -150,7 +150,7 @@ class TomYumCheckoutController extends Controller
                 // What the player was shown and pays by card: baht in Thailand, else US$.
                 'charge_currency' => store_currency(),
                 'charge_amount' => store_currency() === 'usd'
-                    ? round((float) $order->getTotal() / \App\Models\SupporterTag::BAHT_PER_DOLLAR, 2)
+                    ? store_usd((float) $order->getTotal())
                     : (float) $order->getTotal(),
                 'description' => implode(', ', $order->items->map->getDisplayName()->all()),
                 ...$body,

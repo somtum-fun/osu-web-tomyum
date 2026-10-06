@@ -4,6 +4,8 @@
 --}}
 @php
     $user = auth()->user();
+    // TomYum: opened without the game's client hash and no device is waiting for this account.
+    $nothingPending ??= false;
 @endphp
 
 @extends('master', [
@@ -39,7 +41,13 @@
             </div>
 
             <div class="dialog-form__row dialog-form__row--label">
-                @if ($wrongAccount !== null)
+                @if ($nothingPending)
+                    {{-- TomYum: /p/verify opened by hand (or by a build that doesn't send its device), with nothing to confirm. --}}
+                    <p class="dialog-form__client-request">
+                        There's no device waiting to be confirmed for <strong>{{ $user->username }}</strong>.
+                        Log in from the game on the new device first, then come back to this page.
+                    </p>
+                @elseif ($wrongAccount !== null)
                     {{-- TomYum: the game is logging in another account than the one signed in here. --}}
                     <p class="dialog-form__client-request">
                         osu! is waiting to verify this device for <strong>{{ $wrongAccount }}</strong>, but you're
@@ -71,7 +79,7 @@
             </div>
 
             <div class="dialog-form__row dialog-form__row--buttons">
-                @if ($wrongAccount === null)
+                @if ($wrongAccount === null && !$nothingPending)
                     <form
                         action="{{ route('client-verifications.store') }}"
                         data-remote

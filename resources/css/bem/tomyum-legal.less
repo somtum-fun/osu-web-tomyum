@@ -1,0 +1,126 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the GNU Affero General Public License v3.0.
+// See the LICENCE file in the repository root for full licence text.
+
+// TomYum: production's legal pages (tomyum-legal/*.blade.php).
+.tomyum-legal {
+  max-width: 800px;
+  padding: 20px 0 40px;
+  font-size: @font-size--title-small-2;
+  line-height: 1.6;
+
+  &__nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px 20px;
+    margin-bottom: 20px;
+  }
+
+  &__nav-link {
+    .link-default();
+    font-weight: 600;
+
+    &--active {
+      .link-white();
+      text-decoration: underline;
+    }
+  }
+
+  &__title {
+    margin: 0;
+    font-size: @font-size--title;
+    font-weight: 600;
+  }
+
+  &__updated {
+    margin: 5px 0 15px;
+    color: hsl(var(--hsl-c2));
+  }
+
+  &__notice {
+    padding: 10px 15px;
+    margin-bottom: 20px;
+    border-radius: @border-radius--extra;
+    background: hsl(var(--hsl-b4));
+  }
+
+  &__body {
+    h2 {
+      margin: 25px 0 5px;
+      font-size: @font-size--title-small-4;
+      font-weight: 600;
+    }
+
+    h3 {
+      margin: 15px 0 5px;
+      font-size: @font-size--title-small-3;
+      font-weight: 600;
+    }
+
+    p {
+      margin: 0 0 10px;
+    }
+
+    ul,
+    ol {
+      margin: 0 0 10px;
+      padding-left: 25px;
+    }
+
+    li {
+      margin-bottom: 5px;
+    }
+
+    a {
+      .link-default();
+    }
+
+    // TomYum: the appeal cooldowns (Restrictions & Appeals).
+    table {
+      width: 100%;
+      margin: 0 0 10px;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 6px 10px;
+      border: 1px solid hsl(var(--hsl-b4));
+      text-align: left;
+    }
+
+    th {
+      background: hsl(var(--hsl-b4));
+    }
+  }
+
+  // TomYum: a page without the "last updated" line under its title (the appeal form, sign up in the game).
+  &__body--spaced {
+    margin-top: 15px;
+  }
+
+  // TomYum: the appeal form (tomyum-appeals/show).
+  &__field {
+    margin-bottom: 20px;
+  }
+
+  &__field-label {
+    display: block;
+    margin: 0;
+    font-size: @font-size--title-small-3;
+    font-weight: 600;
+  }
+
+  &__field-hint {
+    display: block;
+    margin-bottom: 8px;
+    color: hsl(var(--hsl-c2));
+  }
+
+  &__textarea {
+    // No floating label in this box, so no room kept for one.
+    --input-padding: var(--input-padding-base);
+    min-height: 100px;
+    resize: vertical;
+    line-height: 1.4;
+  }
+}

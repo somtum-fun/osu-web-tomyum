@@ -45,7 +45,10 @@ interface Props {
 // qualified, ranked); others (graveyard, loved) have no path.
 const pathStatuses = new Set(['wip', 'pending', 'qualified', 'approved', 'ranked']);
 
-type XhrType = 'delete' | 'discussionLock' | 'removeFromLoved';
+type XhrType = 'delete' | 'discussionLock' | 'openForNominations' | 'removeFromLoved';
+
+// TomYum: sets uploaded here are numbered from here (BnController::CUSTOM_ID_FLOOR); below are osu!'s.
+const customIdFloor = 10_000_000;
 
 function discussionIdFromEvent(event: BeatmapsetEventJson) {
   return event.comment != null
@@ -128,6 +131,7 @@ export class Nominations extends React.Component<Props> {
               discussionsState={this.props.discussionsState}
               store={this.props.store}
             />
+            {this.renderOpenForNominationsButton()}
             {this.renderDiscussionLockButton()}
             {this.renderLoveButton()}
             {this.renderRemoveFromLovedButton()}
@@ -285,6 +289,28 @@ export class Nominations extends React.Component<Props> {
 
     return { discussion, link, message, user };
   }
+
+  // TomYum: a BN opens an osu! graveyard/WIP set for nominations (it becomes pending).
+  @action
+  private readonly openForNominations = () => {
+    if (this.xhr.openForNominations != null) return;
+
+    if (!confirm('Open this set for nominations? It becomes pending here and in-game, so BNs can nominate it.')) return;
+
+    this.xhr.openForNominations = $.ajax(
+      route('beatmapsets.open-for-nominations', { beatmapset: this.beatmapset.id }),
+      { method: 'POST' },
+    );
+
+    this.xhr.openForNominations
+      .done((beatmapset) => runInAction(() => {
+        this.props.discussionsState.update({ beatmapset });
+      }))
+      .fail(onError)
+      .always(action(() => {
+        this.xhr.openForNominations = undefined;
+      }));
+  };
 
   @action
   private readonly removeFromLoved = () => {
@@ -479,7 +505,8 @@ export class Nominations extends React.Component<Props> {
   // who hyped and who nominated under them.
   private renderPathToRanking() {
     const beatmapset = this.beatmapset;
-    if (!pathStatuses.has(beatmapset.status)) return null;
+    // TomYum: osu!'s graveyard sets can be hyped (asking the BNs to open them) and show the path too.
+    if (!pathStatuses.has(beatmapset.status) && !beatmapset.can_be_hyped) return null;
 
     const state = this.props.discussionsState;
     const qualified = beatmapset.status === 'qualified' || beatmapset.status === 'ranked' || beatmapset.status === 'approved';
@@ -564,6 +591,25 @@ export class Nominations extends React.Component<Props> {
         </div>
         {names != null && <div className={`${bn}__stage-names`}>{names}</div>}
       </div>
+    );
+  }
+
+  // TomYum: for BNs, NAT and admins on osu!'s graveyard and WIP sets (the server checks again).
+  private renderOpenForNominationsButton() {
+    const user = core.currentUser;
+    const status = this.beatmapset.status;
+    if (user == null || !(user.is_bng || user.is_nat || user.is_admin)) return;
+    if ((status !== 'graveyard' && status !== 'wip') || this.beatmapset.id >= customIdFloor) return;
+
+    return (
+      <BigButton
+        icon='fas fa-door-open'
+        isBusy={this.xhr.openForNominations != null}
+        props={{
+          onClick: this.openForNominations,
+        }}
+        text='Open for nominations'
+      />
     );
   }
 

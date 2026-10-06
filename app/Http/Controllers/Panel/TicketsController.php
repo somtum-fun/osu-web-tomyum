@@ -132,6 +132,16 @@ class TicketsController extends Controller
         }
         TomYumTickets::close($row, Auth::user(), $reason);
 
+        // TomYum: a denied appeal waits 3 more months before the next one (TomYumAppeals).
+        if ($row->category === 'appeal' && $row->user_id !== null && Request::boolean('appeal_denied')) {
+            $after = \App\Libraries\TomYumAppeals::denied($row->user_id, Auth::user()->getKey());
+            if ($after !== null) {
+                TomYumTickets::note($row, Auth::user(), 'Appeal denied: they can appeal again from '.$after->format('j M Y').'.');
+
+                return $this->back($row, 'success', 'Ticket closed. Appeal denied: they can appeal again from '.$after->format('j M Y').'.');
+            }
+        }
+
         return $this->back($row, 'success', 'Ticket closed.');
     }
 

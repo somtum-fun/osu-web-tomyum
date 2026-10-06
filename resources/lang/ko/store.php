@@ -7,7 +7,7 @@ return [
     'cart' => [
         'checkout' => '결제',
         'empty_cart' => '장바구니의 모든 항목 삭제',
-        'info' => '장바구니에 담긴 :count_delimited개의 항목 ($:subtotal)',
+        'info' => '장바구니에 담긴 :count_delimited개의 항목 (:subtotal)',
         'more_goodies' => '주문을 끝내기 전에 더 둘러볼게요.',
         'shipping_fees' => '배송료',
         'title' => '장바구니',
