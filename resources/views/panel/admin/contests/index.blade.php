@@ -29,6 +29,7 @@
             @if (count($contests) === 0)
                 <p class="tomyum-panel__empty">None yet.</p>
             @else
+                <div class="tomyum-panel__scroll">
                 <table class="tomyum-panel__table">
                     <tr><th>#</th><th>Name</th><th>Kind</th><th>Now</th><th>Uploads</th><th>Entries</th><th>Votes</th><th></th></tr>
                     @foreach ($contests as $contest)
@@ -39,7 +40,7 @@
                                 <a href="{{ $contest->url() }}">{{ $contest->name }}</a>
                                 @if (!$contest->visible) <span class="tomyum-panel__pill tomyum-panel__pill--warn">hidden</span> @endif
                             </td>
-                            <td>{{ $types[$contest->type] ?? $contest->type }}</td>
+                            <td class="tomyum-panel__nowrap">{{ $types[$contest->type] ?? $contest->type }}</td>
                             <td>{{ $protected ? 'seasonal backgrounds' : ($phases[$contest->state()] ?? $contest->state()) }}</td>
                             <td>{{ $contest->user_contest_entries_count }}</td>
                             <td>{{ $contest->entries_count }}</td>
@@ -54,6 +55,7 @@
                         </tr>
                     @endforeach
                 </table>
+                </div>
             @endif
         </div>
     </div>

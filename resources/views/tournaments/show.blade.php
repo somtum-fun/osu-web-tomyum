@@ -50,7 +50,10 @@
 
     <div class="osu-page">
         <div class="tournament">
-            <div class='tournament__banner'></div>
+            {{-- TomYum: no empty space where a tournament has no header image yet. --}}
+            @if (present($tournament->header_banner))
+                <div class='tournament__banner'></div>
+            @endif
 
             <div class="tournament__page">
                 @if (count($links = $tournament->pageLinks()) > 0)

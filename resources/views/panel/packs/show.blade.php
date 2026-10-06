@@ -68,13 +68,13 @@
 
         <div class="tomyum-panel__card">
             <h2><i class="fas fa-plus"></i>Add sets</h2>
-            <form method="POST" action="{{ route('panel.packs.sets.store', ['pack' => $pack->getKey()]) }}">
+            <form method="POST" action="{{ route('panel.packs.sets.store', ['pack' => $pack->getKey()]) }}" class="panel-packs__stack">
                 @csrf
-                <label class="input-container tomyum-panel__field">
+                <label class="input-container">
                     <span class="input-container__label">Set ids or links, one per line (or separated by spaces)</span>
-                    <textarea class="input-text" name="sets" required style="min-height: 100px; font-family: monospace" placeholder="https://osu.ppy.sh/beatmapsets/1234567"></textarea>
+                    <textarea class="input-text" name="sets" required placeholder="https://osu.ppy.sh/beatmapsets/1234567"></textarea>
                 </label>
-                <div class="tomyum-panel__row">
+                <div class="panel-packs__actions">
                     <label class="tomyum-panel__check"><input type="checkbox" name="import" value="1" checked> Fetch missing sets from osu!</label>
                     <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-plus"></i>Add</button>
                 </div>
@@ -86,22 +86,24 @@
             @if (count($sets) === 0)
                 <p class="tomyum-panel__empty">None yet.</p>
             @else
-                <table class="tomyum-panel__table">
-                    <tr><th>Set</th><th>Mapper</th><th>Status</th><th></th></tr>
-                    @foreach ($sets as $set)
-                        <tr>
-                            <td><a href="{{ route('beatmapsets.show', ['beatmapset' => $set->getKey()]) }}">{{ $set->artist }} - {{ $set->title }}</a> <span class="tomyum-panel__muted">#{{ $set->getKey() }}</span></td>
-                            <td>{{ $set->creator }}</td>
-                            <td>@include('panel._status', ['approved' => $set->approved])</td>
-                            <td class="tomyum-panel__nowrap">
-                                <form method="POST" action="{{ route('panel.packs.sets.destroy', ['pack' => $pack->getKey(), 'set' => $set->getKey()]) }}" style="display: inline">
-                                    @csrf
-                                    <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit">Remove</button>
-                                </form>
-                            </td>
-                        </tr>
-                    @endforeach
-                </table>
+                <div class="tomyum-panel__scroll">
+                    <table class="tomyum-panel__table">
+                        <tr><th>Set</th><th>Mapper</th><th>Status</th><th></th></tr>
+                        @foreach ($sets as $set)
+                            <tr>
+                                <td class="panel-packs__set"><a href="{{ route('beatmapsets.show', ['beatmapset' => $set->getKey()]) }}">{{ $set->artist }} - {{ $set->title }}</a> <span class="tomyum-panel__muted">#{{ $set->getKey() }}</span></td>
+                                <td>{{ $set->creator }}</td>
+                                <td>@include('panel._status', ['approved' => $set->approved])</td>
+                                <td class="tomyum-panel__nowrap">
+                                    <form method="POST" action="{{ route('panel.packs.sets.destroy', ['pack' => $pack->getKey(), 'set' => $set->getKey()]) }}" style="display: inline">
+                                        @csrf
+                                        <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit">Remove</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </table>
+                </div>
             @endif
         </div>
 

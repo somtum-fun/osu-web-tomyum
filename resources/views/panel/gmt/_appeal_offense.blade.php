@@ -17,5 +17,5 @@
 </label>
 <label class="input-container tomyum-panel__field" style="flex: 0 1 170px">
     <span class="input-container__label">Or appeal from (optional)</span>
-    <input class="input-text" type="date" name="appeal_after">
+    <input class="input-text panel-gmt__date" type="date" name="appeal_after">
 </label>

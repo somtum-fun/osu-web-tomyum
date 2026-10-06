@@ -41,25 +41,27 @@
             @if (count($packs) === 0)
                 <p class="tomyum-panel__empty">None yet.</p>
             @else
-                <table class="tomyum-panel__table">
-                    <tr><th>Tag</th><th>Name</th><th>Sets</th><th>Mode</th><th>Date</th><th></th></tr>
-                    @foreach ($packs as $pack)
-                        <tr>
-                            <td><code>{{ $pack->tag }}</code></td>
-                            <td>
-                                <a href="{{ route('panel.packs.show', ['pack' => $pack->getKey()]) }}">{{ $pack->name }}</a>
-                                @if ($pack->hidden) <span class="tomyum-panel__pill tomyum-panel__pill--warn">hidden</span> @endif
-                                @if (!present($pack->url)) <span class="tomyum-panel__pill tomyum-panel__pill--bad">no download</span> @endif
-                            </td>
-                            <td>{{ $pack->items_count }}</td>
-                            <td>{{ $modes[$pack->playmode ?? ''] ?? $pack->playmode }}</td>
-                            <td class="tomyum-panel__nowrap">{{ $pack->date?->toDateString() }}</td>
-                            <td class="tomyum-panel__nowrap">
-                                <a class="btn-osu-big btn-osu-big--rounded-thin" href="{{ route('panel.packs.show', ['pack' => $pack->getKey()]) }}">Edit</a>
-                            </td>
-                        </tr>
-                    @endforeach
-                </table>
+                <div class="tomyum-panel__scroll">
+                    <table class="tomyum-panel__table">
+                        <tr><th>Tag</th><th>Name</th><th>Sets</th><th>Mode</th><th>Date</th><th></th></tr>
+                        @foreach ($packs as $pack)
+                            <tr>
+                                <td><code>{{ $pack->tag }}</code></td>
+                                <td>
+                                    <a href="{{ route('panel.packs.show', ['pack' => $pack->getKey()]) }}">{{ $pack->name }}</a>
+                                    @if ($pack->hidden) <span class="tomyum-panel__pill tomyum-panel__pill--warn">hidden</span> @endif
+                                    @if (!present($pack->url)) <span class="tomyum-panel__pill tomyum-panel__pill--bad">no download</span> @endif
+                                </td>
+                                <td>{{ $pack->items_count }}</td>
+                                <td>{{ $modes[$pack->playmode ?? ''] ?? $pack->playmode }}</td>
+                                <td class="tomyum-panel__nowrap">{{ $pack->date?->toDateString() }}</td>
+                                <td class="tomyum-panel__nowrap">
+                                    <a class="btn-osu-big btn-osu-big--rounded-thin" href="{{ route('panel.packs.show', ['pack' => $pack->getKey()]) }}">Edit</a>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </table>
+                </div>
                 @include('objects._pagination_v2', ['object' => $packs])
             @endif
         </div>

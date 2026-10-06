@@ -27,7 +27,7 @@
                     <span class="input-container__label">Name</span>
                     <input class="input-text" type="text" name="name" required maxlength="255" placeholder="production World Cup 2026">
                 </label>
-                <label class="input-container">
+                <label class="input-container input-container--select">
                     <span class="input-container__label">Mode</span>
                     <select class="input-text" name="mode">
                         @foreach ($modes as $value => $label)
@@ -60,8 +60,8 @@
                                     <a href="{{ route($panelPrefix.'tournaments.show', ['tournament' => $tournament->getKey()]) }}">{{ $tournament->name }}</a>
                                 </td>
                                 <td class="tomyum-panel__nowrap">{{ $modes[$tournament->play_mode] ?? '?' }}{{ $tournament->play_mode_variant === null ? '' : " {$tournament->play_mode_variant}" }}</td>
-                                <td class="tomyum-panel__nowrap tomyum-panel__muted">{{ i18n_date($tournament->signup_open) }} – {{ i18n_date($tournament->signup_close) }}</td>
-                                <td class="tomyum-panel__nowrap tomyum-panel__muted">{{ i18n_date($tournament->start_date) }} – {{ i18n_date($tournament->end_date) }}</td>
+                                <td class="tomyum-panel__muted"><span class="tomyum-panel__nowrap">{{ i18n_date($tournament->signup_open, IntlDateFormatter::MEDIUM) }} –</span> <span class="tomyum-panel__nowrap">{{ i18n_date($tournament->signup_close, IntlDateFormatter::MEDIUM) }}</span></td>
+                                <td class="tomyum-panel__muted"><span class="tomyum-panel__nowrap">{{ i18n_date($tournament->start_date, IntlDateFormatter::MEDIUM) }} –</span> <span class="tomyum-panel__nowrap">{{ i18n_date($tournament->end_date, IntlDateFormatter::MEDIUM) }}</span></td>
                                 <td>
                                     {{ i18n_number_format($tournament->registrations_count) }}{{ $tournament->max_registrations === null ? '' : ' / '.i18n_number_format($tournament->max_registrations) }}
                                 </td>
@@ -134,12 +134,12 @@
                                     @endif
                                 </td>
                                 <td class="tomyum-panel__nowrap tomyum-panel__muted">{!! timeago($ban->timestamp) !!}</td>
-                                <td class="tomyum-panel__nowrap">{{ $ban->permanent ? 'it\'s lifted' : i18n_date($ban->endTime()) }}</td>
+                                <td class="tomyum-panel__nowrap">{{ $ban->permanent ? 'it\'s lifted' : i18n_date($ban->endTime(), IntlDateFormatter::MEDIUM) }}</td>
                                 <td class="tomyum-panel__nowrap">{{ $ban->actor?->username ?? '-' }}</td>
                                 <td>{{ $ban->reason }}</td>
                                 <td>
                                     <form method="POST" action="{{ route($panelPrefix.'tournaments.bans.destroy', ['user' => $ban->user_id]) }}"
-                                        class="tomyum-panel__row"
+                                        class="panel-banners__inline panel-banners__inline--row"
                                         onsubmit="return confirm('Lift this tournament ban?')">
                                         @csrf
                                         <input class="input-text" type="text" name="reason" maxlength="1900" placeholder="Why (optional)" aria-label="Why">

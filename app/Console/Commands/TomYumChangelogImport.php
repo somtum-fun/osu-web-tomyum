@@ -218,10 +218,8 @@ class TomYumChangelogImport extends Command
         $docs = array_filter($files, fn ($f) => preg_match('#^docs/|\.md$#i', $f) === 1);
         $code = array_values(array_diff($files, $docs));
         if (count($code) === 0) {
-            // Only the documentation: the wiki, in the page's name ("docs/lazer.md" → Lazer).
-            $page = count($docs) > 0 ? pathinfo(reset($docs), PATHINFO_FILENAME) : 'docs';
-
-            return [['wiki', ucfirst(strtolower(str_replace(['-', '_'], ' ', $page)))]];
+            // Only the documentation: the wiki, which shares the website's stream (Web / Wiki).
+            return [['web', 'Wiki']];
         }
 
         $category = static::area($code, static::SERVER_AREAS) ?? 'General';

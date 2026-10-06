@@ -30,7 +30,7 @@
                         <span class="tomyum-panel__pill tomyum-panel__pill--good">shown</span>
                     @endif
                 </h2>
-                <div class="tomyum-panel__buttons">
+                <div class="panel-banners__buttons">
                     <a class="btn-osu-big btn-osu-big--rounded-small btn-osu-big--panel-secondary" href="{{ route('tournaments.show', $tournament) }}">
                         <i class="fas fa-external-link-alt"></i>Its page
                     </a>
@@ -59,16 +59,20 @@
                     <input class="input-text" type="text" name="name" required maxlength="255" value="{{ $tournament->name }}">
                 </label>
                 <label class="tomyum-panel__check">
-                    <input type="checkbox" name="is_hidden" value="1" @checked($tournament->is_hidden)> Hidden (only staff can see it)
+                    <input type="checkbox" name="is_hidden" value="1" @checked($tournament->is_hidden)> Hidden (only staff see it)
                 </label>
                 <label class="tomyum-panel__check">
-                    <input type="checkbox" name="is_banner_only" value="1" @checked($tournament->is_banner_only)> Banner only (just for profile banners: not listed, no registration)
+                    <input type="checkbox" name="is_banner_only" value="1" @checked($tournament->is_banner_only)> Banner only (not listed, no registration)
                 </label>
+                {{-- TomYum: labels stay one short line (they sit on top of the input); the details go in a hint under it. --}}
                 <label class="input-container panel-banners__wide">
-                    <span class="input-container__label">Description (markdown: **bold**, [a link](https://…), a blank line between paragraphs; the requirements below are listed under it by themselves)</span>
+                    <span class="input-container__label">Description</span>
                     <textarea class="input-text" name="description" rows="10">{{ $tournament->description }}</textarea>
                 </label>
-                <label class="input-container">
+                <p class="tomyum-panel__hint panel-banners__wide">
+                    Markdown: <code>**bold**</code>, <code>[a link](https://…)</code>, a blank line between paragraphs. The requirements below are listed under it by themselves.
+                </p>
+                <label class="input-container input-container--select">
                     <span class="input-container__label">Mode</span>
                     <select class="input-text" name="mode">
                         @foreach ($modes as $value => $label)
@@ -76,8 +80,8 @@
                         @endforeach
                     </select>
                 </label>
-                <label class="input-container">
-                    <span class="input-container__label">Key count (osu!mania only; the rank is checked on that board)</span>
+                <label class="input-container input-container--select">
+                    <span class="input-container__label">Key count (osu!mania only)</span>
                     <select class="input-text" name="variant">
                         <option value="">All</option>
                         @foreach (App\Models\Beatmap::VARIANTS['mania'] as $variant)
@@ -85,20 +89,22 @@
                         @endforeach
                     </select>
                 </label>
+                <p class="tomyum-panel__hint panel-banners__wide">For osu!mania, the rank rule below is checked on that key count's board.</p>
                 <label class="input-container panel-banners__wide">
-                    <span class="input-container__label">Information page (optional: a forum post, a spreadsheet, a website)</span>
-                    <input class="input-text" type="text" name="info_url" maxlength="255" value="{{ $tournament->info_url }}" placeholder="https://…">
+                    <span class="input-container__label">Information page (optional)</span>
+                    <input class="input-text" type="text" name="info_url" maxlength="255" value="{{ $tournament->info_url }}" placeholder="https://… (forum post or sheet)">
                 </label>
 
                 <p class="tomyum-panel__section-title panel-banners__wide">Dates (UTC)</p>
-                @foreach (['signup_open' => 'Registration opens', 'signup_close' => 'Registration closes (the deadline)', 'start_date' => 'Starts', 'end_date' => 'Ends'] as $column => $label)
+                @foreach (['signup_open' => 'Registration opens', 'signup_close' => 'Registration closes', 'start_date' => 'Starts', 'end_date' => 'Ends'] as $column => $label)
                     <label class="input-container">
                         <span class="input-container__label">{{ $label }}</span>
                         <input class="input-text" type="datetime-local" name="{{ $column }}" required value="{{ $dateValue($tournament->$column) }}">
                     </label>
                 @endforeach
 
-                <p class="tomyum-panel__section-title panel-banners__wide">Who can register (empty: no rule). Restricted players and players with a tournament ban never can.</p>
+                <p class="tomyum-panel__section-title panel-banners__wide">Who can register</p>
+                <p class="tomyum-panel__hint panel-banners__wide">Leave a field empty for no rule. Restricted players and players with a tournament ban can never register.</p>
                 <label class="input-container">
                     <span class="input-container__label">Best rank allowed (like 1)</span>
                     <input class="input-text" type="number" name="rank_min" min="1" value="{{ $tournament->rank_min }}" placeholder="any">
@@ -108,9 +114,10 @@
                     <input class="input-text" type="number" name="rank_max" min="1" value="{{ $tournament->rank_max }}" placeholder="any">
                 </label>
                 <label class="input-container panel-banners__wide">
-                    <span class="input-container__label">Countries (two-letter codes, like TH, JP; their profile's country)</span>
+                    <span class="input-container__label">Countries (like TH, JP)</span>
                     <input class="input-text" type="text" name="countries" maxlength="1000" value="{{ implode(', ', $tournament->countries ?? []) }}" placeholder="everyone">
                 </label>
+                <p class="tomyum-panel__hint panel-banners__wide">Two-letter codes, checked against the player's profile country.</p>
                 <label class="input-container">
                     <span class="input-container__label">No restriction in the last … days</span>
                     <input class="input-text" type="number" name="restriction_days" min="1" max="3650" value="{{ $tournament->restriction_days }}" placeholder="no rule">
@@ -140,14 +147,15 @@
                 <div class="panel-banners__wide"><button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-save"></i>Save</button></div>
             </form>
 
+            <h3>Upload a header image</h3>
+            <p class="tomyum-panel__hint">Wide, about 2400×1000: it's shown at half that, and is cropped to fit.</p>
             @if (present($tournament->header_banner))
                 <img class="panel-banners__image" src="{{ $tournament->header_banner }}" alt="">
             @endif
             <form method="POST" action="{{ route($panelPrefix.'tournaments.header', $key) }}" enctype="multipart/form-data" class="tomyum-panel__row">
                 @csrf
                 <label class="tomyum-panel__field">
-                    Upload a header image (wide, about 2400×1000; it's shown at half that, and is cropped to fit)
-                    <input type="file" name="header" accept="image/*" required>
+                    <input type="file" name="header" accept="image/*" required aria-label="Header image">
                 </label>
                 <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-upload"></i>Upload</button>
             </form>
@@ -157,12 +165,12 @@
             <div class="tomyum-panel__card-head">
                 <h2>
                     <i class="fas fa-users"></i>Registered players
-                    <span class="tomyum-panel__hint">{{ i18n_number_format(count($registrations)) }}{{ $tournament->max_registrations === null ? '' : ' / '.i18n_number_format($tournament->max_registrations) }}</span>
+                    <span class="tomyum-panel__muted">{{ i18n_number_format(count($registrations)) }}{{ $tournament->max_registrations === null ? '' : ' / '.i18n_number_format($tournament->max_registrations) }}</span>
                     @if ($flagged > 0)
                         <span class="tomyum-panel__pill tomyum-panel__pill--bad">{{ $flagged }} no longer qualify</span>
                     @endif
                 </h2>
-                <div class="tomyum-panel__buttons">
+                <div class="panel-banners__buttons">
                     <form method="POST" action="{{ route($panelPrefix.'tournaments.recheck', $key) }}">
                         @csrf
                         <button class="btn-osu-big btn-osu-big--rounded-small btn-osu-big--panel-secondary" type="submit"><i class="fas fa-redo"></i>Check again</button>
@@ -231,7 +239,7 @@
                                 </td>
                                 <td>
                                     <form method="POST" action="{{ route($panelPrefix.'tournaments.registrations.destroy', [...$key, 'user' => $registration->user_id]) }}"
-                                        class="tomyum-panel__row"
+                                        class="panel-banners__inline panel-banners__inline--row"
                                         onsubmit="return confirm('Remove this player\'s registration?')">
                                         @csrf
                                         <input class="input-text" type="text" name="reason" maxlength="255" placeholder="Why (optional)" aria-label="Why">

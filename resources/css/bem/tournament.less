@@ -17,6 +17,7 @@
     flex-direction: column;
     padding-top: 20px;
     padding-bottom: 20px;
+    text-align: center; // TomYum: the words line up with the centred button
   }
 
   &__countdown-timer {
@@ -74,6 +75,8 @@
   }
 
   &__requirement {
+    display: flex;
+    gap: 4px;
     margin: 4px 0;
 
     &--met {
@@ -88,6 +91,7 @@
   &__failures {
     margin: 10px 0;
     color: @red-light;
+    text-align: left;
   }
 
   &__notice {
@@ -98,10 +102,18 @@
   &__registrants {
     margin-top: 10px;
 
+    // the count beside the title, or under it on a phone (not split over two lines)
+    h3 {
+      align-items: baseline;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0 10px;
+    }
+
     small {
       font-size: 14px;
-      margin-left: 10px;
       opacity: 0.7;
+      white-space: nowrap;
     }
   }
 }

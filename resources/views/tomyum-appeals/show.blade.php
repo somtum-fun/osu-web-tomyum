@@ -20,7 +20,7 @@
     <div class="tomyum-legal">
         <h1 class="tomyum-legal__title">Appeal your restriction</h1>
 
-        <div class="tomyum-legal__body">
+        <div class="tomyum-legal__body tomyum-legal__body--spaced">
             @if ($sentTicket !== null)
                 <div class="tomyum-legal__notice">
                     Thanks, your appeal was sent (ticket #{{ $sentTicket }}). We've emailed you a copy of the
@@ -65,12 +65,15 @@
 
                 <form method="POST" action="{{ route('tomyum-appeal.store') }}">
                     @csrf
+                    {{-- TomYum: the question and its hint sit above the box (input-container's floating label only fits one short line). --}}
                     @foreach (TomYumAppeals::QUESTIONS as $key => [$question, $hint])
-                        <label class="input-container tomyum-legal__field">
-                            <span class="input-container__label">{{ $question }}</span>
+                        <div class="tomyum-legal__field">
+                            <label class="tomyum-legal__field-label" for="tomyum-appeal-{{ $key }}">{{ $question }}</label>
                             <span class="tomyum-legal__field-hint">{{ $hint }}</span>
-                            <textarea class="input-text tomyum-legal__textarea" name="{{ $key }}" rows="5" maxlength="3000" required>{{ old($key) }}</textarea>
-                        </label>
+                            <div class="input-container">
+                                <textarea class="input-text tomyum-legal__textarea" id="tomyum-appeal-{{ $key }}" name="{{ $key }}" rows="5" maxlength="3000" required>{{ old($key) }}</textarea>
+                            </div>
+                        </div>
                     @endforeach
 
                     <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Send my appeal</button>

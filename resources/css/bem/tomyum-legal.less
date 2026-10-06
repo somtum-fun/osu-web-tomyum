@@ -93,21 +93,34 @@
     }
   }
 
+  // TomYum: a page without the "last updated" line under its title (the appeal form, sign up in the game).
+  &__body--spaced {
+    margin-top: 15px;
+  }
+
   // TomYum: the appeal form (tomyum-appeals/show).
   &__field {
+    margin-bottom: 20px;
+  }
+
+  &__field-label {
     display: block;
-    margin-bottom: 15px;
+    margin: 0;
+    font-size: @font-size--title-small-3;
+    font-weight: 600;
   }
 
   &__field-hint {
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
     color: hsl(var(--hsl-c2));
   }
 
   &__textarea {
-    width: 100%;
+    // No floating label in this box, so no room kept for one.
+    --input-padding: var(--input-padding-base);
     min-height: 100px;
     resize: vertical;
+    line-height: 1.4;
   }
 }

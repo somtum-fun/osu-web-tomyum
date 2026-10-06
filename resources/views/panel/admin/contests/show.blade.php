@@ -51,6 +51,7 @@
                 @else
                     <form method="POST" action="{{ route('panel.admin.contests.entries.make', ['contest' => $contest->getKey()]) }}">
                         @csrf
+                        <div class="tomyum-panel__scroll">
                         <table class="tomyum-panel__table">
                             <tr><th></th><th>File</th><th>Player</th><th>Size</th><th>Uploaded</th></tr>
                             @foreach ($submissions as $submission)
@@ -72,6 +73,7 @@
                                 </tr>
                             @endforeach
                         </table>
+                        </div>
                         <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit" style="margin-top: 8px"
                             onclick="return confirm('Make voting entries from these uploads?')"><i class="fas fa-magic"></i>Make voting entries</button>
                     </form>
@@ -88,63 +90,50 @@
             @if (count($entries) === 0)
                 <p class="tomyum-panel__empty">None yet.</p>
             @else
-                <table class="tomyum-panel__table">
-                    <tr><th>#</th><th>Name</th><th>Shown as</th><th>By</th><th>{{ $judged ? 'Score' : 'Votes' }}</th><th></th></tr>
+                {{-- TomYum: a row per entry (best first); a click opens its form, like the artists panel's tracks. --}}
+                <div class="panel-contests__entries">
+                    <div class="panel-contests__entry-labels">
+                        <span>#</span><span>Name</span><span>Shown as</span><span>By</span><span>{{ $judged ? 'Score' : 'Votes' }}</span><span></span>
+                    </div>
                     @foreach ($entries as $index => $entry)
-                        <tr>
-                            <td>{{ $index + 1 }}</td>
-                            <td>@if (present($entry->entry_url))<a href="{{ $entry->entry_url }}">{{ $entry->name }}</a>@else {{ $entry->name }} @endif</td>
-                            <td>{{ $entry->masked_name }}</td>
-                            <td>{{ $entry->user?->username ?? '' }}</td>
-                            <td>{{ $scoreOf($entry) }}</td>
-                            <td class="tomyum-panel__nowrap">
-                                <details style="display: inline-block">
-                                    <summary class="btn-osu-big btn-osu-big--rounded-thin">Edit</summary>
-                                    <form method="POST" action="{{ route('panel.admin.contests.entries.store', ['contest' => $contest->getKey()]) }}" style="min-width: 320px">
-                                        @csrf
-                                        <input type="hidden" name="id" value="{{ $entry->getKey() }}">
-                                        <input class="input-text" type="text" name="name" maxlength="255" required value="{{ $entry->name }}" placeholder="Name">
-                                        <input class="input-text" type="text" name="masked_name" maxlength="255" value="{{ $entry->masked_name }}" placeholder="Shown as">
-                                        <input class="input-text" type="text" name="entry_url" maxlength="255" value="{{ $entry->entry_url }}" placeholder="Link">
-                                        <input class="input-text" type="text" name="thumbnail_url" maxlength="255" value="{{ $entry->thumbnail_url }}" placeholder="Thumbnail link">
-                                        <input class="input-text" type="text" name="user" value="{{ $entry->user?->username }}" placeholder="Made by (player)">
-                                        <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Save</button>
-                                    </form>
-                                </details>
-                                <form method="POST" action="{{ route('panel.admin.contests.entries.destroy', ['contest' => $contest->getKey(), 'entry' => $entry->getKey()]) }}" style="display: inline"
-                                    onsubmit="return confirm('Remove this entry?')">
+                        <details class="panel-contests__entry">
+                            <summary class="panel-contests__entry-head">
+                                <span>{{ $index + 1 }}</span>
+                                <span class="u-ellipsis-overflow">{{ $entry->name }}</span>
+                                <span class="u-ellipsis-overflow">{{ $entry->masked_name }}</span>
+                                <span class="u-ellipsis-overflow">{{ $entry->user?->username ?? '' }}</span>
+                                <span>{{ $scoreOf($entry) }}</span>
+                                <i class="fas fa-pen panel-contests__edit-icon"></i>
+                            </summary>
+                            <div class="panel-contests__editor">
+                                @if (present($entry->entry_url))
+                                    <a href="{{ $entry->entry_url }}" class="u-ellipsis-overflow">{{ $entry->entry_url }}</a>
+                                @endif
+                                <form method="POST" action="{{ route('panel.admin.contests.entries.store', ['contest' => $contest->getKey()]) }}" class="panel-contests__grid panel-contests__grid--entry">
                                     @csrf
-                                    <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit">Remove</button>
+                                    <input type="hidden" name="id" value="{{ $entry->getKey() }}">
+                                    @include('panel.admin.contests._entry_fields', ['entry' => $entry])
+                                    <div class="panel-contests__buttons panel-contests__wide">
+                                        <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-check"></i>Save</button>
+                                        <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit" form="contest-entry-remove-{{ $entry->getKey() }}"><i class="fas fa-trash"></i>Remove</button>
+                                    </div>
                                 </form>
-                            </td>
-                        </tr>
+                                <form method="POST" action="{{ route('panel.admin.contests.entries.destroy', ['contest' => $contest->getKey(), 'entry' => $entry->getKey()]) }}"
+                                    id="contest-entry-remove-{{ $entry->getKey() }}" onsubmit="return confirm('Remove this entry?')" hidden>
+                                    @csrf
+                                </form>
+                            </div>
+                        </details>
                     @endforeach
-                </table>
+                </div>
             @endif
             <h3>Add an entry by hand</h3>
-            <form method="POST" action="{{ route('panel.admin.contests.entries.store', ['contest' => $contest->getKey()]) }}" class="tomyum-panel__row" style="flex-wrap: wrap; align-items: flex-end">
+            <form method="POST" action="{{ route('panel.admin.contests.entries.store', ['contest' => $contest->getKey()]) }}" class="panel-contests__grid panel-contests__grid--entry">
                 @csrf
-                <label class="input-container tomyum-panel__field">
-                    <span class="input-container__label">Name</span>
-                    <input class="input-text" type="text" name="name" maxlength="255" required>
-                </label>
-                <label class="input-container tomyum-panel__field" style="flex: 0 1 160px">
-                    <span class="input-container__label">Shown as (empty: Entry #n)</span>
-                    <input class="input-text" type="text" name="masked_name" maxlength="255">
-                </label>
-                <label class="input-container tomyum-panel__field">
-                    <span class="input-container__label">Link</span>
-                    <input class="input-text" type="text" name="entry_url" maxlength="255" placeholder="https://…">
-                </label>
-                <label class="input-container tomyum-panel__field">
-                    <span class="input-container__label">Thumbnail (art; optional)</span>
-                    <input class="input-text" type="text" name="thumbnail_url" maxlength="255" placeholder="https://…">
-                </label>
-                <label class="input-container tomyum-panel__field" style="flex: 0 1 160px">
-                    <span class="input-container__label">Made by (optional)</span>
-                    <input class="input-text" type="text" name="user">
-                </label>
-                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-plus"></i>Add</button>
+                @include('panel.admin.contests._entry_fields', ['entry' => null])
+                <div class="panel-contests__buttons panel-contests__wide">
+                    <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-plus"></i>Add</button>
+                </div>
             </form>
         </div>
 
@@ -154,59 +143,69 @@
             @if (count($judges) === 0)
                 <p class="tomyum-panel__empty">None.</p>
             @else
-                <table class="tomyum-panel__table">
+                <div class="panel-contests__judges">
                     @foreach ($judges as $judge)
-                        <tr>
-                            <td><a href="{{ route('users.show', ['user' => $judge->getKey()]) }}">{{ $judge->username }}</a></td>
-                            <td class="tomyum-panel__nowrap">
-                                <form method="POST" action="{{ route('panel.admin.contests.judges.destroy', ['contest' => $contest->getKey(), 'user' => $judge->getKey()]) }}" style="display: inline">
-                                    @csrf
-                                    <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit">Remove</button>
-                                </form>
-                            </td>
-                        </tr>
+                        <form method="POST" action="{{ route('panel.admin.contests.judges.destroy', ['contest' => $contest->getKey(), 'user' => $judge->getKey()]) }}" class="panel-contests__judge">
+                            @csrf
+                            <a href="{{ route('users.show', ['user' => $judge->getKey()]) }}">{{ $judge->username }}</a>
+                            <button class="panel-contests__icon-button" type="submit" title="Remove {{ $judge->username }}"><i class="fas fa-times"></i></button>
+                        </form>
                     @endforeach
-                </table>
+                </div>
             @endif
-            <form method="POST" action="{{ route('panel.admin.contests.judges.store', ['contest' => $contest->getKey()]) }}" class="tomyum-panel__row" style="align-items: flex-end">
+            <form method="POST" action="{{ route('panel.admin.contests.judges.store', ['contest' => $contest->getKey()]) }}" class="panel-contests__inline">
                 @csrf
-                <label class="input-container tomyum-panel__field">
+                <label class="input-container">
                     <span class="input-container__label">Player (name or id)</span>
                     <input class="input-text" type="text" name="user" required>
                 </label>
-                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-plus"></i>Add judge</button>
+                <button class="btn-osu-big btn-osu-big--rounded-thin panel-contests__submit" type="submit"><i class="fas fa-plus"></i>Add judge</button>
             </form>
 
             <h3>Scoring categories</h3>
             @foreach ($categories as $category)
-                <form method="POST" action="{{ route('panel.admin.contests.categories.store', ['contest' => $contest->getKey()]) }}" class="tomyum-panel__row" style="align-items: flex-end">
-                    @csrf
-                    <input type="hidden" name="id" value="{{ $category->getKey() }}">
-                    <input class="input-text" type="text" name="name" maxlength="255" required value="{{ $category->name }}">
-                    <input class="input-text" type="text" name="description" maxlength="255" value="{{ $category->description }}" placeholder="What judges look at">
-                    <input class="input-text" type="number" name="max_value" min="1" max="127" value="{{ $category->max_value }}" style="max-width: 90px">
-                    <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Save</button>
+                <form method="POST" action="{{ route('panel.admin.contests.categories.store', ['contest' => $contest->getKey()]) }}" class="panel-contests__category">
+                    <label class="input-container">
+                        <span class="input-container__label">Category</span>
+                        <input class="input-text" type="text" name="name" maxlength="255" required value="{{ $category->name }}">
+                    </label>
+                    <label class="input-container">
+                        <span class="input-container__label">Description</span>
+                        <input class="input-text" type="text" name="description" maxlength="255" value="{{ $category->description }}" placeholder="What judges look at">
+                    </label>
+                    <label class="input-container">
+                        <span class="input-container__label">Top score</span>
+                        <input class="input-text" type="number" name="max_value" min="1" max="127" value="{{ $category->max_value }}">
+                    </label>
+                    <div class="panel-contests__buttons">
+                        @csrf
+                        <input type="hidden" name="id" value="{{ $category->getKey() }}">
+                        <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-check"></i>Save</button>
+                        <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit" form="contest-category-remove-{{ $category->getKey() }}" title="Remove &quot;{{ $category->name }}&quot;"><i class="fas fa-trash"></i>Remove</button>
+                    </div>
                 </form>
-                <form method="POST" action="{{ route('panel.admin.contests.categories.destroy', ['contest' => $contest->getKey(), 'category' => $category->getKey()]) }}" style="margin-bottom: 6px">
+                <form method="POST" action="{{ route('panel.admin.contests.categories.destroy', ['contest' => $contest->getKey(), 'category' => $category->getKey()]) }}"
+                    id="contest-category-remove-{{ $category->getKey() }}" hidden>
                     @csrf
-                    <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit">Remove "{{ $category->name }}"</button>
                 </form>
             @endforeach
-            <form method="POST" action="{{ route('panel.admin.contests.categories.store', ['contest' => $contest->getKey()]) }}" class="tomyum-panel__row" style="align-items: flex-end">
-                @csrf
-                <label class="input-container tomyum-panel__field">
+            <form method="POST" action="{{ route('panel.admin.contests.categories.store', ['contest' => $contest->getKey()]) }}" class="panel-contests__category">
+                <label class="input-container">
                     <span class="input-container__label">New category</span>
                     <input class="input-text" type="text" name="name" maxlength="255" required placeholder="e.g. Creativity">
                 </label>
-                <label class="input-container tomyum-panel__field">
+                <label class="input-container">
                     <span class="input-container__label">Description</span>
-                    <input class="input-text" type="text" name="description" maxlength="255">
+                    <input class="input-text" type="text" name="description" maxlength="255" placeholder="What judges look at">
                 </label>
-                <label class="input-container tomyum-panel__field" style="flex: 0 1 110px">
+                <label class="input-container">
                     <span class="input-container__label">Top score</span>
                     <input class="input-text" type="number" name="max_value" min="1" max="127" value="10">
                 </label>
-                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-plus"></i>Add</button>
+                <div class="panel-contests__buttons">
+                    @csrf
+                    <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-plus"></i>Add</button>
+                </div>
             </form>
             @if ($judged && $contest->isScoreStandardised())
                 <form method="POST" action="{{ route('panel.admin.contests.calculate', ['contest' => $contest->getKey()]) }}" style="margin-top: 10px">
