@@ -6,13 +6,8 @@
 @extends('master')
 
 @php
-    $legalPages = [
-        'rules' => 'Rules',
-        'restrictions' => 'Restrictions & Appeals',
-        'terms' => 'Terms of Service',
-        'privacy' => 'Privacy Policy',
-        'copyright' => 'Copyright (DMCA)',
-    ];
+    // The pages that are shown (Admin panel > Branding hides some): key => [path, title].
+    $legalPages = App\Libraries\TomYumBranding::legalPages();
 @endphp
 
 @section('content')
@@ -22,15 +17,15 @@
 <div class="osu-page osu-page--generic">
     <div class="tomyum-legal">
         <nav class="tomyum-legal__nav">
-            @foreach ($legalPages as $key => $title)
+            @foreach ($legalPages as $key => [$path, $title])
                 <a
                     class="tomyum-legal__nav-link {{ $key === $page ? 'tomyum-legal__nav-link--active' : '' }}"
-                    href="{{ route('legal', ['locale' => app()->getLocale(), 'path' => ucfirst($key)]) }}"
+                    href="{{ route('legal', ['locale' => app()->getLocale(), 'path' => $path]) }}"
                 >{{ $title }}</a>
             @endforeach
         </nav>
 
-        <h1 class="tomyum-legal__title">{{ $legalPages[$page] }}</h1>
+        <h1 class="tomyum-legal__title">{{ App\Libraries\TomYumBranding::LEGAL_PAGES[$page][1] }}</h1>
         <p class="tomyum-legal__updated">@yield('legal-updated', 'Last updated: 5 October 2026')</p>
 
         <div class="tomyum-legal__notice">

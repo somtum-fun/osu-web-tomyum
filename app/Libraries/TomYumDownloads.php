@@ -20,12 +20,15 @@ class TomYumDownloads
 
     public static function baseUrl(): string
     {
-        return rtrim(presence(env('TOMYUM_DL_URL')) ?? 'https://dl.example.com', '/');
+        // TomYum: Admin panel > Branding, else TOMYUM_DL_URL.
+        return TomYumBranding::downloadsHost();
     }
 
     public static function manifest(): array
     {
-        $cached = Cache::get('tomyum_downloads_manifest');
+        // Per host: changing it in the Branding page shows the new host's files at once.
+        $cacheKey = 'tomyum_downloads_manifest:'.md5(static::baseUrl());
+        $cached = Cache::get($cacheKey);
         if (is_array($cached)) {
             return $cached;
         }
@@ -38,12 +41,12 @@ class TomYumDownloads
 
         if (!is_array($manifest)) {
             // Try again in a minute; the page still has the patcher and a link to the file host.
-            Cache::put('tomyum_downloads_manifest', [], 60);
+            Cache::put($cacheKey, [], 60);
 
             return [];
         }
 
-        Cache::put('tomyum_downloads_manifest', $manifest, 600);
+        Cache::put($cacheKey, $manifest, 600);
 
         return $manifest;
     }

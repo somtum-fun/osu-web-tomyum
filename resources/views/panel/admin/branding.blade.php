@@ -99,6 +99,7 @@
                 @foreach ([
                     'support_note' => ['Support page note (markdown)', 8],
                     'support_signature' => ['Its signature', 1],
+                    'support_team' => ['Support page: "Run by Volunteers" (who runs the server)', 2],
                     'footer' => ['Footer line', 2],
                     'keywords' => ['Search engine keywords', 1],
                     'invoice_seller' => ['Invoice: seller', 1],
@@ -112,6 +113,95 @@
                             <input class="input-text" type="text" name="{{ $field }}" value="{{ $texts[$field] }}" style="width: 100%">
                         @endif
                     </label>
+                @endforeach
+            </div>
+
+            <div class="tomyum-panel__card" id="downloads">
+                <h2><i class="fas fa-download"></i>Download page</h2>
+                <p class="tomyum-panel__hint">
+                    The buttons come from a file host's <code>manifest.json</code> (the lazer builds, the stable patcher, the hook and the legacy clients),
+                    unless you give a link of your own. The built-in host, dl.example.com, is production's: its patcher and hook connect to production.
+                </p>
+                <div class="tomyum-panel__row">
+                    <label class="input-container tomyum-panel__field">
+                        <span class="input-container__label">File host</span>
+                        <input class="input-text" type="text" name="downloads_host" value="{{ $saved['downloads_host'] }}" placeholder="{{ $downloadsHost }}">
+                    </label>
+                </div>
+                <div class="tomyum-panel__row">
+                    <label class="input-container tomyum-panel__field">
+                        <span class="input-container__label">lazer: button name</span>
+                        <input class="input-text" type="text" name="downloads_client_name" maxlength="100" value="{{ $texts['downloads_client_name'] }}">
+                    </label>
+                    <label class="input-container tomyum-panel__field">
+                        <span class="input-container__label">lazer: link (empty: the file host's build)</span>
+                        <input class="input-text" type="text" name="downloads_lazer_url" value="{{ $saved['downloads_lazer_url'] }}" placeholder="https://github.com/ppy/osu/releases/latest">
+                    </label>
+                </div>
+                <div class="tomyum-panel__row">
+                    <label class="input-container tomyum-panel__field">
+                        <span class="input-container__label">stable: patcher name</span>
+                        <input class="input-text" type="text" name="downloads_patcher_name" maxlength="100" value="{{ $texts['downloads_patcher_name'] }}">
+                    </label>
+                    <label class="input-container tomyum-panel__field">
+                        <span class="input-container__label">stable: patcher link (empty: the file host's)</span>
+                        <input class="input-text" type="text" name="downloads_patcher_url" value="{{ $saved['downloads_patcher_url'] }}" placeholder="https://…/patcher.exe">
+                    </label>
+                </div>
+                <div class="tomyum-panel__row">
+                    @foreach ([
+                        'downloads_show_lazer' => 'Show the lazer download',
+                        'downloads_show_stable' => 'Show the stable patcher',
+                        'downloads_show_legacy' => 'Show the legacy clients (2008-2015)',
+                    ] as $field => $label)
+                        <label class="tomyum-panel__field" style="display: flex; gap: 6px; align-items: center">
+                            <input type="checkbox" name="{{ $field }}" value="1" @checked($switches[$field])>
+                            {{ $label }}
+                        </label>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="tomyum-panel__card" id="vote">
+                <h2><i class="fas fa-vote-yea"></i>Vote page</h2>
+                <label style="display: flex; gap: 6px; align-items: center; margin-bottom: 10px">
+                    <input type="checkbox" name="vote_enabled" value="1" @checked($switches['vote_enabled'])>
+                    Show the vote page (and its menu, footer and support page links)
+                </label>
+                <label class="input-container" style="display: block">
+                    <span class="input-container__label">Server lists, one a line: name | vote link | rewarded (gives supporter time; leave the link out for "coming soon")</span>
+                    <textarea class="input-text" name="vote_sites" rows="4" style="width: 100%" placeholder="osu-server-list.com | https://osu-server-list.com/server/…/vote | rewarded">{{ $voteSites }}</textarea>
+                </label>
+                <p class="tomyum-panel__hint">
+                    The built-in links are production's listings. "rewarded" only works when that list calls back the game server's votes plugin.
+                </p>
+            </div>
+
+            <div class="tomyum-panel__card" id="legal">
+                <h2><i class="fas fa-balance-scale"></i>Legal pages</h2>
+                <p class="tomyum-panel__hint">
+                    Built-in: production's wording with this server's name and addresses. Your own: markdown, with <code>:brand</code> and <code>:year</code>.
+                    Hidden: no page and no footer link.
+                </p>
+                @foreach (App\Libraries\TomYumBranding::LEGAL_PAGES as $page => [$path, $title])
+                    <div style="margin-bottom: 14px">
+                        <div class="tomyum-panel__row">
+                            <label class="input-container input-container--select tomyum-panel__field">
+                                <span class="input-container__label">
+                                    {{ $title }}
+                                    @if ($legal[$page]['mode'] !== 'hidden')
+                                        · <a href="{{ route('legal', ['locale' => app()->getLocale(), 'path' => $path]) }}" target="_blank">view</a>
+                                    @endif
+                                </span>
+                                <select class="input-text" name="legal_{{ $page }}_mode">
+                                    <option value="builtin" @selected($legal[$page]['mode'] === 'builtin')>Built-in</option>
+                                    <option value="custom" @selected($legal[$page]['mode'] === 'custom')>Your own text (below)</option>
+                                    <option value="hidden" @selected($legal[$page]['mode'] === 'hidden')>Hidden</option>
+                                </select>
+                            </label>
+                        </div>
+                        <textarea class="input-text" name="legal_{{ $page }}" rows="{{ $legal[$page]['mode'] === 'custom' ? 10 : 2 }}" style="width: 100%" placeholder="Your own {{ $title }} (markdown), used when &quot;Your own text&quot; is picked">{{ $legal[$page]['text'] }}</textarea>
+                    </div>
                 @endforeach
             </div>
 

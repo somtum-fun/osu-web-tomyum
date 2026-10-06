@@ -18,6 +18,7 @@
                 @else
                     <div class="download-page__banner-logo"></div>
                 @endif
+                @if ($showLazer) {{-- TomYum: Admin panel > Branding --}}
                 <div class="download-page__banner-content download-page__banner-content--main">
                     <div class="download-page__tagline">
                         <span class="download-page__tagline-1">{{ osu_trans('home.download.tagline_1') }}</span>
@@ -32,9 +33,11 @@
                                 {{ osu_trans('home.download.download') }}
                                 <div>
                                     <div class="btn-osu-big__text-top btn-osu-big__text-top--download">
-                                        lazer-fork
+                                        {{ App\Libraries\TomYumBranding::text('downloads_client_name') }}
                                     </div>
-                                    {{ osu_trans('home.download.for_os', ['os' => $lazerPlatformName]) }}
+                                    @if (App\Libraries\TomYumBranding::downloadsLazerUrl() === null)
+                                        {{ osu_trans('home.download.for_os', ['os' => $lazerPlatformName]) }}
+                                    @endif
                                 </div>
                                 <div class="btn-osu-big__text-bottom btn-osu-big__text-bottom--download-version">
                                     {{ $version }}
@@ -48,12 +51,16 @@
                             </span>
                         </div>
                     </a>
-                    <div class="download-page__other-platforms">
-                        @include('objects._basic_select_options', ['modifiers' => 'download', 'selectOptions' => $selectOptions])
-                    </div>
+                    @if (App\Libraries\TomYumBranding::downloadsLazerUrl() === null)
+                        <div class="download-page__other-platforms">
+                            @include('objects._basic_select_options', ['modifiers' => 'download', 'selectOptions' => $selectOptions])
+                        </div>
+                    @endif
                 </div>
+                @endif
             </div>
             {{-- TomYum: this server's patcher for today's osu!(stable), in place of ppy's installer. --}}
+            @if ($showStable)
             <div class="download-page__banner-tail">
                 <div class="download-page__banner-content download-page__banner-content--tail">
                     <div class="download-page__text download-page__text--download-stable">
@@ -64,7 +71,7 @@
                             <div class="btn-osu-big__left">
                                 <div>
                                     <div class="btn-osu-big__text-top btn-osu-big__text-top--download">
-                                        {{ App\Libraries\TomYumBranding::name() }} patcher
+                                        {{ App\Libraries\TomYumBranding::text('downloads_patcher_name') }}
                                     </div>
                                     Windows and Linux (no macOS)
                                 </div>
@@ -76,9 +83,12 @@
                     </a>
                 </div>
             </div>
+            @endif
         </div>
 
-        @include('home._download_legacy')
+        @if ($showLegacy)
+            @include('home._download_legacy')
+        @endif
 
         <div class="download-page__guide">
             <iframe

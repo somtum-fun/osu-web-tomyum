@@ -15,11 +15,11 @@
     @if (isset($hook['url']))
         <div class="download-page__text download-page__text--description">
             Rather play an unmodified build? Put the
-            <a href="{{ $hook['url'] }}">{{ App\Libraries\TomYumBranding::name() }} hook</a>
+            <a href="{{ $hook['url'] }}">hook</a>
             @if (isset($hook['version']))
                 ({{ $hook['version'] }})
             @endif
-            next to its osu!.exe and start the game with {{ App\Libraries\TomYumBranding::name() }}.exe. The hook may not work with
+            next to its osu!.exe and start the game with the hook's .exe. The hook may not work with
             every build; if one doesn't start, try the rebuilt one above.
         </div>
     @endif

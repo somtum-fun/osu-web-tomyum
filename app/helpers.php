@@ -1292,9 +1292,14 @@ function nav_links()
         'layout.menu.home.team' => wiki_url('People/osu!_team'),
         'page_title.main.changelog_controller._' => route('changelog.index'),
         'page_title.main.home_controller.get_download' => route('download'),
-        'page_title.main.home_controller.vote' => route('vote'),
         'page_title.main.home_controller.search' => route('search'),
     ];
+    // TomYum: the vote page, unless it's switched off (Admin panel > Branding).
+    if (App\Libraries\TomYumBranding::voteEnabled()) {
+        $links['home'] = array_slice($links['home'], 0, 5, true)
+            + ['page_title.main.home_controller.vote' => route('vote')]
+            + array_slice($links['home'], 5, null, true);
+    }
     $links['beatmaps'] = [
         'page_title.main.beatmapsets_controller.index' => route('beatmapsets.index'),
         'page_title.main.artists_controller._' => route('artists.index'),
@@ -1346,8 +1351,7 @@ function footer_landing_links()
             'changelog-index' => route('changelog.index'),
             'beatmaps' => action('BeatmapsetsController@index'),
             'download' => route('download'),
-            'vote' => route('vote'),
-        ],
+        ] + (App\Libraries\TomYumBranding::voteEnabled() ? ['vote' => route('vote')] : []),
         'help' => [
             'faq' => wiki_url('FAQ'),
             'forum' => route('forum.forums.index'),
@@ -1372,6 +1376,13 @@ function footer_legal_links(): array
     $ret['copyright'] = route('legal', ['locale' => $locale, 'path' => 'Copyright']);
     $ret['server_status'] = osu_url('server_status');
     $ret['source_code'] = osu_url('source_code');
+
+    // TomYum: legal pages hidden in Admin panel > Branding aren't linked.
+    foreach (['rules', 'terms', 'privacy', 'copyright'] as $page) {
+        if (!App\Libraries\TomYumBranding::legalShown($page)) {
+            unset($ret[$page]);
+        }
+    }
 
     // TomYum: links left unset (OSU_URL_SERVER_STATUS) aren't shown.
     return array_filter($ret, fn ($link) => $link !== null);

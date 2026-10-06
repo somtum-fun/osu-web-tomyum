@@ -24,7 +24,8 @@
                         {!! osu_trans("community.support.{$section}.{$name}.title") !!}
                     </h4>
                     <p class="supporter-perk-list-group__content">
-                        {!! osu_trans("community.support.{$section}.{$name}.description", $options['translation_options'] ?? []) !!}
+                        {{-- TomYum: a description set elsewhere (Admin panel > Branding), already escaped. --}}
+                        {!! $options['description'] ?? osu_trans("community.support.{$section}.{$name}.description", $options['translation_options'] ?? []) !!}
                         @if (isset($options['link']))
                             {!! link_to(
                                 $options['link'],

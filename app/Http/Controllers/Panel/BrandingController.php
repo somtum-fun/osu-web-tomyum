@@ -18,7 +18,13 @@ use Request;
 class BrandingController extends Controller
 {
     /** Texts where blank means "show nothing" rather than "use the default". */
-    private const HIDEABLE = ['support_note', 'support_signature', 'invoice_seller', 'invoice_contact', 'footer', 'keywords'];
+    private const HIDEABLE = ['support_note', 'support_signature', 'invoice_seller', 'invoice_contact', 'footer', 'keywords', 'support_team'];
+
+    /** Texts where blank means the default (a button needs a name). */
+    private const NAMED = ['downloads_client_name', 'downloads_patcher_name'];
+
+    /** On/off switches (checkboxes), all on by default. */
+    private const SWITCHES = ['downloads_show_lazer', 'downloads_show_stable', 'downloads_show_legacy', 'vote_enabled'];
 
     public function __construct()
     {
@@ -46,6 +52,18 @@ class BrandingController extends Controller
             'faviconChoice' => TomYumBranding::faviconChoice(),
             'landingVideoUrl' => TomYumBranding::landingVideoUrl(),
             'downloadVideoUrl' => TomYumBranding::downloadVideoUrl(),
+            'downloadsHost' => TomYumBranding::downloadsHost(),
+            'switches' => array_combine(static::SWITCHES, array_map(fn ($name) => TomYumBranding::enabled($name), static::SWITCHES)),
+            'voteSites' => TomYumBranding::voteSitesText(),
+            // Each legal page: builtin, custom (with its text) or hidden.
+            'legal' => array_map(function ($key) use ($saved) {
+                $value = $saved["legal_{$key}"];
+
+                return [
+                    'mode' => $value === null ? 'builtin' : (trim($value) === '' ? 'hidden' : 'custom'),
+                    'text' => $value ?? '',
+                ];
+            }, array_combine(array_keys(TomYumBranding::LEGAL_PAGES), array_keys(TomYumBranding::LEGAL_PAGES))),
             // The texts as written (placeholders kept), their default when unset.
             'texts' => array_combine(
                 array_keys(TomYumBranding::DEFAULTS),
@@ -99,12 +117,51 @@ class BrandingController extends Controller
             $put('favicon', $favicon);
         }
 
-        foreach (['landing_video_url', 'download_video_url'] as $field) {
+        foreach (['landing_video_url', 'download_video_url', 'downloads_host', 'downloads_lazer_url', 'downloads_patcher_url'] as $field) {
             $url = $plain($field);
             if ($url !== null && !preg_match('#^(https?://|/)#', $url)) {
-                return $this->back('error', 'A video\'s address should start with https:// or /.');
+                return $this->back('error', 'Addresses (videos, downloads) should start with https:// or /.');
             }
             $put($field, $url);
+        }
+
+        foreach (static::NAMED as $field) {
+            $value = $plain($field);
+            $put($field, $value === null || $value === TomYumBranding::DEFAULTS[$field] ? null : mb_substr($value, 0, 100));
+        }
+
+        foreach (static::SWITCHES as $field) {
+            // Saved only when off, so "on" follows the default.
+            $put($field, Request::boolean($field) ? null : '0');
+        }
+
+        // Server lists to vote on: "name | url | rewarded" a line; left as the default, not saved.
+        $voteSites = str_replace("\r\n", "\n", trim((string) Request::input('vote_sites')));
+        foreach (preg_split('/\R/', $voteSites) as $line) {
+            $url = trim(explode('|', $line)[1] ?? '');
+            if ($url !== '' && !preg_match('#^https?://#', $url)) {
+                return $this->back('error', "A vote link should start with https:// (\"{$line}\").");
+            }
+        }
+        $put('vote_sites', $voteSites === TomYumBranding::voteSitesText(TomYumBranding::defaultVoteSites()) ? null : $voteSites);
+
+        // Legal pages: the built-in one (unset), staff's own text, or hidden ('').
+        foreach (TomYumBranding::LEGAL_PAGES as $page => [, $title]) {
+            $mode = (string) Request::input("legal_{$page}_mode");
+            $text = str_replace("\r\n", "\n", trim((string) Request::input("legal_{$page}")));
+            if ($mode === 'custom' && $text === '') {
+                return $this->back('error', "Write the {$title} page's text, or pick built-in or hidden.");
+            }
+            $value = match ($mode) {
+                'custom' => mb_substr($text, 0, 100000),
+                'hidden' => '',
+                default => null,
+            };
+            $before = TomYumSiteSettings::get("brand_legal_{$page}");
+            $put("legal_{$page}", $value);
+            if ($mode === 'custom' && $before !== $value) {
+                TomYumSiteSettings::set("brand_legal_{$page}_updated", now()->toDateString());
+            }
         }
 
         foreach (static::HIDEABLE as $field) {

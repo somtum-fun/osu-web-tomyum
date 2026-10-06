@@ -10,6 +10,7 @@ use App\Libraries\CurrentStats;
 use App\Libraries\MenuContent;
 use App\Libraries\Search\AllSearch;
 use App\Libraries\Search\QuickSearch;
+use App\Libraries\TomYumBranding;
 use App\Libraries\TomYumDownloads;
 use App\Models\BeatmapDownload;
 use App\Models\Beatmapset;
@@ -99,12 +100,17 @@ class HomeController extends Controller
             'dlUrl' => TomYumDownloads::baseUrl(),
             'hook' => $manifest['hook'] ?? null,
             'lazer' => $lazer,
-            'lazerUrl' => $lazer['url'] ?? TomYumDownloads::baseUrl().'/lazer/',
+            'lazerUrl' => TomYumBranding::downloadsLazerUrl() ?? $lazer['url'] ?? TomYumDownloads::baseUrl().'/lazer/',
             'lazerPlatformName' => $lazerPlatformNames[$platform],
             'legacyYears' => TomYumDownloads::legacyByYear($manifest),
-            'patcherUrl' => $manifest['patcher']['url'] ?? TomYumDownloads::PATCHER_URL,
+            'patcherUrl' => TomYumBranding::downloadsPatcherUrl() ?? $manifest['patcher']['url'] ?? TomYumDownloads::PATCHER_URL,
+            // TomYum: what the page shows (Admin panel > Branding).
+            'showLazer' => TomYumBranding::enabled('downloads_show_lazer'),
+            'showStable' => TomYumBranding::enabled('downloads_show_stable'),
+            'showLegacy' => TomYumBranding::enabled('downloads_show_legacy'),
             'selectOptions' => $selectOptions,
-            'version' => $manifest['lazer']['version'] ?? null,
+            // A link of the staff's own isn't the file host's build: no version to show.
+            'version' => TomYumBranding::downloadsLazerUrl() === null ? ($manifest['lazer']['version'] ?? null) : null,
         ]);
     }
 
@@ -112,6 +118,10 @@ class HomeController extends Controller
     // the tomyum.votes plugin's (tomyum.plugin_votes), which it creates on the first vote.
     public function vote()
     {
+        // Switched off (Admin panel > Branding): no vote page.
+        if (!TomYumBranding::voteEnabled()) {
+            abort(404);
+        }
         $config = $GLOBALS['cfg']['tomyum']['votes'];
         $user = Auth::user();
         $myVotes = null;
@@ -140,7 +150,7 @@ class HomeController extends Controller
         return ext_view('home.vote', [
             'daysPerVote' => $config['days_per_vote'],
             'myVotes' => $myVotes,
-            'sites' => $config['sites'],
+            'sites' => TomYumBranding::voteSites(),
             'topVoters' => $topVoters,
             'user' => $user,
         ]);
@@ -376,6 +386,8 @@ class HomeController extends Controller
                 'items' => [
                     'team' => [
                         'icons' => ['fas fa-users'],
+                        // TomYum: Admin panel > Branding.
+                        'description' => e(TomYumBranding::text('support_team')),
                     ],
                     'infra' => [
                         'icons' => ['fas fa-server'],
@@ -504,6 +516,15 @@ class HomeController extends Controller
                 ],
             ],
         ];
+
+        // TomYum: the reasons Admin panel > Branding hides (an empty "Run by Volunteers" text, the vote
+        // page switched off).
+        if (TomYumBranding::text('support_team') === '') {
+            unset($pageLayout['support-reasons']['items']['team']);
+        }
+        if (!TomYumBranding::voteEnabled()) {
+            unset($pageLayout['support-reasons']['items']['vote']);
+        }
 
         return ext_view('home.support-the-game', [
             'supporterStatus' => $supporterStatus ?? [],

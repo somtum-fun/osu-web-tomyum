@@ -6,6 +6,7 @@
 namespace App\Http\Controllers;
 
 use App\Libraries\LocaleMeta;
+use App\Libraries\TomYumBranding;
 use App\Models\Wiki;
 
 class LegalController extends Controller
@@ -34,13 +35,21 @@ class LegalController extends Controller
         }
 
         $name = static::PAGES[$key] ?? abort(404);
+        // TomYum: hidden in Admin panel > Branding.
+        if (!TomYumBranding::legalShown($key)) {
+            abort(404);
+        }
         $canonical = parse_url(route('legal', ['locale' => $locale, 'path' => $name]), PHP_URL_PATH);
         if (request()->getPathInfo() !== $canonical) {
             return ujs_redirect(route('legal', ['locale' => $locale, 'path' => $name]));
         }
 
-        return ext_view('tomyum-legal.'.$key, [
+        // TomYum: the text staff wrote in Admin panel > Branding, else the built-in page.
+        $text = TomYumBranding::legalText($key);
+
+        return ext_view($text === null ? 'tomyum-legal.'.$key : 'tomyum-legal.custom', [
             'page' => $key,
+            'text' => $text,
             'titlePrepend' => $name,
         ]);
     }

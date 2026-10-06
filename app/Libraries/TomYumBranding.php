@@ -56,6 +56,20 @@ class TomYumBranding
         'invoice_contact' => 'mind@example.com / +00 000 000 000',
         'keywords' => ':brand, prod, osu! private server, osu private server, thailand, rhythm game, relax, autopilot',
         'footer' => ':brand :year · an unofficial osu! private server, not affiliated with ppy Pty Ltd. osu! is a trademark of ppy Pty Ltd.',
+        // The support page's "Run by Volunteers" reason.
+        'support_team' => ':brand is a free, unofficial server run in our spare time by a couple of volunteers in Thailand. Nobody here gets paid.',
+        // The download page: the lazer build's name, and the stable patcher's.
+        'downloads_client_name' => 'lazer-fork',
+        'downloads_patcher_name' => ':brand patcher',
+    ];
+
+    /** The legal pages (LegalController): their key, path and title. */
+    public const LEGAL_PAGES = [
+        'rules' => ['Rules', 'Rules'],
+        'restrictions' => ['Restrictions', 'Restrictions & Appeals'],
+        'terms' => ['Terms', 'Terms of Service'],
+        'privacy' => ['Privacy', 'Privacy Policy'],
+        'copyright' => ['Copyright', 'Copyright (DMCA)'],
     ];
 
     /** Every setting the Branding page edits, with what an empty one means. */
@@ -63,6 +77,11 @@ class TomYumBranding
         'name', 'email_domain', 'logo', 'favicon',
         'landing_video_url', 'download_video_url',
         'support_note', 'support_signature', 'invoice_seller', 'invoice_contact', 'keywords', 'footer',
+        'support_team', 'downloads_client_name', 'downloads_patcher_name',
+        'downloads_host', 'downloads_lazer_url', 'downloads_patcher_url',
+        'downloads_show_lazer', 'downloads_show_stable', 'downloads_show_legacy',
+        'vote_enabled', 'vote_sites',
+        'legal_rules', 'legal_restrictions', 'legal_terms', 'legal_privacy', 'legal_copyright',
     ];
 
     public static function name(): string
@@ -162,6 +181,116 @@ class TomYumBranding
             ':year' => date('Y'),
             ':vote_url' => route('vote'),
         ]);
+    }
+
+    /** An on/off setting ('1' or '0'), $default when unset. */
+    public static function enabled(string $name, bool $default = true): bool
+    {
+        $value = static::setting($name);
+
+        return $value === null ? $default : $value === '1';
+    }
+
+    // ── Download page ──────────────────────────────────────────────────────────────────────────
+
+    /** The file host with manifest.json (the lazer builds, the patcher, the hook, the legacy clients). */
+    public static function downloadsHost(): string
+    {
+        return rtrim(static::setting('downloads_host') ?? presence(env('TOMYUM_DL_URL')) ?? 'https://dl.example.com', '/');
+    }
+
+    /** Where the lazer button goes when it isn't the file host's build (null: the file host's). */
+    public static function downloadsLazerUrl(): ?string
+    {
+        return static::setting('downloads_lazer_url');
+    }
+
+    /** Where the stable patcher button goes when it isn't the file host's (null: the file host's). */
+    public static function downloadsPatcherUrl(): ?string
+    {
+        return static::setting('downloads_patcher_url');
+    }
+
+    // ── Vote page ──────────────────────────────────────────────────────────────────────────────
+
+    public static function voteEnabled(): bool
+    {
+        return static::enabled('vote_enabled');
+    }
+
+    /**
+     * The server lists to vote on: [name, url (null: coming soon), rewarded], from the Branding page's
+     * lines ("name | url | rewarded"), else config('tomyum.votes.sites').
+     */
+    public static function voteSites(): array
+    {
+        $lines = static::setting('vote_sites');
+        if ($lines === null) {
+            return static::defaultVoteSites();
+        }
+
+        $sites = [];
+        foreach (preg_split('/\R/', $lines) as $line) {
+            $parts = array_map('trim', explode('|', $line));
+            if ($parts[0] === '') {
+                continue;
+            }
+            $sites[] = [
+                'name' => $parts[0],
+                'url' => presence($parts[1] ?? null),
+                'rewarded' => strtolower($parts[2] ?? '') === 'rewarded',
+            ];
+        }
+
+        return $sites;
+    }
+
+    /** The vote sites in config('tomyum.votes.sites'), when the Branding page has none. */
+    public static function defaultVoteSites(): array
+    {
+        return $GLOBALS['cfg']['tomyum']['votes']['sites'];
+    }
+
+    /** Vote sites (these, else the current ones) as the Branding page writes them, one "name | url | rewarded" a line. */
+    public static function voteSitesText(?array $sites = null): string
+    {
+        return implode("\n", array_map(
+            fn ($site) => rtrim(implode(' | ', [$site['name'], $site['url'] ?? '', $site['rewarded'] ? 'rewarded' : '']), ' |'),
+            $sites ?? static::voteSites(),
+        ));
+    }
+
+    // ── Legal pages ────────────────────────────────────────────────────────────────────────────
+
+    /**
+     * A legal page's own text (markdown) when staff wrote one; null for the built-in page
+     * (tomyum-legal/*, production's wording with this server's name); '' when it's hidden.
+     */
+    public static function legalText(string $page): ?string
+    {
+        $value = TomYumSiteSettings::get("brand_legal_{$page}");
+        if ($value === null) {
+            return null;
+        }
+
+        return trim($value) === '' ? '' : strtr($value, [':brand' => static::name(), ':year' => date('Y')]);
+    }
+
+    public static function legalShown(string $page): bool
+    {
+        return static::legalText($page) !== '';
+    }
+
+    /** The legal pages that are shown: key => [path, title]. */
+    public static function legalPages(): array
+    {
+        return array_filter(static::LEGAL_PAGES, fn ($page) => static::legalShown($page), ARRAY_FILTER_USE_KEY);
+    }
+
+    /** When staff last saved a legal page's own text (null: the built-in one). */
+    public static function legalUpdatedAt(string $page): ?string
+    {
+        return TomYumSiteSettings::get("brand_legal_{$page}_updated");
     }
 
     /** What the Branding page shows: each field's saved value (null: unset, the default applies). */
