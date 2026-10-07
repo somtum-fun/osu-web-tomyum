@@ -75,7 +75,7 @@
                                     <a href="{{ route('beatmaps.show', ['beatmap' => $map->beatmap_id]) }}">{{ $map->artist }} - {{ $map->title }} [{{ $map->version }}]</a>
                                     <span class="tomyum-panel__hint">★{{ number_format($map->difficultyrating, 2) }}</span>
                                 </td>
-                                <td>{{ $modText($map->mods) }}</td>
+                                <td>@include('panel._mods', ['mods' => $map->mods, 'ruleset' => (int) $pool->ruleset_id])</td>
                                 <td>{{ (int) $map->rating }}</td>
                                 <td>{{ $map->selection_count }}×</td>
                                 <td>

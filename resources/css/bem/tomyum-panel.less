@@ -312,6 +312,8 @@
     td {
       --bg: hsl(var(--hsl-b5));
       background: var(--bg);
+      // the rows a size above the headings, not the page's body size (they read as shouting)
+      font-size: @font-size--title-small;
       padding: 7px 10px;
       text-align: left;
       vertical-align: middle;
@@ -379,6 +381,15 @@
 
   &__muted {
     color: hsl(var(--hsl-c2));
+  }
+
+  // Mods as the website's mod icons (panel/_mods.blade.php).
+  &__mods {
+    --mod-height: 22px;
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    vertical-align: middle;
   }
 
   &__scroll {
@@ -730,5 +741,22 @@
     .fas {
       margin-right: 6px;
     }
+  }
+}
+
+// The panels' tabs (osu-web's page header, panel theme): one row that scrolls sideways when there
+// are more than fit (the admin panel has 17), instead of a second row under the first's underline.
+.header-v4--panel .header-nav-v4--list {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent);
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  .header-nav-v4__item {
+    flex: none;
   }
 }

@@ -108,7 +108,7 @@
                 </td>
             @endisset
             <td><span class="tomyum-panel__pill tomyum-panel__pill--{{ $tone }}">{{ $label }}</span></td>
-            <td>{{ $entry['summary'] }}</td>
+            <td>{{ preg_replace('/(?<![0-9])1 difficulties/', '1 difficulty', $entry['summary']) }}</td>
         </tr>
     @endforeach
 </table>

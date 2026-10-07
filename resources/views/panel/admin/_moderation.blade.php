@@ -205,10 +205,10 @@
                         <td style="white-space: nowrap">{!! timeago(Carbon\Carbon::parse($device['lastUsed'])) !!}</td>
                         <td>{{ number_format($device['logins']) }}</td>
                         <td>{{ $verified === null ? '—' : ($verified ? 'yes' : 'no') }}</td>
-                        <td><code title="{{ $device['uninstallId'] }}">{{ substr($device['uninstallId'], 0, 10) }}</code></td>
-                        <td><code title="{{ $device['diskSerial'] }}">{{ substr($device['diskSerial'], 0, 10) }}</code></td>
-                        <td><code title="{{ $device['adapters'] }}">{{ substr($device['adapters'], 0, 10) }}</code></td>
-                        <td><code title="{{ $device['osuPath'] }}">{{ substr($device['osuPath'], 0, 10) }}</code></td>
+                        <td>@if (present($device['uninstallId'] ?? null))<code title="{{ $device['uninstallId'] }}">{{ substr($device['uninstallId'], 0, 10) }}</code>@else<span class="tomyum-panel__muted" title="Not sent by this client">—</span>@endif</td>
+                        <td>@if (present($device['diskSerial'] ?? null))<code title="{{ $device['diskSerial'] }}">{{ substr($device['diskSerial'], 0, 10) }}</code>@else<span class="tomyum-panel__muted" title="Not sent by this client">—</span>@endif</td>
+                        <td>@if (present($device['adapters'] ?? null))<code title="{{ $device['adapters'] }}">{{ substr($device['adapters'], 0, 10) }}</code>@else<span class="tomyum-panel__muted" title="Not sent by this client">—</span>@endif</td>
+                        <td>@if (present($device['osuPath'] ?? null))<code title="{{ $device['osuPath'] }}">{{ substr($device['osuPath'], 0, 10) }}</code>@else<span class="tomyum-panel__muted" title="Not sent by this client">—</span>@endif</td>
                         <td>
                             @forelse ($device['otherUsers'] as $other)
                                 <a href="{{ route('panel.admin.users.show', ['user' => $other['id']]) }}">{{ $other['username'] }}</a>@if (!$loop->last), @endif
@@ -241,7 +241,7 @@
                         </td>
                         <td><code>{{ $login->ip ?? '—' }}</code></td>
                         <td>{{ $login->country ?? '—' }}</td>
-                        <td style="max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap" title="{{ $login->agent }}">{{ $login->agent ?? '—' }}</td>
+                        <td style="max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap" @if (mb_strlen($login->agent ?? '') > 45) title="{{ $login->agent }}" @endif>{{ $login->agent ?? '—' }}</td>
                     </tr>
                 @endforeach
             </table>

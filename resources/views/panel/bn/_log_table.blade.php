@@ -35,9 +35,9 @@
             <td class="tomyum-panel__nowrap">@include('panel._who')</td>
             <td>
                 @if (($entry['targetId'] ?? null) !== null && !in_array($entry['result'], ['not_found', 'failed', 'rejected'], true))
-                    <a href="{{ route('panel.bn.sets.show', ['set' => $entry['targetId']]) }}">{{ $entry['summary'] }}</a>
+                    <a href="{{ route('panel.bn.sets.show', ['set' => $entry['targetId']]) }}">{{ preg_replace('/(?<![0-9])1 difficulties/', '1 difficulty', $entry['summary']) }}</a>
                 @else
-                    {{ $entry['summary'] }}
+                    {{ preg_replace('/(?<![0-9])1 difficulties/', '1 difficulty', $entry['summary']) }}
                 @endif
             </td>
             <td><span class="tomyum-panel__pill tomyum-panel__pill--{{ $tone }}">{{ $label }}</span></td>

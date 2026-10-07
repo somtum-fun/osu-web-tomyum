@@ -51,7 +51,7 @@
                                     $alwaysRanked = $mod['osu_ranked'] === true && !$mod['has_settings'];
                                 @endphp
                                 <tr>
-                                    <td style="width: 70px"><span class="tomyum-panel__pill tomyum-panel__pill--pink">{{ $mod['acronym'] }}</span></td>
+                                    <td style="width: 70px">@include('panel._mods', ['mods' => [$mod['acronym']], 'ruleset' => App\Http\Controllers\Panel\ModsController::RULESETS[$currentRuleset][0]])</td>
                                     <td>
                                         <strong>{{ $mod['name'] }}</strong>
                                         <div class="tomyum-panel__muted" style="font-size: 12px">{{ $mod['description'] }}</div>

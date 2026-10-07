@@ -46,7 +46,10 @@
                         {{ $rulesets[$item?->ruleset_id] ?? '?' }} · open until {{ $current->ends_at?->format('H:i') }} UTC
                     </span>
                 </a>
-                <p class="tomyum-panel__hint" style="margin-bottom: 0">Required mods: {{ $mods($item?->required_mods) }}. Allowed: {{ $mods($item?->allowed_mods) }}.</p>
+                <p class="tomyum-panel__hint" style="margin-bottom: 0">
+                    Required mods: @include('panel._mods', ['mods' => $item?->required_mods, 'ruleset' => $item?->ruleset_id ?? 0, 'empty' => 'none'])
+                    · Allowed: @include('panel._mods', ['mods' => $item?->allowed_mods, 'ruleset' => $item?->ruleset_id ?? 0, 'empty' => 'none'])
+                </p>
             @endif
         </div>
 
@@ -86,9 +89,9 @@
                                 </div>
                                 <div class="tomyum-daily-day__mods">
                                     @if ($mods($entry->required_mods) !== '–')
-                                        <span>Required {{ $mods($entry->required_mods) }}</span>
+                                        <span>Required @include('panel._mods', ['mods' => $entry->required_mods, 'ruleset' => $entry->ruleset_id ?? 0])</span>
                                     @endif
-                                    <span>Allowed {{ $mods($entry->allowed_mods) }}</span>
+                                    <span>Allowed @include('panel._mods', ['mods' => $entry->allowed_mods, 'ruleset' => $entry->ruleset_id ?? 0, 'empty' => 'none'])</span>
                                 </div>
                                 @if ($entry->description)
                                     <div class="tomyum-panel__hint" style="margin: 0">{{ $entry->description }}</div>
