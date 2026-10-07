@@ -205,14 +205,16 @@
                             <td>{{ number_format($score['accuracy'] <= 1 ? $score['accuracy'] * 100 : $score['accuracy'], 2) }}%</td>
                             <td>{{ number_format($score['pp']) }}</td>
                             <td>{{ $score['grade'] }}</td>
-                            <td>{{ $score['status'] }}</td>
+                            <td>
+                                <span class="tomyum-panel__pill {{ match ($score['status']) { 'best' => 'tomyum-panel__pill--good', 'failed' => '', default => 'tomyum-panel__pill--info' } }}">{{ $score['status'] }}</span>
+                            </td>
                             @if ($canModerate)
                                 <td>
                                     <form method="POST" action="{{ route('panel.gmt.users.scores.remove', ['user' => $userId, 'score' => $score['id']]) }}"
                                         onsubmit="var r = prompt('Remove this score? Reason:'); if (r === null) return false; this.reason.value = r; return true;">
                                         @csrf
                                         <input type="hidden" name="reason">
-                                        <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit" style="padding: 3px 10px">Remove</button>
+                                        <button class="tomyum-panel__icon-button" type="submit" title="Remove this score"><i class="fas fa-trash-alt"></i></button>
                                     </form>
                                 </td>
                             @endif

@@ -19,8 +19,9 @@
         ],
     ])
     <div class="osu-page osu-page--admin tomyum-panel">
-        <div class="tomyum-panel__card">
-            <h2><i class="fas fa-info-circle"></i>How it works</h2>
+        {{-- How it works: one line until opened. --}}
+        <details class="tomyum-panel__card tomyum-panel__explainer">
+            <summary><i class="fas fa-info-circle"></i>How it works</summary>
             <p class="tomyum-panel__hint" style="margin-bottom: 0">
                 lazer plays only give pp (and count for medals) when every mod on them is ranked. osu! ranks the
                 usual mods with their normal settings; switch a mod on here and it counts as ranked on this server
@@ -29,7 +30,7 @@
                 The lazer client still shows the mod as unranked while playing; the server decides.
                 Relax and Autopilot have their own leaderboards here, and stable plays aren't affected.
             </p>
-        </div>
+        </details>
 
         <div class="tomyum-panel__card">
             <h2><i class="fal fa-extra-mode-{{ $currentRuleset }}"></i>{{ $rulesets[$currentRuleset][1] }} mods</h2>
@@ -44,7 +45,9 @@
                     @foreach ($groups as $type => $mods)
                         <p class="tomyum-panel__section-title" style="margin: 16px 0 6px">{{ $type }}</p>
                         <div class="tomyum-panel__scroll">
-                        <table class="tomyum-panel__table">
+                        {{-- Fixed columns: every group's labels and switches line up down the page. --}}
+                        <table class="tomyum-panel__table tomyum-panel__table--mods">
+                            <colgroup><col style="width: 64px"><col><col style="width: 230px"><col style="width: 150px"></colgroup>
                             @foreach ($mods as $mod)
                                 @php
                                     // A mod osu! ranks that has no settings is ranked whatever happens here.

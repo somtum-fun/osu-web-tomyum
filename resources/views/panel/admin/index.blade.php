@@ -34,7 +34,7 @@
         </div>
 
         <p class="tomyum-panel__section-title">Tools</p>
-        <div class="tomyum-panel__links">
+        <div class="tomyum-panel__links tomyum-panel__links--rows">
             @foreach ([
                 ['panel.admin.daily-challenge.index', 'fa-calendar-day', 'lazer', 'Daily challenge', 'Pick and order the maps'],
                 ['panel.admin.matchmaking.index', 'fa-trophy', 'lazer', 'Ranked Play', 'Pools and their maps'],
@@ -52,11 +52,13 @@
                 ['panel.packs.index', 'fa-box-open', 'website', 'Beatmap packs', 'Make packs and their downloads'],
                 ['panel.changelog.index', 'fa-code-branch', 'website & lazer', 'Changelog', 'Versions and their changes'],
             ] as [$route, $icon, $kicker, $title, $hint])
-                <a class="tomyum-panel__link" href="{{ route($route) }}">
+                <a class="tomyum-panel__link tomyum-panel__link--row" href="{{ route($route) }}">
                     <span class="tomyum-panel__link-icon"><i class="fas {{ $icon }}"></i></span>
-                    <span class="tomyum-panel__kicker">{{ $kicker }}</span>
-                    <h2>{{ $title }}</h2>
-                    <p class="tomyum-panel__hint">{{ $hint }}</p>
+                    <span class="tomyum-panel__link-text">
+                        <span class="tomyum-panel__kicker">{{ $kicker }}</span>
+                        <h2>{{ $title }}</h2>
+                        <span class="tomyum-panel__hint">{{ $hint }}</span>
+                    </span>
                 </a>
             @endforeach
         </div>

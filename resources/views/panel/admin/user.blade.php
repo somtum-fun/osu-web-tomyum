@@ -163,7 +163,7 @@
                                 <td style="width: 30px">
                                     <input type="checkbox" name="groups[]" value="{{ $group->identifier }}" id="group-{{ $group->identifier }}" @checked($membership !== null)>
                                 </td>
-                                <td>
+                                <td class="tomyum-panel__nowrap">
                                     <label for="group-{{ $group->identifier }}">
                                         @if ($group->colour)
                                             <span class="tomyum-panel__badge" style="background: {{ $group->colour }}; color: #000">{{ $group->short_name }}</span>
@@ -176,12 +176,15 @@
                                 </td>
                                 <td>
                                     @if ($group->has_playmodes)
-                                        @foreach ($playmodes as $mode => $label)
-                                            <label class="tomyum-panel__check" style="min-height: 0; margin-right: 8px">
-                                                <input type="checkbox" name="playmodes[{{ $group->identifier }}][]" value="{{ $mode }}" @checked(in_array($mode, $modes, true))>
-                                                {{ $label }}
-                                            </label>
-                                        @endforeach
+                                        {{-- Each mode as osu-web's ruleset icon, its name in the tooltip: four fit on one line. --}}
+                                        <span class="tomyum-panel__modes">
+                                            @foreach ($playmodes as $mode => $label)
+                                                <label class="tomyum-panel__check" style="min-height: 0" title="{{ $label }}">
+                                                    <input type="checkbox" name="playmodes[{{ $group->identifier }}][]" value="{{ $mode }}" @checked(in_array($mode, $modes, true))>
+                                                    <i class="fal fa-extra-mode-{{ $mode }}"></i>
+                                                </label>
+                                            @endforeach
+                                        </span>
                                     @endif
                                 </td>
                             </tr>

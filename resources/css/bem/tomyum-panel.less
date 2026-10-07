@@ -760,3 +760,126 @@
     flex: none;
   }
 }
+
+// ── Panel forms, compact ───────────────────────────────────────────────────────────────────────
+// osu-web's fields put the label inside the input's top padding (a 55px box per field); in the
+// panels the label sits above a 38px input, so forms are a row of short fields with their button
+// level with the inputs.
+.tomyum-panel {
+  .input-container {
+    --input-padding-base: 12px;
+    --input-padding: 9px var(--input-padding-right) 9px var(--input-padding-base);
+    align-content: start;
+    gap: 5px;
+  }
+
+  .input-container__label {
+    font-size: @font-size--normal;
+    font-weight: 600;
+    padding: 0 2px;
+    position: static;
+  }
+
+  .input-text {
+    font-size: @font-size--title-small;
+    min-height: 38px;
+  }
+
+  // The select's arrow beside the input only, not beside its label too.
+  .input-container--select::after {
+    height: 38px;
+    top: auto;
+  }
+
+  textarea.input-text {
+    min-height: 90px;
+  }
+
+  // A row's buttons as tall as its inputs, at their bottom edge.
+  &__row > div > .btn-osu-big,
+  &__row > .btn-osu-big,
+  &__row > form > .btn-osu-big {
+    align-items: center;
+    display: inline-flex;
+    justify-content: center;
+    min-height: 38px;
+  }
+
+  // A group's game modes (the account page): ruleset icons side by side.
+  &__modes {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    gap: 12px;
+
+    .fal {
+      font-size: 16px;
+    }
+  }
+
+  // Ranked mods: one table per mod type, with the same columns.
+  &__table--mods {
+    table-layout: fixed;
+    min-width: 640px;
+  }
+
+  // "When" columns: "24 hours ago" on one line.
+  &__table time {
+    white-space: nowrap;
+  }
+
+  // A row's own action in a long table: a small icon, red on hover, not a red button on every row.
+  &__icon-button {
+    .reset-input();
+    align-items: center;
+    border-radius: @border-radius-large;
+    color: hsl(var(--hsl-c2));
+    cursor: pointer;
+    display: inline-flex;
+    height: 28px;
+    justify-content: center;
+    transition: background 120ms, color 120ms;
+    width: 28px;
+
+    &:hover {
+      background: hsla(var(--hsl-red-1), 0.15);
+      color: hsl(var(--hsl-red-1));
+    }
+  }
+
+  // "How it works": one line until it's opened.
+  &__explainer {
+    > summary {
+      .tomyum-panel-card-title();
+      cursor: pointer;
+      list-style: none;
+      margin: 0;
+
+      &::-webkit-details-marker {
+        display: none;
+      }
+
+      &::after {
+        .fas();
+        color: hsl(var(--hsl-c2));
+        content: @fa-var-chevron-down;
+        font-size: 11px;
+        margin-left: auto;
+        transition: transform 150ms;
+      }
+    }
+
+    &[open] > summary {
+      margin-bottom: 10px;
+
+      &::after {
+        transform: rotate(180deg);
+      }
+    }
+  }
+
+  // The account page's section tabs: the panel's card colour, not the profile's pink.
+  &__sections .page-mode {
+    background: hsl(var(--hsl-b4));
+    box-shadow: 0 4px 12px hsla(0, 0%, 0%, 0.25);
+  }
+}

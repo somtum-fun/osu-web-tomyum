@@ -16,8 +16,9 @@
         ['title' => 'Ranked Play'],
     ]])
     <div class="osu-page osu-page--admin tomyum-panel">
-        <div class="tomyum-panel__card">
-            <h2><i class="fas fa-info-circle"></i>How it works</h2>
+        {{-- How it works: one line until opened. --}}
+        <details class="tomyum-panel__card tomyum-panel__explainer">
+            <summary><i class="fas fa-info-circle"></i>How it works</summary>
             <p class="tomyum-panel__hint">
                 lazer's Ranked Play (1v1, with ratings) puts players who queue in a pool together. (Quick Play, a
                 free-for-all of up to the lobby size, uses the same pools but isn't in lazer right now.) The server fills each pool with the ranked featured-artist
@@ -25,15 +26,22 @@
                 deals {{ \App\Http\Controllers\Panel\MatchmakingController::RANKED_DECK }} per match), or to play
                 a map with mods. A match needs enough players queued in the same pool at the same time.
             </p>
-        </div>
+        </details>
 
         @forelse ($pools as $pool)
             @php($maps = $added[$pool->id] ?? collect())
             @php($total = $autoCount($pool) + count($maps))
             <div class="tomyum-panel__card" style="{{ $pool->active ? '' : 'opacity: 0.6' }}">
+                @php($poolType = $pool->type === 'ranked_play' ? 'Ranked Play' : 'Quick Play')
                 <h2>
-                    {{ $pool->type === 'ranked_play' ? 'Ranked Play' : 'Quick Play' }} · {{ $poolName($pool) }} · {{ $pool->name }}
-                    @unless ($pool->active) <span class="tomyum-panel__hint">(off)</span> @endunless
+                    <i class="fas fa-trophy"></i>
+                    {{ $poolName($pool) }}
+                    {{-- The pool's own name only when it says more than its type. --}}
+                    @if (trim($pool->name) !== '' && strcasecmp(trim($pool->name), $poolType) !== 0)
+                        · {{ $pool->name }}
+                    @endif
+                    <span class="tomyum-panel__pill tomyum-panel__pill--pink">{{ $poolType }}</span>
+                    @unless ($pool->active) <span class="tomyum-panel__pill">off</span> @endunless
                 </h2>
                 <p class="tomyum-panel__hint">
                     {{ $pool->type === 'ranked_play' ? '1v1' : "Lobbies of {$pool->lobby_size}" }} ·
