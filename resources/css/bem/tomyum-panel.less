@@ -187,13 +187,10 @@
   // A long page's sections (the account page): osu-web's profile tabs in a sticky-toolbar, wrapping
   // onto a second line rather than hiding the last ones off the edge.
   &__sections {
+    // (its rows: see .tomyum-panel__sections .page-mode further down)
     .page-mode {
       border-radius: @border-radius-large;
-      flex-wrap: wrap;
-      gap: 6px 22px;
-      justify-content: center;
       overflow: visible;
-      padding: 12px 20px 8px;
     }
 
     // The underline under the word, not over it (the profile's bar is spaced for its own).
@@ -1045,20 +1042,39 @@
   }
 }
 
-// The account page's section bar: the player on the left, the everyday actions on the right.
+// The account page's section bar: the player and the everyday actions on one row, the sections on
+// the row under them (one line of tabs, centred, wrapping only on narrow screens).
+.tomyum-panel__sections .page-mode {
+  align-items: center;
+  display: grid;
+  gap: 8px 16px;
+  grid-template-columns: 1fr auto;
+  justify-content: stretch;
+  padding: 10px 20px 0;
+}
+
 .tomyum-panel__sections-who {
   align-items: center;
   display: inline-flex;
   font-size: @font-size--title-small;
   font-weight: 600;
   gap: 8px;
-  margin-right: auto;
 }
 
 .tomyum-panel__sections-quick {
   display: inline-flex;
   gap: 6px;
-  margin-left: auto;
+  justify-self: end;
+}
+
+.tomyum-panel__sections-tabs {
+  border-top: 1px solid hsla(var(--hsl-c2), 0.12);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 22px;
+  grid-column: 1 / -1;
+  justify-content: center;
+  padding-top: 8px;
 }
 
 // The admin overview's charts (panel/_chart.blade.php): one series in the panel's pink, the grid
@@ -1170,5 +1186,130 @@
         display: none;
       }
     }
+  }
+}
+
+// A page with a main column and a sidebar (the BN panel's set page): the sidebar under it on phones.
+.tomyum-panel__layout {
+  align-items: start;
+  display: grid;
+  gap: 15px;
+  grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+
+  @media @mobile {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tomyum-panel__layout-main,
+.tomyum-panel__layout-side {
+  display: grid;
+  gap: 15px;
+  min-width: 0;
+}
+
+// The set's numbers under its title on the cover.
+.tomyum-panel-cover__facts {
+  color: hsl(var(--hsl-c2));
+  display: flex;
+  flex-wrap: wrap;
+  font-size: @font-size--normal;
+  gap: 6px 16px;
+  margin-top: 10px;
+
+  .fas {
+    margin-right: 5px;
+    opacity: 0.8;
+  }
+
+  strong {
+    color: hsl(var(--hsl-c1));
+  }
+}
+
+// A form's controls above the list they act on (the set's status change).
+.tomyum-panel__toolbar {
+  align-items: flex-end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  margin-bottom: 12px;
+
+  .tomyum-panel__hint {
+    margin: 0 0 10px;
+  }
+}
+
+// "How it works" inside a card: one quiet line until opened.
+.tomyum-panel__more {
+  margin-top: 12px;
+
+  > summary {
+    color: hsl(var(--hsl-c2));
+    cursor: pointer;
+    font-size: @font-size--normal;
+    font-weight: 600;
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &::before {
+      .fas();
+      content: @fa-var-chevron-right;
+      font-size: 9px;
+      margin-right: 6px;
+      transition: transform 150ms;
+    }
+
+    &:hover {
+      color: hsl(var(--hsl-c1));
+    }
+  }
+
+  &[open] > summary::before {
+    transform: rotate(90deg);
+  }
+
+  > .tomyum-panel__hint {
+    margin: 8px 0 0;
+  }
+}
+
+// People as small chips (the set's nominators).
+.tomyum-panel__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tomyum-panel__chip {
+  background: hsl(var(--hsl-b5));
+  border-radius: 10000px;
+  font-size: @font-size--normal;
+  font-weight: 600;
+  padding: 4px 12px;
+
+  &:hover {
+    background: hsl(var(--hsl-b3));
+    text-decoration: none;
+  }
+}
+
+// A short history in a sidebar: when above what, one entry per line.
+.tomyum-panel__timeline {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li {
+    border-left: 2px solid hsla(var(--hsl-h1), 0.4);
+    display: grid;
+    font-size: @font-size--normal;
+    gap: 2px;
+    padding-left: 10px;
   }
 }

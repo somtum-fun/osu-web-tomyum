@@ -84,20 +84,23 @@
                     <span class="avatar avatar--dynamic-size" style="background-image: url('{{ $target->user_avatar }}'); width: 26px; height: 26px; border-radius: 6px"></span>
                     {{ $target->username }}
                 </span>
-                @foreach ($sections as $id => [, $label])
-                    <a class="page-mode__item" href="#{{ $id }}" data-section="{{ $id }}">
-                        <span class="page-mode-link page-mode-link--profile-page">
-                            <span class="fake-bold" data-content="{{ $label }}">{{ $label }}</span>
-                            <span class="page-mode-link__stripe"></span>
-                        </span>
-                    </a>
-                @endforeach
                 {{-- The everyday actions, a click from anywhere on the page: they open the field to type the reason in. --}}
                 <span class="tomyum-panel__sections-quick">
                     <button class="btn-osu-big btn-osu-big--rounded-small btn-osu-big--panel-secondary tomyum-panel__danger-text" type="button" data-quick="quick-restrict"><i class="fas fa-ban"></i>{{ $target->isRestricted() ? 'Unrestrict' : 'Restrict' }}</button>
                     <button class="btn-osu-big btn-osu-big--rounded-small btn-osu-big--panel-secondary" type="button" data-quick="quick-silence"><i class="fas fa-comment-slash"></i>Silence</button>
                     <button class="btn-osu-big btn-osu-big--rounded-small btn-osu-big--panel-secondary" type="button" data-quick="quick-note"><i class="fas fa-sticky-note"></i>Note</button>
                 </span>
+                {{-- The sections, on their own row under the player and the actions. --}}
+                <nav class="tomyum-panel__sections-tabs">
+                    @foreach ($sections as $id => [, $label])
+                        <a class="page-mode__item" href="#{{ $id }}" data-section="{{ $id }}">
+                            <span class="page-mode-link page-mode-link--profile-page">
+                                <span class="fake-bold" data-content="{{ $label }}">{{ $label }}</span>
+                                <span class="page-mode-link__stripe"></span>
+                            </span>
+                        </a>
+                    @endforeach
+                </nav>
             </div>
         </div>
 
