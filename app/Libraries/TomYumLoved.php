@@ -298,6 +298,11 @@ class TomYumLoved
         if ($set === null) {
             return [false, $error];
         }
+        // Only maps that could be asked for (graveyard, WIP, pending): a ranked, approved, qualified
+        // or loved map can't be requested anyway, so blacklisting it means nothing.
+        if (!$set->isLoveable()) {
+            return [false, "{$set->artist} - {$set->title} is {$set->status()}: only graveyard, WIP and pending maps can be asked for, so there's nothing to blacklist."];
+        }
 
         DB::transaction(function () use ($user, $set, $reason) {
             DB::table('tomyum_loved_blacklist')->updateOrInsert(

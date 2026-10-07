@@ -262,9 +262,20 @@
 
   &__alert {
     border-radius: @border-radius--large;
-    font-size: @font-size--normal-2;
+    font-size: @font-size--title-small;
+    font-weight: 600;
     margin-bottom: 10px;
-    padding: 8px 12px;
+    padding: 12px 18px;
+
+    // Beside the page's cards (not inside one): inset like them (.page-extra's outer gutter), not
+    // wider than them; the page's grid gap spaces it.
+    .tomyum-loved > & {
+      margin: 0 2px;
+
+      @media @desktop {
+        margin: 0 10px;
+      }
+    }
 
     &--success {
       background: hsla(var(--hsl-lime-1), 0.15);
