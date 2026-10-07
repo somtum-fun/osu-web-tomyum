@@ -157,7 +157,7 @@ class AdminController extends Controller
     ];
 
     /** The whole staff log: by kind, about a player, by a staff member, 50 at a time (older with "before"). */
-    public function log()
+    public function staffLogPage()
     {
         $kind = (string) Request::input('kind');
         $kind = isset(static::LOG_KINDS[$kind]) ? $kind : '';
