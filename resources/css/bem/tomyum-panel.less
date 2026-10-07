@@ -901,9 +901,10 @@
       transform: rotate(-135deg);
     }
 
-    // the content's room for the summary, inside what slides (so nothing jumps after it)
+    // the content's room for the summary, as padding: margins collapse out of the sliding box only
+    // once it's open, which made the card jump by them at the end
     > summary + * {
-      margin-top: 12px;
+      padding-top: 12px;
     }
   }
 
@@ -1283,7 +1284,7 @@
   }
 
   > .tomyum-panel__hint {
-    margin: 8px 0 0;
+    padding-top: 8px;
   }
 }
 
@@ -1346,6 +1347,17 @@
     block-size: auto;
     opacity: 1;
   }
+
+  // no margins inside what slides (see above): spacing is padding
+  > :not(summary) {
+    margin-bottom: 0;
+    margin-top: 0;
+  }
+}
+
+// A fold that makes the page tall enough for a scrollbar mustn't shift everything sideways.
+html:has(.tomyum-panel) {
+  scrollbar-gutter: stable;
 }
 
 // The game mode picker after the search box in the header (ranked mods).
