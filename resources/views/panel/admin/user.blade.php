@@ -79,6 +79,11 @@
         {{-- The sections, like a profile's (osu-web's page-mode tabs); the one being read is underlined. --}}
         <div class="sticky-toolbar tomyum-panel__sections js-tomyum-sections">
             <div class="page-mode page-mode--profile-page-extra">
+                {{-- Who this is, always in view while scrolling the sections. --}}
+                <span class="tomyum-panel__sections-who">
+                    <span class="avatar avatar--dynamic-size" style="background-image: url('{{ $target->user_avatar }}'); width: 26px; height: 26px; border-radius: 6px"></span>
+                    {{ $target->username }}
+                </span>
                 @foreach ($sections as $id => [, $label])
                     <a class="page-mode__item" href="#{{ $id }}" data-section="{{ $id }}">
                         <span class="page-mode-link page-mode-link--profile-page">
@@ -87,6 +92,12 @@
                         </span>
                     </a>
                 @endforeach
+                {{-- The everyday actions, a click from anywhere on the page: they open the field to type the reason in. --}}
+                <span class="tomyum-panel__sections-quick">
+                    <button class="btn-osu-big btn-osu-big--rounded-small btn-osu-big--panel-secondary tomyum-panel__danger-text" type="button" data-quick="quick-restrict"><i class="fas fa-ban"></i>{{ $target->isRestricted() ? 'Unrestrict' : 'Restrict' }}</button>
+                    <button class="btn-osu-big btn-osu-big--rounded-small btn-osu-big--panel-secondary" type="button" data-quick="quick-silence"><i class="fas fa-comment-slash"></i>Silence</button>
+                    <button class="btn-osu-big btn-osu-big--rounded-small btn-osu-big--panel-secondary" type="button" data-quick="quick-note"><i class="fas fa-sticky-note"></i>Note</button>
+                </span>
             </div>
         </div>
 
@@ -260,6 +271,20 @@
 @section('script')
     @parent
     <script>
+        // Quick actions: to the field for the reason, ready to type. Tabs open a folded section.
+        (() => {
+            document.querySelectorAll('[data-quick]').forEach((button) => button.addEventListener('click', () => {
+                const field = document.getElementById(button.dataset.quick);
+                if (field == null) return;
+                field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                setTimeout(() => field.focus({ preventScroll: true }), 300);
+            }));
+            document.querySelectorAll('.js-tomyum-sections [data-section]').forEach((link) => link.addEventListener('click', () => {
+                const section = document.getElementById(link.dataset.section);
+                if (section instanceof HTMLDetailsElement) section.open = true;
+            }));
+        })();
+
         // The section being read gets the tab's underline (like a profile's tabs while scrolling).
         (() => {
             const bar = document.querySelector('.js-tomyum-sections');

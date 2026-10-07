@@ -68,6 +68,11 @@ class AdminController extends Controller
             ],
             'entries' => $entries,
             'actors' => BnController::actorNames($entries),
+            'charts' => [
+                'online' => \App\Libraries\TomYumCharts::onlineToday(),
+                'scores' => \App\Libraries\TomYumCharts::scoresPerDay(),
+                'signups' => \App\Libraries\TomYumCharts::signupsPerDay(),
+            ],
             'maintenance' => \App\Libraries\TomYumMaintenance::status(),
             'developmentBanner' => [
                 'enabled' => \App\Libraries\TomYumSiteSettings::developmentBannerEnabled(),
@@ -133,6 +138,66 @@ class AdminController extends Controller
     private function backToIndex(string $type, string $message)
     {
         return redirect(route('panel.admin.index'))->with('panel_status', ['type' => $type, 'message' => $message, 'link' => null]);
+    }
+
+    /** The kinds of staff action the log can show alone (TomYum's log takes a prefix ending in "."). */
+    public const LOG_KINDS = [
+        '' => 'Everything',
+        'user.' => 'Players (moderation)',
+        'score.' => 'Scores',
+        'admin.' => 'Accounts',
+        'report.' => 'Reports',
+        'beatmapset.' => 'Beatmaps',
+        'title.' => 'Titles',
+        'tournament.' => 'Tournaments',
+        'asset.' => 'Assets',
+        'news.' => 'News',
+        'site.' => 'Site settings',
+        'menu_banner.' => 'Menu banners',
+    ];
+
+    /** The whole staff log: by kind, about a player, by a staff member, 50 at a time (older with "before"). */
+    public function log()
+    {
+        $kind = (string) Request::input('kind');
+        $kind = isset(static::LOG_KINDS[$kind]) ? $kind : '';
+        $find = fn (string $field) => presence(trim((string) Request::input($field)));
+        $lookup = fn (?string $name) => $name === null ? null : (ctype_digit($name) ? User::find((int) $name) : User::lookupWithHistory($name, 'username'));
+
+        $playerName = $find('player');
+        $staffName = $find('staff');
+        $player = $lookup($playerName);
+        $staff = $lookup($staffName);
+        $problem = match (true) {
+            $playerName !== null && $player === null => "There's no player called \"{$playerName}\".",
+            $staffName !== null && $staff === null => "There's no staff member called \"{$staffName}\".",
+            default => null,
+        };
+
+        $entries = [];
+        if ($problem === null) {
+            $response = $this->tomyum()->get('/log', array_filter([
+                'action' => $kind,
+                'targetId' => $player?->getKey(),
+                'actorId' => $staff?->getKey(),
+                'before' => get_int(Request::input('before')),
+                'limit' => 50,
+            ], fn ($value) => $value !== null && $value !== ''));
+            $entries = $response->successful() ? $response->json() : [];
+            $problem = $response->successful() ? null : 'The game server didn\'t answer.';
+        }
+
+        return ext_view('panel.admin.log', [
+            'kind' => $kind,
+            'playerName' => $playerName,
+            'staffName' => $staffName,
+            'entries' => $entries,
+            'problem' => $problem,
+            'actors' => BnController::actorNames($entries),
+            'targets' => GmtController::userNames(array_column($entries, 'targetId')),
+            // the next page: entries older than the last one shown (only when this one was full)
+            'olderThan' => count($entries) === 50 ? end($entries)['id'] ?? null : null,
+        ]);
     }
 
     public function users()

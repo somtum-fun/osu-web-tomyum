@@ -37,6 +37,7 @@ Route::group(['middleware' => ['web']], function () {
     // TomYum staff panels.
     Route::group(['as' => 'panel.', 'prefix' => 'panel', 'namespace' => 'Panel'], function () {
         Route::get('/', 'PagesController@index')->name('index');
+        Route::get('search', 'PagesController@search')->name('search');
 
         // Support tickets from email: each staff group sees its categories.
         Route::group(['as' => 'tickets.', 'prefix' => 'tickets'], function () {
@@ -116,6 +117,7 @@ Route::group(['middleware' => ['web']], function () {
         Route::group(['as' => 'gmt.', 'prefix' => 'gmt'], function () {
             Route::get('/', 'GmtController@index')->name('index');
             Route::get('chat', 'GmtController@chat')->name('chat');
+            Route::post('reports/{report}', 'GmtController@reportState')->name('reports.state')->where('report', '[0-9]+');
             Route::get('users/{user}', 'GmtController@show')->name('users.show');
             Route::post('users/{user}/restrict', 'GmtController@restrict')->name('users.restrict');
             Route::post('users/{user}/unrestrict', 'GmtController@unrestrict')->name('users.unrestrict');
@@ -169,6 +171,7 @@ Route::group(['middleware' => ['web']], function () {
         });
 
         Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
+            Route::get('log', 'AdminController@log')->name('log');
             Route::get('branding', 'BrandingController@index')->name('branding.index');
             Route::post('branding', 'BrandingController@update')->name('branding.update');
             Route::get('menu-banners', 'MenuBannersController@index')->name('menu-banners.index');

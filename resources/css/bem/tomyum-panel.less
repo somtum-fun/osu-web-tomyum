@@ -906,3 +906,269 @@
     box-shadow: 0 4px 12px hsla(0, 0%, 0%, 0.25);
   }
 }
+
+// The panels' "are you sure?" box (panel/_header.blade.php), instead of the browser's prompt().
+.tomyum-panel-dialog {
+  background: hsl(var(--hsl-b4));
+  border: none;
+  border-radius: @border-radius-large;
+  box-shadow: 0 10px 40px hsla(0, 0%, 0%, 0.5);
+  color: hsl(var(--hsl-c1));
+  max-width: calc(100vw - 30px);
+  padding: 0;
+  width: 420px;
+
+  &::backdrop {
+    background: hsla(0, 0%, 0%, 0.55);
+  }
+
+  &__box {
+    display: grid;
+    gap: 14px;
+    padding: 20px 22px;
+
+    .input-container {
+      --input-padding-base: 12px;
+      --input-padding: 9px var(--input-padding-right) 9px var(--input-padding-base);
+      gap: 5px;
+    }
+
+    .input-container__label {
+      font-size: @font-size--normal;
+      font-weight: 600;
+      padding: 0 2px;
+      position: static;
+    }
+
+    .input-text {
+      font-size: @font-size--title-small;
+      min-height: 38px;
+    }
+  }
+
+  &__question {
+    font-size: @font-size--title-small-3;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  &__buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+}
+
+// A row's buttons side by side (the report queue's Take it / Resolve).
+.tomyum-panel__inline-actions {
+  display: inline-flex;
+  gap: 6px;
+}
+
+// A card's views (the report queue's Open / Being handled / Resolved): a small segmented switch.
+.tomyum-panel__segments {
+  background: hsl(var(--hsl-b5));
+  border-radius: 10000px;
+  display: inline-flex;
+  gap: 2px;
+  margin-bottom: 12px;
+  padding: 3px;
+}
+
+.tomyum-panel__segment {
+  align-items: center;
+  border-radius: 10000px;
+  color: hsl(var(--hsl-c2));
+  display: inline-flex;
+  font-size: @font-size--normal;
+  font-weight: 600;
+  gap: 6px;
+  padding: 5px 12px;
+  transition: background 120ms, color 120ms;
+
+  &:hover {
+    color: hsl(var(--hsl-c1));
+    text-decoration: none;
+  }
+
+  &--active {
+    background: hsl(var(--hsl-b3));
+    color: hsl(var(--hsl-c1));
+  }
+}
+
+.tomyum-panel__segment-count {
+  background: hsla(var(--hsl-c2), 0.15);
+  border-radius: 10000px;
+  font-size: 11px;
+  min-width: 20px;
+  padding: 0 6px;
+  text-align: center;
+}
+
+// The search box in the panels' header (beside the panel switch), pushed to the right.
+.tomyum-panel-search {
+  align-items: center;
+  background: hsl(var(--hsl-b5));
+  border-radius: 10000px;
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+  padding: 0 14px;
+  transition: box-shadow 120ms;
+  width: min(300px, 40vw);
+
+  &:focus-within {
+    box-shadow: 0 0 0 2px hsl(var(--hsl-h1));
+  }
+
+  @media @mobile {
+    display: none;
+  }
+
+  &__icon {
+    color: hsl(var(--hsl-c2));
+    font-size: 12px;
+  }
+
+  &__input {
+    .reset-input();
+    color: hsl(var(--hsl-c1));
+    flex: 1;
+    font-size: @font-size--normal;
+    min-width: 0;
+    padding: 7px 0;
+
+    &::placeholder {
+      color: hsl(var(--hsl-c2));
+    }
+  }
+}
+
+// The account page's section bar: the player on the left, the everyday actions on the right.
+.tomyum-panel__sections-who {
+  align-items: center;
+  display: inline-flex;
+  font-size: @font-size--title-small;
+  font-weight: 600;
+  gap: 8px;
+  margin-right: auto;
+}
+
+.tomyum-panel__sections-quick {
+  display: inline-flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+// The admin overview's charts (panel/_chart.blade.php): one series in the panel's pink, the grid
+// and axis recessive, the labels in muted ink.
+.tomyum-chart {
+  display: grid;
+  gap: 4px;
+
+  svg {
+    display: block;
+    height: 150px;
+    overflow: visible;
+    width: 100%;
+  }
+
+  &__grid {
+    stroke: hsla(var(--hsl-c2), 0.15);
+    stroke-dasharray: 3 4;
+    vector-effect: non-scaling-stroke;
+  }
+
+  &__axis {
+    stroke: hsla(var(--hsl-c2), 0.35);
+    vector-effect: non-scaling-stroke;
+  }
+
+  &__bar {
+    fill: hsl(var(--hsl-h1));
+    transition: fill 120ms;
+  }
+
+  &__line {
+    fill: none;
+    stroke: hsl(var(--hsl-h1));
+    stroke-linejoin: round;
+    stroke-width: 2px;
+    vector-effect: non-scaling-stroke;
+  }
+
+  &__area {
+    fill: hsla(var(--hsl-h1), 0.15);
+  }
+
+  &__hit {
+    fill: transparent;
+  }
+
+  g:hover &__bar {
+    fill: hsl(var(--hsl-h2));
+  }
+
+  &__labels {
+    color: hsl(var(--hsl-c2));
+    display: flex;
+    font-size: 11px;
+    justify-content: space-between;
+  }
+}
+
+// Charts side by side on the overview.
+.tomyum-panel__charts {
+  display: grid;
+  gap: 15px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+// On phones a labelled table (every panel table with headings) turns each row into a card: the
+// heading row hides, each cell is a line with its column's name beside it. Empty cells go.
+@media @mobile {
+  .tomyum-panel__table--labelled {
+    &,
+    tbody,
+    tr,
+    td {
+      display: block;
+      width: 100% !important;
+    }
+
+    tr:first-child:has(th) {
+      display: none;
+    }
+
+    tr {
+      background: hsl(var(--hsl-b5));
+      border-radius: @border-radius-large;
+      margin-bottom: 6px;
+      padding: 6px 0;
+    }
+
+    td {
+      background: none;
+      border-radius: 0 !important;
+      display: flex;
+      gap: 10px;
+      padding: 4px 12px;
+      text-align: left !important;
+      white-space: normal;
+
+      &[data-label]::before {
+        color: hsl(var(--hsl-c2));
+        content: attr(data-label);
+        flex: 0 0 90px;
+        font-size: 11px;
+        font-weight: 600;
+        padding-top: 2px;
+      }
+
+      &:empty {
+        display: none;
+      }
+    }
+  }
+}

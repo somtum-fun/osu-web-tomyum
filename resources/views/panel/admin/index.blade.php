@@ -33,6 +33,23 @@
             @endforeach
         </div>
 
+        {{-- How the server is doing lately: hover a bar or the line for its numbers. --}}
+        <p class="tomyum-panel__section-title">Lately</p>
+        <div class="tomyum-panel__charts">
+            <div class="tomyum-panel__card">
+                <h2><i class="fas fa-signal"></i>In game, last 24 hours</h2>
+                @include('panel._chart', ['points' => $charts['online'], 'type' => 'line', 'empty' => 'Counting started: the first numbers show within 5 minutes.'])
+            </div>
+            <div class="tomyum-panel__card">
+                <h2><i class="fas fa-chart-bar"></i>Scores per day</h2>
+                @include('panel._chart', ['points' => $charts['scores'], 'type' => 'bars'])
+            </div>
+            <div class="tomyum-panel__card">
+                <h2><i class="fas fa-user-plus"></i>Sign-ups per day</h2>
+                @include('panel._chart', ['points' => $charts['signups'], 'type' => 'bars'])
+            </div>
+        </div>
+
         <p class="tomyum-panel__section-title">Tools</p>
         <div class="tomyum-panel__links tomyum-panel__links--rows">
             @foreach ([
@@ -332,7 +349,10 @@
         </div>
 
         <div class="tomyum-panel__card">
-            <h2><i class="fas fa-history"></i>Recent staff actions</h2>
+            <div class="tomyum-panel__card-head">
+                <h2><i class="fas fa-history"></i>Recent staff actions</h2>
+                <a class="btn-osu-big btn-osu-big--rounded-small btn-osu-big--panel-secondary" href="{{ route('panel.admin.log') }}">All, with filters<i class="fas fa-angle-right"></i></a>
+            </div>
             @if (count($entries) === 0)
                 <p class="tomyum-panel__empty">Nothing yet.</p>
             @else

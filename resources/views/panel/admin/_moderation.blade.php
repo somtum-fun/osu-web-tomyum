@@ -54,7 +54,7 @@
                 <input type="hidden" name="from" value="admin">
                 <label class="input-container tomyum-panel__field">
 <span class="input-container__label">Reason</span>
-<input class="input-text" type="text" name="reason" required></label>
+<input class="input-text" type="text" name="reason" required id="quick-restrict"></label>
                 <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-check"></i>Unrestrict</button>
             </form>
         @else
@@ -63,7 +63,7 @@
                 <input type="hidden" name="from" value="admin">
                 <label class="input-container tomyum-panel__field">
 <span class="input-container__label">Reason</span>
-<input class="input-text" type="text" name="reason" required></label>
+<input class="input-text" type="text" name="reason" required id="quick-restrict"></label>
                 {{-- TomYum: the offense sets when they may appeal. --}}
                 @include('panel.gmt._appeal_offense')
                 <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit"><i class="fas fa-ban"></i>Restrict</button>
@@ -90,7 +90,7 @@
 <select class="input-text" name="length">{!! $silenceOptions() !!}</select></label>
                 <label class="input-container tomyum-panel__field">
 <span class="input-container__label">Reason</span>
-<input class="input-text" type="text" name="reason" required></label>
+<input class="input-text" type="text" name="reason" required id="quick-silence"></label>
                 <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit"><i class="fas fa-comment-slash"></i>Silence</button>
             </form>
         @endif
@@ -100,7 +100,7 @@
         @csrf
         <label class="input-container tomyum-panel__field">
 <span class="input-container__label">Add a note to their history</span>
-<input class="input-text" type="text" name="reason" required maxlength="500"></label>
+<input class="input-text" type="text" name="reason" required maxlength="500" id="quick-note"></label>
         <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-sticky-note"></i>Add note</button>
     </form>
 
@@ -249,8 +249,9 @@
     @endif
 </div>
 
-<div class="tomyum-panel__card" id="content">
-    <h2><i class="fas fa-eraser"></i>Reset profile content</h2>
+{{-- Rarely needed: folded until opened (its tab in the section bar opens it). --}}
+<details class="tomyum-panel__card tomyum-panel__explainer" id="content">
+    <summary><i class="fas fa-eraser"></i>Reset profile content</summary>
     <p class="tomyum-panel__hint">Removes their avatar, profile banner or me! page. Optionally warns them (a note in their history) and/or silences them.</p>
     <form method="POST" action="{{ route('panel.admin.users.reset', ['user' => $userId]) }}" class="tomyum-panel__row" style="align-items: flex-end" onsubmit="return confirm('Reset it?')">
         @csrf
@@ -272,10 +273,11 @@
         <label class="tomyum-panel__check"><input type="checkbox" name="warn" value="1"> Warn</label>
         <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit"><i class="fas fa-eraser"></i>Reset</button>
     </form>
-</div>
+</details>
 
-<div class="tomyum-panel__card" id="rollback">
-    <h2><i class="fas fa-undo"></i>Rollback account</h2>
+{{-- Rarely needed: folded until opened (its tab in the section bar opens it). --}}
+<details class="tomyum-panel__card tomyum-panel__explainer" id="rollback">
+    <summary><i class="fas fa-undo"></i>Rollback account</summary>
     <p class="tomyum-panel__hint">
         Removes every score they set after the moment you pick (UTC), in one mode or all. Their earlier plays
         become their bests again and their pp, rank and stats are recalculated. Can't be undone.
@@ -300,10 +302,11 @@
 <input class="input-text" type="text" name="reason" required></label>
         <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit"><i class="fas fa-undo"></i>Roll back</button>
     </form>
-</div>
+</details>
 
-<div class="tomyum-panel__card" id="names">
-    <h2><i class="fas fa-id-badge"></i>Username</h2>
+{{-- Rarely needed: folded until opened (its tab in the section bar opens it). --}}
+<details class="tomyum-panel__card tomyum-panel__explainer" id="names">
+    <summary><i class="fas fa-id-badge"></i>Username</summary>
     @php
         $earlier = $usernames->pluck('username_last')->merge($usernames->pluck('username'))
             ->filter(fn ($name) => $name !== null && $name !== $target->username)->unique()->values();
@@ -373,4 +376,4 @@
             @endforeach
         </table>
     @endif
-</div>
+</details>

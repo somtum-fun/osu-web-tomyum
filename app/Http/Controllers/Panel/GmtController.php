@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Panel;
 
 use App\Libraries\TomYumAppeals;
 use App\Libraries\TomYumCountryStats;
+use App\Libraries\TomYumReports;
 use App\Models\User;
 use App\Models\UserAccountHistory;
 use App\Models\UserReport;
@@ -69,17 +70,44 @@ class GmtController extends Controller
             $matches = User::where('username', 'like', $like)->orderBy('username')->limit(25)->get();
         }
 
-        $reports = UserReport::with(['reporter', 'user'])->orderByDesc('report_id')->limit(30)->get();
+        // The report queue: open, being handled, or resolved.
+        $reportView = Request::input('reports');
+        $reportView = isset(TomYumReports::VIEWS[$reportView]) ? $reportView : TomYumReports::OPEN;
+        $reports = TomYumReports::list($reportView);
         $entries = $this->moderationLog();
 
         return ext_view('panel.gmt.index', [
             'query' => $query,
             'matches' => $matches,
             'reports' => $reports,
+            'reportView' => $reportView,
+            'reportCounts' => TomYumReports::counts(),
+            'handlers' => static::userNames(array_filter($reports->map(fn ($r) => $r->tomyumState?->handler_id)->all())),
             'entries' => $entries,
             'actors' => BnController::actorNames($entries),
             'targets' => static::userNames(array_column($entries, 'targetId')),
         ]);
+    }
+
+    /** A report in the queue: take it, resolve it (with an optional note) or open it again. */
+    public function reportState(string $report)
+    {
+        $report = UserReport::findOrFail((int) $report);
+        $action = (string) Request::input('action');
+        $note = presence(mb_substr(trim((string) Request::input('note')), 0, 500));
+        $me = Auth::user()->getKey();
+        [$status, $summary] = match ($action) {
+            'take' => [TomYumReports::TAKEN, 'Took report #'.$report->getKey()],
+            'resolve' => [TomYumReports::RESOLVED, 'Resolved report #'.$report->getKey().($note === null ? '' : ": {$note}")],
+            'reopen' => [TomYumReports::OPEN, 'Reopened report #'.$report->getKey()],
+            default => abort(422),
+        };
+        TomYumReports::set($report->getKey(), $status, $status === TomYumReports::OPEN ? null : $me, $note);
+        $this->staffLog('report.'.$action, $report->user_id, $summary);
+
+        $back = Request::input('back');
+
+        return redirect(is_string($back) && str_starts_with($back, '/') ? $back : route('panel.gmt.index'));
     }
 
     public function show(string $user)
@@ -106,7 +134,7 @@ class GmtController extends Controller
             'appealCooldown' => TomYumAppeals::currentCooldown($target),
             'appealAfter' => TomYumAppeals::appealAfter($target),
             'history' => $target->accountHistories()->with('actor')->orderByDesc('timestamp')->orderByDesc('ban_id')->limit(50)->get(),
-            'reports' => UserReport::with('reporter')->where('user_id', $target->getKey())->orderByDesc('report_id')->limit(30)->get(),
+            'reports' => TomYumReports::withStates(UserReport::with('reporter')->where('user_id', $target->getKey())->orderByDesc('report_id')->limit(30)->get()),
             'best' => $best,
             'scores' => $scores->successful() ? $scores->json() : [],
             'scoresError' => $scores->successful() ? null : "Couldn't load scores from the game server (HTTP {$scores->status()}).",

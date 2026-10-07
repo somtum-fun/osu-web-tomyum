@@ -30,12 +30,27 @@
             @endif
         </div>
 
-        <div class="tomyum-panel__card">
-            <h2><i class="fas fa-flag"></i>Recent reports</h2>
+        {{-- The report queue: open ones first; take one so others know it's being looked at. --}}
+        <div class="tomyum-panel__card" id="reports">
+            <div class="tomyum-panel__card-head">
+                <h2><i class="fas fa-flag"></i>Reports</h2>
+                <nav class="tomyum-panel__segments">
+                    @foreach (App\Libraries\TomYumReports::VIEWS as $view => $label)
+                        <a
+                            class="tomyum-panel__segment {{ $view === $reportView ? 'tomyum-panel__segment--active' : '' }}"
+                            href="{{ route('panel.gmt.index', ['reports' => $view]) }}#reports"
+                        >{{ $label }} <span class="tomyum-panel__segment-count">{{ number_format($reportCounts[$view]) }}</span></a>
+                    @endforeach
+                </nav>
+            </div>
             @if (count($reports) === 0)
-                <p class="tomyum-panel__hint">No reports yet. Players report others from their profile (the "…" menu) or scores.</p>
+                <p class="tomyum-panel__empty">
+                    {{ match ($reportView) { 'taken' => 'Nobody is handling a report right now.', 'resolved' => 'No resolved reports yet.', default => 'No open reports. Players report others from their profile (the "…" menu), scores and chat.' } }}
+                </p>
             @else
-                @include('panel.gmt._reports', ['reports' => $reports, 'showPlayer' => true])
+                <div class="tomyum-panel__scroll">
+                    @include('panel.gmt._reports', ['reports' => $reports, 'showPlayer' => true, 'handlers' => $handlers])
+                </div>
             @endif
         </div>
 

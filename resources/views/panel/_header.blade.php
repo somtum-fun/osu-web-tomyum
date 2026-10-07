@@ -48,6 +48,7 @@
             ['Backgrounds', 'panel.admin.seasonal-backgrounds.index', ['panel.admin.seasonal-backgrounds.']],
             ['Menu banners', 'panel.admin.menu-banners.index', ['panel.admin.menu-banners.']],
             ['Branding', 'panel.admin.branding.index', ['panel.admin.branding.']],
+            ['Staff log', 'panel.admin.log', ['panel.admin.log']],
             ['Artists', 'panel.admin.artists.index', ['panel.admin.artists.']],
             ['Contests', 'panel.admin.contests.index', ['panel.admin.contests.']],
         ]],
@@ -101,6 +102,11 @@
                 @endif
             @endforeach
         </div>
+        {{-- One box for everything: a player, a beatmap or set, a score (PagesController::search). --}}
+        <form class="tomyum-panel-search" action="{{ route('panel.search') }}" method="GET" role="search">
+            <i class="fas fa-search tomyum-panel-search__icon"></i>
+            <input class="tomyum-panel-search__input" type="search" name="q" placeholder="Player, beatmap or score link…" autocomplete="off" aria-label="Find a player, beatmap or score">
+        </form>
     @endslot
 @endcomponent
 @if (count($deeper) > 0 || $status !== null)
@@ -130,3 +136,72 @@
         @endif
     </div>
 @endif
+
+{{--
+    The panels' own "are you sure?" box, in place of the browser's prompt(): a button with
+    data-panel-ask="Question" (and data-panel-field="note" for a text answer, data-panel-confirm="Remove",
+    data-panel-danger) asks first; confirming fills its form's field and sends the form as that button.
+--}}
+<dialog class="tomyum-panel-dialog js-panel-dialog">
+    <form method="dialog" class="tomyum-panel-dialog__box">
+        <p class="tomyum-panel-dialog__question js-panel-dialog-question"></p>
+        <label class="input-container js-panel-dialog-field-wrap">
+            <span class="input-container__label js-panel-dialog-label">Reason</span>
+            <input class="input-text js-panel-dialog-field" type="text" maxlength="500" autocomplete="off">
+        </label>
+        <div class="tomyum-panel-dialog__buttons">
+            <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--panel-secondary" value="cancel" type="submit">Cancel</button>
+            <button class="btn-osu-big btn-osu-big--rounded-thin js-panel-dialog-confirm" value="confirm" type="submit">OK</button>
+        </div>
+    </form>
+</dialog>
+<script>
+    // On phones a table row is a card (tomyum-panel.less): each cell gets its column's heading as a label.
+    document.querySelectorAll('.tomyum-panel__table').forEach(function (table) {
+        var headings = [];
+        var headRow = table.querySelector('tr');
+        if (headRow === null || headRow.querySelector('th') === null) return;
+        headRow.querySelectorAll('th').forEach(function (th) {
+            for (var i = 0; i < (th.colSpan || 1); i++) headings.push(th.textContent.trim());
+        });
+        table.classList.add('tomyum-panel__table--labelled');
+        table.querySelectorAll('tr').forEach(function (row) {
+            var column = 0;
+            row.querySelectorAll(':scope > td').forEach(function (td) {
+                if (headings[column]) td.dataset.label = headings[column];
+                column += td.colSpan || 1;
+            });
+        });
+    });
+
+    // Registered once per page load (Turbo runs this again on every visit; the listener stays).
+    if (!window.tomyumPanelDialog) {
+        window.tomyumPanelDialog = true;
+        document.addEventListener('click', function (event) {
+            var button = event.target.closest('[data-panel-ask]');
+            if (button === null || button.form === null) return;
+            event.preventDefault();
+
+            var dialog = document.querySelector('.js-panel-dialog');
+            var field = dialog.querySelector('.js-panel-dialog-field');
+            var fieldName = button.dataset.panelField || null;
+            var confirm = dialog.querySelector('.js-panel-dialog-confirm');
+
+            dialog.querySelector('.js-panel-dialog-question').textContent = button.dataset.panelAsk;
+            dialog.querySelector('.js-panel-dialog-field-wrap').hidden = fieldName === null;
+            dialog.querySelector('.js-panel-dialog-label').textContent = button.dataset.panelLabel || 'Reason';
+            field.value = '';
+            field.required = button.dataset.panelRequired !== undefined;
+            confirm.textContent = button.dataset.panelConfirm || 'OK';
+            confirm.classList.toggle('btn-osu-big--danger', button.dataset.panelDanger !== undefined);
+
+            dialog.onclose = function () {
+                if (dialog.returnValue !== 'confirm') return;
+                if (fieldName !== null) button.form.elements[fieldName].value = field.value;
+                button.form.requestSubmit(button);
+            };
+            dialog.showModal();
+            if (fieldName !== null) field.focus();
+        });
+    }
+</script>

@@ -94,7 +94,8 @@
             $aboutPlayer = !Illuminate\Support\Str::startsWith($slug, $notPlayers);
         @endphp
         <tr>
-            <td class="tomyum-panel__nowrap tomyum-panel__muted">{!! timeago(Carbon\Carbon::parse($entry['createdAt'], 'UTC')) !!}</td>
+            {{-- "33 hours ago", with the exact time on hover. --}}
+            <td class="tomyum-panel__nowrap tomyum-panel__muted" title="{{ Carbon\Carbon::parse($entry['createdAt'], 'UTC')->format('j M Y, H:i') }} UTC">{!! timeago(Carbon\Carbon::parse($entry['createdAt'], 'UTC')) !!}</td>
             <td class="tomyum-panel__nowrap">@include('panel._who')</td>
             @isset($targets)
                 <td>

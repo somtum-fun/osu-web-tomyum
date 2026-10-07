@@ -74,6 +74,12 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping(10)
             ->onOneServer();
 
+        // TomYum: players online every 5 minutes, for the admin panel's chart.
+        $schedule->command('tomyum:online-sample')
+            ->everyFiveMinutes()
+            ->withoutOverlapping(5)
+            ->onOneServer();
+
         // TomYum: the sign-up rules' hosting network and Tor lists, and the sign-up log's 90 days.
         $schedule->command('tomyum:registration-lists-update')
             ->cron('40 4 * * *')

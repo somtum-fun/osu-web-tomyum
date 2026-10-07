@@ -210,11 +210,12 @@
                             </td>
                             @if ($canModerate)
                                 <td>
-                                    <form method="POST" action="{{ route('panel.gmt.users.scores.remove', ['user' => $userId, 'score' => $score['id']]) }}"
-                                        onsubmit="var r = prompt('Remove this score? Reason:'); if (r === null) return false; this.reason.value = r; return true;">
+                                    <form method="POST" action="{{ route('panel.gmt.users.scores.remove', ['user' => $userId, 'score' => $score['id']]) }}">
                                         @csrf
                                         <input type="hidden" name="reason">
-                                        <button class="tomyum-panel__icon-button" type="submit" title="Remove this score"><i class="fas fa-trash-alt"></i></button>
+                                        <button class="tomyum-panel__icon-button" type="submit" title="Remove this score"
+                                            data-panel-ask="Remove this score? It's gone for good, with its replay." data-panel-field="reason" data-panel-required data-panel-confirm="Remove" data-panel-danger
+                                        ><i class="fas fa-trash-alt"></i></button>
                                     </form>
                                 </td>
                             @endif
