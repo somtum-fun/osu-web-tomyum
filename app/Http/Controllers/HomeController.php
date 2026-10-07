@@ -207,20 +207,39 @@ class HomeController extends Controller
     public function webmanifest()
     {
         $name = \App\Libraries\TomYumBranding::name();
+        $svg = TomYumBranding::faviconType() === 'image/svg+xml';
         $icon = fn (int $size) => [
-            'src' => \App\Libraries\TomYumBranding::favicon("android-chrome-{$size}x{$size}.png"),
-            'sizes' => "{$size}x{$size}",
-            'type' => 'image/png',
+            'src' => TomYumBranding::favicon("android-chrome-{$size}x{$size}.png"),
+            'sizes' => $svg ? 'any' : "{$size}x{$size}",
+            'type' => TomYumBranding::faviconType(),
         ];
 
         return response()->json([
             'name' => $name,
             'short_name' => $name,
-            'icons' => [$icon(192), $icon(512)],
+            'icons' => $svg ? [$icon(512)] : [$icon(192), $icon(512)],
             'theme_color' => '#ffffff',
             'background_color' => '#ffffff',
             'display' => 'standalone',
         ], 200, ['Content-Type' => 'application/manifest+json', 'Cache-Control' => 'max-age=3600']);
+    }
+
+    /** TomYum: the name drawn as the logo (?white=1 for the menu bar); its address changes with the name. */
+    public function brandLogo()
+    {
+        return response(TomYumBranding::textLogoSvg(Request::boolean('white')), 200, [
+            'Content-Type' => 'image/svg+xml',
+            'Cache-Control' => 'public, max-age=86400',
+        ]);
+    }
+
+    /** TomYum: the name's first letter as the favicon; its address changes with the name. */
+    public function brandFavicon()
+    {
+        return response(TomYumBranding::letterFaviconSvg(), 200, [
+            'Content-Type' => 'image/svg+xml',
+            'Cache-Control' => 'public, max-age=86400',
+        ]);
     }
 
     public function quickSearch()

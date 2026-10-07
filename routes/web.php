@@ -1027,4 +1027,7 @@ Route::group(['prefix' => '_lio', 'middleware' => 'lio', 'as' => 'interop.'], fu
 Route::get('opensearch.xml', 'HomeController@opensearch')->name('opensearch');
 // TomYum: the web app manifest with this server's name and favicons (public/site.webmanifest is production's).
 Route::get('brand.webmanifest', 'HomeController@webmanifest')->name('brand.webmanifest');
+// TomYum: the name drawn as a logo, and its first letter as a favicon (Admin panel > Branding).
+Route::get('brand-logo.svg', 'HomeController@brandLogo')->name('brand.logo');
+Route::get('brand-favicon.svg', 'HomeController@brandFavicon')->name('brand.favicon');
 Route::any('{catchall}', 'FallbackController@index')->where('catchall', '.*')->fallback();

@@ -27,20 +27,28 @@ class TomYumBranding
             'ratio' => 480 / 180,
         ],
         'osu' => [
-            'label' => 'osu!\'s logo',
+            'label' => 'osu!\'s logo (ppy\'s trademark)',
             'image' => '/images/layout/osu-logo.png',
             'image_2x' => '/images/layout/osu-logo@2x.png',
             'nav' => '/images/layout/osu-logo-white.svg',
             'nav_bg' => '/images/layout/osu-logo-triangles.svg',
             'ratio' => 1,
         ],
+        // The name itself, drawn as an image (HomeController::brandLogo): no logo file needed.
+        'text' => [
+            'label' => 'The name as text',
+        ],
     ];
 
-    /** Built-in favicon sets (folders under public/images). */
+    /** Built-in favicon sets (folders under public/images; letter: the name's first letter, drawn). */
     public const FAVICONS = [
         'prod' => ['label' => 'production\'s', 'folder' => '/images/favicon', 'ico' => '/favicon.ico'],
-        'osu' => ['label' => 'osu!\'s', 'folder' => '/images/favicon-osu', 'ico' => '/images/favicon-osu/favicon.ico'],
+        'osu' => ['label' => 'osu!\'s (ppy\'s trademark)', 'folder' => '/images/favicon-osu', 'ico' => '/images/favicon-osu/favicon.ico'],
+        'letter' => ['label' => 'The name\'s first letter', 'folder' => null, 'ico' => null],
     ];
+
+    /** The text logo's and letter favicon's colour (osu-web's pink, the site's own accent). */
+    public const TEXT_COLOUR = '#ff66ab';
 
     /** The texts' defaults: production's (":brand" is the name; :vote_url the vote page). */
     public const DEFAULTS = [
@@ -112,6 +120,19 @@ class TomYumBranding
     public static function logo(): array
     {
         $choice = static::logoChoice();
+        if ($choice === 'text') {
+            // ?v= is the name: a renamed server's logo isn't the cached one.
+            $version = substr(md5(static::name()), 0, 8);
+
+            return [
+                'label' => static::LOGOS['text']['label'],
+                'image' => route('brand.logo', ['v' => $version]),
+                'image_2x' => route('brand.logo', ['v' => $version]),
+                'nav' => route('brand.logo', ['v' => $version, 'white' => 1]),
+                'nav_bg' => null,
+                'ratio' => static::textLogoWidth() / 100,
+            ];
+        }
         if (isset(static::LOGOS[$choice])) {
             return static::LOGOS[$choice];
         }
@@ -153,9 +174,56 @@ class TomYumBranding
     /** A favicon file's address: favicon('favicon-32x32.png'), or favicon() for the .ico. */
     public static function favicon(?string $file = null): string
     {
-        $set = static::FAVICONS[static::faviconChoice()];
+        $choice = static::faviconChoice();
+        if ($choice === 'letter') {
+            // One drawn image (an SVG scales to every size); ?v= is the name, as for the text logo.
+            return route('brand.favicon', ['v' => substr(md5(static::name()), 0, 8)], false);
+        }
+        $set = static::FAVICONS[$choice];
 
         return $file === null ? $set['ico'] : "{$set['folder']}/{$file}";
+    }
+
+    /** The favicons' media type (the letter one is an SVG). */
+    public static function faviconType(): string
+    {
+        return static::faviconChoice() === 'letter' ? 'image/svg+xml' : 'image/png';
+    }
+
+    /** The text logo's width in its SVG, its height being 100 (about 46 a character, like a bold sans). */
+    public static function textLogoWidth(): int
+    {
+        return max(100, (int) round(mb_strlen(static::name()) * 46));
+    }
+
+    /** The name drawn as an SVG logo: the site's pink, or white for the dark menu bar. */
+    public static function textLogoSvg(bool $white): string
+    {
+        $width = static::textLogoWidth();
+        $name = htmlspecialchars(static::name(), ENT_XML1 | ENT_QUOTES);
+        $colour = $white ? '#ffffff' : static::TEXT_COLOUR;
+
+        return <<<SVG
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {$width} 100" width="{$width}" height="100">
+              <text x="0" y="74" textLength="{$width}" lengthAdjust="spacingAndGlyphs" fill="{$colour}"
+                font-family="Torus, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="80" font-weight="700">{$name}</text>
+            </svg>
+            SVG;
+    }
+
+    /** The name's first letter on the site's pink, as an SVG favicon. */
+    public static function letterFaviconSvg(): string
+    {
+        $letter = htmlspecialchars(mb_strtoupper(mb_substr(static::name(), 0, 1)), ENT_XML1 | ENT_QUOTES);
+        $colour = static::TEXT_COLOUR;
+
+        return <<<SVG
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+              <rect width="64" height="64" rx="14" fill="{$colour}"/>
+              <text x="32" y="46" text-anchor="middle" fill="#ffffff"
+                font-family="Torus, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="42" font-weight="700">{$letter}</text>
+            </svg>
+            SVG;
     }
 
     public static function landingVideoUrl(): ?string

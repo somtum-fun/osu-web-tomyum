@@ -6,96 +6,55 @@
 
 @section('content')
     @include('panel._header')
+    @php
+        // The cards, by section: [shown, route, icon, kicker, title, hint, badge]. Big cards are the
+        // panels people work in; the tools below are rows.
+        $sections = [
+            'Panels' => [
+                [$panels['bn'], 'panel.bn.index', 'fa-music', 'Beatmap nominators', 'BN panel', 'Import sets from bancho, upload custom sets and manage their ranked status.', null],
+                [$panels['gmt'], 'panel.gmt.index', 'fa-gavel', 'Moderation', 'GMT panel', 'Restrictions, silences, reports, chat logs and score removal.', null],
+                [$panels['tc'], 'panel.tc.index', 'fa-trophy', 'Tournament Committee', 'TC panel', 'Tournaments, registrations and live matches, banners and badges.', null],
+                [$panels['admin'], 'panel.admin.index', 'fa-cog', 'Administration', 'Admin panel', 'The server at a glance, accounts, groups, branding and the site\'s content.', null],
+            ],
+            'Community' => [
+                [$panels['tickets'], 'panel.tickets.index', 'fa-inbox', 'Support', 'Tickets', 'Mail to support@, accounts@, appeals, abuse@, privacy@, dmca@ and tournaments@.', $openTickets > 0 ? "{$openTickets} open" : null],
+                [$panels['loved'], 'loved.index', 'fa-heart', 'Project Loved', 'Loved requests', 'Players\' requests, most supported first: love, reject or blacklist.', null],
+                [$panels['packs'] ?? false, 'panel.packs.index', 'fa-box-open', 'Admins and the NAT', 'Beatmap packs', 'The packs: their sets, mode and download.', null],
+                [$panels['dan'] ?? false, 'panel.dan.index', 'fa-graduation-cap', 'Admins and the NAT', 'osu!dan', 'The courses: maps, accuracy, mods and order, and the latest attempts.', null],
+            ],
+            'Tools' => [
+                [$panels['bots'], 'panel.bots.index', 'fa-robot', 'Admins and developers', 'Bots', 'IRC bot accounts: owners, names, avatars and passwords.', null],
+                [$panels['kudosu'], 'panel.kudosu.index', 'fa-medal', 'Admins and developers', 'Kudosu', 'Give or take kudosu, with a reason on the profile.', null],
+                [$panels['changelog'] ?? false, 'panel.changelog.index', 'fa-code-branch', 'Admins and developers', 'Changelog', 'Versions of the clients, the server and the website, and what changed.', null],
+            ],
+        ];
+        $sections = array_filter(array_map(fn ($cards) => array_values(array_filter($cards, fn ($card) => $card[0])), $sections));
+    @endphp
     <div class="osu-page osu-page--admin tomyum-panel">
-        <div class="tomyum-panel__links">
-            @if ($panels['bn'])
-                <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('panel.bn.index') }}">
-                    <span class="tomyum-panel__link-icon"><i class="fas fa-music"></i></span>
-                    <span class="tomyum-panel__kicker">Beatmap nominators</span>
-                    <h2>BN panel</h2>
-                    <p class="tomyum-panel__hint">Import beatmap sets from bancho, upload custom sets and manage their ranked status.</p>
-                </a>
-            @endif
-            @if ($panels['gmt'])
-                <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('panel.gmt.index') }}">
-                    <span class="tomyum-panel__link-icon"><i class="fas fa-gavel"></i></span>
-                    <span class="tomyum-panel__kicker">Moderation</span>
-                    <h2>GMT panel</h2>
-                    <p class="tomyum-panel__hint">Restrictions, silences, reports, chat logs and score removal.</p>
-                </a>
-            @endif
-            @if ($panels['loved'])
-                <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('loved.index') }}">
-                    <span class="tomyum-panel__link-icon"><i class="fas fa-heart"></i></span>
-                    <span class="tomyum-panel__kicker">Project Loved</span>
-                    <h2>Loved requests</h2>
-                    <p class="tomyum-panel__hint">Players' requests, the most supported first: love, reject or remove them, or blacklist a map. On the Project Loved page.</p>
-                </a>
-            @endif
-            @if ($panels['tc'])
-                <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('panel.tc.index') }}">
-                    <span class="tomyum-panel__link-icon"><i class="fas fa-trophy"></i></span>
-                    <span class="tomyum-panel__kicker">Tournament Committee</span>
-                    <h2>TC panel</h2>
-                    <p class="tomyum-panel__hint">Tournaments and their registrations, live multiplayer matches (abort, close, talk to the room), tournament banners and badges.</p>
-                </a>
-            @endif
-            @if ($panels['tickets'])
-                <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('panel.tickets.index') }}">
-                    <span class="tomyum-panel__link-icon"><i class="fas fa-inbox"></i></span>
-                    <span class="tomyum-panel__kicker">Support</span>
-                    <h2>Tickets @if ($openTickets > 0)<span class="tomyum-panel__badge tomyum-panel__badge--success">{{ $openTickets }} open</span>@endif</h2>
-                    <p class="tomyum-panel__hint">Emails to support@, accounts@, appeal-review@, abuse@, privacy@, dmca@ and tournaments@: reply, take them on and close them.</p>
-                </a>
-            @endif
-            @if ($panels['bots'])
-                <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('panel.bots.index') }}">
-                    <span class="tomyum-panel__link-icon"><i class="fas fa-robot"></i></span>
-                    <span class="tomyum-panel__kicker">Admins and developers</span>
-                    <h2>Bots</h2>
-                    <p class="tomyum-panel__hint">Make bot accounts for IRC, pick their owners, and change their name, avatar, banner, me! page and passwords.</p>
-                </a>
-            @endif
-            @if ($panels['kudosu'])
-                <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('panel.kudosu.index') }}">
-                    <span class="tomyum-panel__link-icon"><i class="fas fa-medal"></i></span>
-                    <span class="tomyum-panel__kicker">Admins and developers</span>
-                    <h2>Kudosu</h2>
-                    <p class="tomyum-panel__hint">Give or take a player's kudosu, with a reason that shows on their profile.</p>
-                </a>
-            @endif
-            @if ($panels['packs'] ?? false)
-                <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('panel.packs.index') }}">
-                    <span class="tomyum-panel__link-icon"><i class="fas fa-box-open"></i></span>
-                    <span class="tomyum-panel__kicker">Admins and the NAT</span>
-                    <h2>Beatmap packs</h2>
-                    <p class="tomyum-panel__hint">Make the beatmap packs: their sets, mode and download.</p>
-                </a>
-            @endif
-            @if ($panels['changelog'] ?? false)
-                <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('panel.changelog.index') }}">
-                    <span class="tomyum-panel__link-icon"><i class="fas fa-code-branch"></i></span>
-                    <span class="tomyum-panel__kicker">Admins and developers</span>
-                    <h2>Changelog</h2>
-                    <p class="tomyum-panel__hint">Write versions of lazer-fork, the stable hook, the legacy clients, the server and the website, and what changed in each.</p>
-                </a>
-            @endif
-            @if ($panels['dan'] ?? false)
-                <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('panel.dan.index') }}">
-                    <span class="tomyum-panel__link-icon"><i class="fas fa-graduation-cap"></i></span>
-                    <span class="tomyum-panel__kicker">Admins and the NAT</span>
-                    <h2>osu!dan</h2>
-                    <p class="tomyum-panel__hint">The osu!dan courses: their maps, accuracy, mods and order, and the latest attempts.</p>
-                </a>
-            @endif
-            @if ($panels['admin'])
-                <a class="tomyum-panel__link tomyum-panel__link--big" href="{{ route('panel.admin.index') }}">
-                    <span class="tomyum-panel__link-icon"><i class="fas fa-cog"></i></span>
-                    <span class="tomyum-panel__kicker">Administration</span>
-                    <h2>Admin panel</h2>
-                    <p class="tomyum-panel__hint">The server at a glance, accounts, groups and supporter, and the site's content: news, badges, titles, backgrounds, pools.</p>
-                </a>
-            @endif
+        <div class="tomyum-panel__welcome">
+            <h1>Hi, {{ Auth::user()->username }}</h1>
+            <p class="tomyum-panel__hint">What would you like to work on?</p>
         </div>
+
+        @foreach ($sections as $section => $cards)
+            <p class="tomyum-panel__section-title">{{ $section }}</p>
+            <div class="tomyum-panel__links {{ $loop->first ? 'tomyum-panel__links--panels' : 'tomyum-panel__links--rows' }}">
+                @foreach ($cards as [, $route, $icon, $kicker, $title, $hint, $badge])
+                    <a class="tomyum-panel__link {{ $loop->parent->first ? 'tomyum-panel__link--big' : 'tomyum-panel__link--row' }}" href="{{ route($route) }}">
+                        <span class="tomyum-panel__link-icon"><i class="fas {{ $icon }}"></i></span>
+                        <span class="tomyum-panel__link-text">
+                            <span class="tomyum-panel__kicker">{{ $kicker }}</span>
+                            <h2>
+                                {{ $title }}
+                                @if ($badge !== null)
+                                    <span class="tomyum-panel__badge tomyum-panel__badge--success">{{ $badge }}</span>
+                                @endif
+                            </h2>
+                            <span class="tomyum-panel__hint">{{ $hint }}</span>
+                        </span>
+                    </a>
+                @endforeach
+            </div>
+        @endforeach
     </div>
 @endsection

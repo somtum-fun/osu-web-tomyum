@@ -10,8 +10,8 @@
     <ShortName>{{ App\Libraries\TomYumBranding::name() }}</ShortName>
     <Description>{{ App\Libraries\TomYumBranding::name() }} search</Description>
     <Url method="get" template="{{ $searchUrl }}?query={searchTerms}" type="text/html"/>
-    <Image height="16" width="16" type="image/png">{{ $appUrl }}{{ App\Libraries\TomYumBranding::favicon('favicon-16x16.png') }}</Image>
-    <Image height="32" width="32" type="image/png">{{ $appUrl }}{{ App\Libraries\TomYumBranding::favicon('favicon-32x32.png') }}</Image>
+    <Image height="16" width="16" type="{{ App\Libraries\TomYumBranding::faviconType() }}">{{ $appUrl }}{{ App\Libraries\TomYumBranding::favicon('favicon-16x16.png') }}</Image>
+    <Image height="32" width="32" type="{{ App\Libraries\TomYumBranding::faviconType() }}">{{ $appUrl }}{{ App\Libraries\TomYumBranding::favicon('favicon-32x32.png') }}</Image>
     <moz:SearchForm>{{ $searchUrl }}</moz:SearchForm>
     <Url type="application/opensearchdescription+xml" rel="self" template="{{ $appUrl }}/opensearch.xml" />
 </OpenSearchDescription>
