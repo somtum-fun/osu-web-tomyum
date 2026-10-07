@@ -67,6 +67,12 @@
     @media @mobile {
       grid-template-columns: 1fr;
     }
+    &--wide-first {
+      @media @desktop {
+        align-items: start;
+        grid-template-columns: 2fr 1fr;
+      }
+    }
   }
 
   &__hint {
@@ -74,6 +80,23 @@
     font-size: @font-size--normal;
     line-height: 1.5;
     margin: 4px 0 12px;
+    // notes beside the controls, not paragraphs to read first: quieter, and lines a readable length
+    max-width: 90ch;
+    opacity: 0.8;
+  }
+
+  // A destructive action that isn't the card's main one: red text on the quiet button.
+  &__danger-text {
+    color: hsl(var(--hsl-red-1));
+  }
+
+  // A card's last, rarely used action (removing the whole thing), apart from its form.
+  &__card-foot {
+    border-top: 1px solid hsla(var(--hsl-c2), 0.12);
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+    padding-top: 12px;
   }
 
   &__empty {
@@ -744,20 +767,14 @@
   }
 }
 
-// The panels' tabs (osu-web's page header, panel theme): one row that scrolls sideways when there
-// are more than fit (the admin panel has 17), instead of a second row under the first's underline.
+// The panels' tabs (osu-web's page header, panel theme): all of them, wrapping onto a second row
+// when there are more than fit (the admin panel has 17), tighter than the site's own tabs.
 .header-v4--panel .header-nav-v4--list {
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  scrollbar-width: none;
-  mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent);
+  column-gap: 18px;
+  row-gap: 0;
 
-  &::-webkit-scrollbar {
-    display: none;
-  }
-
-  .header-nav-v4__item {
-    flex: none;
+  .header-nav-v4__link {
+    --header-nav-item-padding-y: 11px;
   }
 }
 

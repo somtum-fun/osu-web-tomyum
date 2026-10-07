@@ -142,7 +142,8 @@
             </form>
         </div>
 
-        <div class="tomyum-panel__columns">
+        {{-- Groups get most of the row: their names and modes on one line each. --}}
+        <div class="tomyum-panel__columns tomyum-panel__columns--wide-first">
             <div class="tomyum-panel__card" id="groups">
                 <h2><i class="fas fa-users"></i>Groups</h2>
                 <p class="tomyum-panel__hint">

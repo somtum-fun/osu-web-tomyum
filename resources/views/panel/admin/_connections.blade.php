@@ -10,14 +10,17 @@
     @else
         <table class="tomyum-panel__table">
             <tr>
-                <td style="width: 120px"><i class="fab fa-discord"></i> Discord</td>
+                <td class="tomyum-panel__nowrap" style="width: 110px"><i class="fab fa-discord"></i> Discord</td>
                 @if ($links['discord'] !== null)
-                    <td>ID <code>{{ $links['discord']['discordId'] }}</code>, linked {!! timeago(Carbon\Carbon::parse($links['discord']['linkedAt'])) !!}</td>
+                    <td>
+                        <code>{{ $links['discord']['discordId'] }}</code>
+                        <div class="tomyum-panel__hint">linked {!! timeago(Carbon\Carbon::parse($links['discord']['linkedAt'])) !!}</div>
+                    </td>
                     <td style="width: 1%">
                         <form method="POST" action="{{ route('panel.admin.users.unlink', ['user' => $userId]) }}" onsubmit="return confirm('Unlink their Discord?')">
                             @csrf
                             <input type="hidden" name="service" value="discord">
-                            <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit"><i class="fas fa-eraser"></i>Reset</button>
+                            <button class="btn-osu-big btn-osu-big--rounded-small btn-osu-big--panel-secondary tomyum-panel__danger-text" type="submit"><i class="fas fa-unlink"></i>Unlink</button>
                         </form>
                     </td>
                 @else
@@ -46,7 +49,7 @@
                         <form method="POST" action="{{ route('panel.admin.users.unlink', ['user' => $userId]) }}" onsubmit="return confirm('Unlink their osu! account?')">
                             @csrf
                             <input type="hidden" name="service" value="osu">
-                            <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit"><i class="fas fa-eraser"></i>Reset</button>
+                            <button class="btn-osu-big btn-osu-big--rounded-small btn-osu-big--panel-secondary tomyum-panel__danger-text" type="submit"><i class="fas fa-unlink"></i>Unlink</button>
                         </form>
                     </td>
                 @else
@@ -56,12 +59,15 @@
             <tr>
                 <td><i class="fab fa-lastfm"></i> Last.fm</td>
                 @if ($links['lastFm'] !== null)
-                    <td><a href="https://www.last.fm/user/{{ rawurlencode($links['lastFm']['username']) }}" rel="nofollow noreferrer" target="_blank">{{ $links['lastFm']['username'] }}</a>, linked {!! timeago(Carbon\Carbon::parse($links['lastFm']['linkedAt'])) !!}</td>
+                    <td>
+                        <a href="https://www.last.fm/user/{{ rawurlencode($links['lastFm']['username']) }}" rel="nofollow noreferrer" target="_blank">{{ $links['lastFm']['username'] }}</a>
+                        <div class="tomyum-panel__hint">linked {!! timeago(Carbon\Carbon::parse($links['lastFm']['linkedAt'])) !!}</div>
+                    </td>
                     <td>
                         <form method="POST" action="{{ route('panel.admin.users.unlink', ['user' => $userId]) }}" onsubmit="return confirm('Unlink their Last.fm?')">
                             @csrf
                             <input type="hidden" name="service" value="lastfm">
-                            <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit"><i class="fas fa-eraser"></i>Reset</button>
+                            <button class="btn-osu-big btn-osu-big--rounded-small btn-osu-big--panel-secondary tomyum-panel__danger-text" type="submit"><i class="fas fa-unlink"></i>Unlink</button>
                         </form>
                     </td>
                 @else

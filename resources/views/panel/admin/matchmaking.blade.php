@@ -83,13 +83,13 @@
                                     <a href="{{ route('beatmaps.show', ['beatmap' => $map->beatmap_id]) }}">{{ $map->artist }} - {{ $map->title }} [{{ $map->version }}]</a>
                                     <span class="tomyum-panel__hint">★{{ number_format($map->difficultyrating, 2) }}</span>
                                 </td>
-                                <td>@include('panel._mods', ['mods' => $map->mods, 'ruleset' => (int) $pool->ruleset_id])</td>
+                                <td class="tomyum-panel__nowrap">@include('panel._mods', ['mods' => $map->mods, 'ruleset' => (int) $pool->ruleset_id])</td>
                                 <td>{{ (int) $map->rating }}</td>
                                 <td>{{ $map->selection_count }}×</td>
-                                <td>
+                                <td style="width: 1%">
                                     <form method="POST" action="{{ route('panel.admin.matchmaking.remove-beatmap', ['pool' => $pool->id, 'entry' => $map->id]) }}">
                                         @csrf
-                                        <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit">Remove</button>
+                                        <button class="tomyum-panel__icon-button" type="submit" title="Remove this map from the pool"><i class="fas fa-trash-alt"></i></button>
                                     </form>
                                 </td>
                             </tr>
@@ -129,10 +129,10 @@
                     <div style="align-self: flex-end"><button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Add</button></div>
                 </form>
 
-                <form method="POST" action="{{ route('panel.admin.matchmaking.destroy', ['pool' => $pool->id]) }}"
+                <form method="POST" action="{{ route('panel.admin.matchmaking.destroy', ['pool' => $pool->id]) }}" class="tomyum-panel__card-foot"
                     onsubmit="return confirm('Remove this pool? (Only possible before anyone played in it.)')">
                     @csrf
-                    <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit">Remove pool</button>
+                    <button class="btn-osu-big btn-osu-big--rounded-small btn-osu-big--panel-secondary tomyum-panel__danger-text" type="submit"><i class="fas fa-trash-alt"></i>Remove pool</button>
                 </form>
             </div>
         @empty
