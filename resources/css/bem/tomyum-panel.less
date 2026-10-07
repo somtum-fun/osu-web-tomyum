@@ -279,12 +279,13 @@
     resize: vertical;
   }
 
-  // osu-web's big buttons, with room for an icon.
+  // osu-web's big buttons, with room for an icon: a gap between the icon and the text, so a
+  // button with only an icon (the daily challenge's arrows) has it in the middle, not 6px left of it.
   .btn-osu-big {
-    .fas,
-    .fab {
-      margin-right: 6px;
-    }
+    align-items: center;
+    display: inline-flex;
+    gap: 6px;
+    justify-content: center;
   }
 
   // Messages
