@@ -12,7 +12,10 @@
     <div class="osu-page osu-page--admin tomyum-panel">
         <div class="tomyum-panel__card">
             <h2><i class="fas fa-user-tag"></i>Give a title</h2>
-            <p class="tomyum-panel__hint">A title shows under the player's name on their profile (like osu!'s "Community Contributor").</p>
+            <p class="tomyum-panel__hint">
+                A title shows under the player's name on their profile (like osu!'s "Community Contributor"). A player can have two:
+                the second shows after the first, "First / Second". Pick "(no title)" to take one away.
+            </p>
             @if (count($titles) === 0)
                 <p class="tomyum-panel__hint">Make a title below first.</p>
             @else
@@ -29,6 +32,14 @@
                                 <option value="{{ $title->getKey() }}">{{ $title->rank_title }}</option>
                             @endforeach
                             <option value="0">(no title)</option>
+                        </select>
+                    </label>
+                    {{-- Two titles show as osu!'s do: "Former osu! Champion: 2023 / Mapping Architect". --}}
+                    <label class="input-container input-container--select tomyum-panel__field" style="flex: 0 1 170px">
+                        <span class="input-container__label">As their</span>
+                        <select class="input-text" name="slot">
+                            <option value="1">first title</option>
+                            <option value="2">second title</option>
                         </select>
                     </label>
                     <div><button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Save</button></div>

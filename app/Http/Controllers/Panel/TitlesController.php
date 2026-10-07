@@ -32,7 +32,16 @@ class TitlesController extends Controller
     public function index()
     {
         $titles = Rank::where('rank_special', 1)->orderBy('rank_title')->get();
-        $holders = User::whereIn('user_rank', $titles->pluck('rank_id'))->orderBy('username')->get(['user_id', 'username', 'user_rank'])->groupBy('user_rank');
+        // A player holds a title in either slot (a second title shows after the first).
+        $ids = $titles->pluck('rank_id');
+        $players = User::whereIn('user_rank', $ids)->orWhereIn('tomyum_user_rank_2', $ids)
+            ->orderBy('username')->get(['user_id', 'username', 'user_rank', 'tomyum_user_rank_2']);
+        $holders = [];
+        foreach ($players as $player) {
+            foreach (array_unique(array_filter([$player->user_rank, $player->tomyum_user_rank_2])) as $rankId) {
+                $holders[$rankId][] = $player;
+            }
+        }
 
         return ext_view('panel.admin.titles', ['titles' => $titles, 'holders' => $holders]);
     }
@@ -58,6 +67,7 @@ class TitlesController extends Controller
         $rank = Rank::where('rank_special', 1)->findOrFail((int) $title);
         DB::transaction(function () use ($rank) {
             User::where('user_rank', $rank->getKey())->update(['user_rank' => 0]);
+            User::where('tomyum_user_rank_2', $rank->getKey())->update(['tomyum_user_rank_2' => 0]);
             $rank->delete();
         });
         $this->staffLog('title.remove', $rank->getKey(), "Removed the title \"{$rank->rank_title}\"");
@@ -73,19 +83,24 @@ class TitlesController extends Controller
             return $this->back('error', "There's no player called \"{$name}\".");
         }
 
+        // Which of the two titles: the first (user_rank) or the second, shown after it.
+        $second = Request::input('slot') === '2';
+        $column = $second ? 'tomyum_user_rank_2' : 'user_rank';
+        $which = $second ? 'second title' : 'title';
+
         $titleId = (int) Request::input('title');
         if ($titleId === 0) {
-            User::whereKey($user->getKey())->update(['user_rank' => 0]);
-            $this->staffLog('user.title', $user->getKey(), "Took {$user->username}'s title away");
+            User::whereKey($user->getKey())->update([$column => 0]);
+            $this->staffLog('user.title', $user->getKey(), "Took {$user->username}'s {$which} away");
 
-            return $this->back('success', "{$user->username} has no title now.");
+            return $this->back('success', "{$user->username} has no {$which} now.");
         }
 
         $rank = Rank::where('rank_special', 1)->findOrFail($titleId);
-        User::whereKey($user->getKey())->update(['user_rank' => $rank->getKey()]);
-        $this->staffLog('user.title', $user->getKey(), "Gave {$user->username} the title \"{$rank->rank_title}\"");
+        User::whereKey($user->getKey())->update([$column => $rank->getKey()]);
+        $this->staffLog('user.title', $user->getKey(), "Gave {$user->username} the {$which} \"{$rank->rank_title}\"");
 
-        return $this->back('success', "{$user->username} is \"{$rank->rank_title}\" now.");
+        return $this->back('success', "{$user->username}'s {$which} is \"{$rank->rank_title}\" now.");
     }
 
     private function back(string $type, string $message)

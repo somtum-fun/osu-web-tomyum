@@ -887,6 +887,8 @@ class User extends Model implements AfterCommit, AuthenticatableContract, HasLoc
             'user_avatar' => AvatarHelper::url($this),
             'user_colour' => $this->getUserColour(),
             'user_rank' => $this->getUserRank(),
+            // TomYum: the second title (0 is none).
+            'tomyum_user_rank_2' => presence($this->getRawAttribute($key)) === null || (int) $this->getRawAttribute($key) === 0 ? null : (int) $this->getRawAttribute($key),
             'user_style' => $this->getUserStyle(),
             'user_website' => $this->getUserWebsite(),
 
@@ -944,6 +946,7 @@ class User extends Model implements AfterCommit, AuthenticatableContract, HasLoc
             'profileBeatmapsetsPending',
             'profileBeatmapsetsRanked',
             'rank',
+            'rank2',
             'rankHighests',
             'rankHistories',
             'receivedKudosu',
@@ -1360,6 +1363,12 @@ class User extends Model implements AfterCommit, AuthenticatableContract, HasLoc
     public function rank()
     {
         return $this->belongsTo(Rank::class, 'user_rank');
+    }
+
+    /** TomYum: the second title (tomyum_user_rank_2). */
+    public function rank2()
+    {
+        return $this->belongsTo(Rank::class, 'tomyum_user_rank_2');
     }
 
     public function rankHighests(): HasMany
@@ -1848,12 +1857,22 @@ class User extends Model implements AfterCommit, AuthenticatableContract, HasLoc
 
     public function title(): ?string
     {
-        return $this->rank?->rank_title;
+        // TomYum: two titles read as osu!'s do, "Former osu! Champion: 2023 / Mapping Architect".
+        $titles = array_values(array_filter([$this->rank?->rank_title, $this->secondRank()?->rank_title], 'present'));
+
+        return count($titles) === 0 ? null : implode(' / ', $titles);
     }
 
     public function titleUrl(): ?string
     {
-        return $this->rank?->url;
+        // TomYum: the first title's link, else the second's.
+        return presence($this->rank?->url) ?? presence($this->secondRank()?->url);
+    }
+
+    /** TomYum: the second title, when the column is there (before its migration it isn't). */
+    private function secondRank(): ?Rank
+    {
+        return array_key_exists('tomyum_user_rank_2', $this->getAttributes()) ? $this->rank2 : null;
     }
 
     public function hasProfile()
