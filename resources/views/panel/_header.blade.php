@@ -82,9 +82,6 @@
 ]])
     {{-- A page about one game mode (ranked mods) picks it like the rankings: osu-web's mode icons. --}}
     @isset($panelRuleset)
-        @slot('contentAppend')
-            @include('objects._ruleset_selector', ['currentRuleset' => $panelRuleset['current'], 'urlFn' => $panelRuleset['urlFn']])
-        @endslot
         @slot('linksAppend')
             <div class="visible-xs">
                 @include('objects._ruleset_selector', ['currentRuleset' => $panelRuleset['current'], 'urlFn' => $panelRuleset['urlFn']])
@@ -107,6 +104,12 @@
             <i class="fas fa-search tomyum-panel-search__icon"></i>
             <input class="tomyum-panel-search__input" type="search" name="q" placeholder="Player, beatmap or score link…" autocomplete="off" aria-label="Find a player, beatmap or score">
         </form>
+        {{-- A page about one game mode (ranked mods): its mode icons after the search, not on top of it. --}}
+        @isset($panelRuleset)
+            <div class="tomyum-panel-ruleset hidden-xs">
+                @include('objects._ruleset_selector', ['currentRuleset' => $panelRuleset['current'], 'urlFn' => $panelRuleset['urlFn']])
+            </div>
+        @endisset
     @endslot
 @endcomponent
 @if (count($deeper) > 0 || $status !== null)

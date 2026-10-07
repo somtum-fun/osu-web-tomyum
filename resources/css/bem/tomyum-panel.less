@@ -867,6 +867,7 @@
   }
 
   // "How it works": one line until it's opened.
+  // "How it works" and the rarely used sections: one line until opened, sliding open and closed.
   &__explainer {
     > summary {
       .tomyum-panel-card-title();
@@ -878,22 +879,31 @@
         display: none;
       }
 
+      // a chevron drawn with two borders (no icon font: it showed as a stray tile)
       &::after {
-        .fas();
-        color: hsl(var(--hsl-c2));
-        content: @fa-var-chevron-down;
-        font-size: 11px;
-        margin-left: auto;
-        transition: transform 150ms;
+        border-bottom: 2px solid hsl(var(--hsl-c2));
+        border-right: 2px solid hsl(var(--hsl-c2));
+        content: "";
+        height: 7px;
+        margin: -4px 4px 0 auto;
+        transform: rotate(45deg);
+        transition: transform 250ms ease;
+        width: 7px;
+      }
+
+      &:hover::after {
+        border-color: hsl(var(--hsl-c1));
       }
     }
 
-    &[open] > summary {
-      margin-bottom: 10px;
+    &[open] > summary::after {
+      margin-top: 3px;
+      transform: rotate(-135deg);
+    }
 
-      &::after {
-        transform: rotate(180deg);
-      }
+    // the content's room for the summary, inside what slides (so nothing jumps after it)
+    > summary + * {
+      margin-top: 12px;
     }
   }
 
@@ -1311,5 +1321,39 @@
     font-size: @font-size--normal;
     gap: 2px;
     padding-left: 10px;
+  }
+}
+
+// Folded parts slide open and closed (browsers that can animate to "auto" height; others just open).
+:root {
+  interpolate-size: allow-keywords;
+}
+
+.tomyum-panel__explainer,
+.tomyum-panel__more {
+  &::details-content {
+    block-size: 0;
+    overflow: clip;
+    transition:
+      block-size 280ms ease,
+      content-visibility 280ms allow-discrete;
+  }
+
+  &[open]::details-content {
+    block-size: auto;
+  }
+}
+
+// The game mode picker after the search box in the header (ranked mods).
+.tomyum-panel-ruleset {
+  display: flex;
+  flex: none;
+  margin-left: 16px;
+
+  // osu-web places it absolutely at the header's right edge; here it's in the row
+  .game-mode {
+    gap: 10px 14px;
+    height: auto;
+    position: static;
   }
 }
