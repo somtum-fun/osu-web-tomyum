@@ -14,7 +14,10 @@
 
 <h2>Who we are</h2>
 <p>
-    {{ App\Libraries\TomYumBranding::name() }} is a community osu! private server run by Server Operator in Thailand, with the help of our
+    {{-- TomYum: who runs it and where (Admin panel > Branding; either may be left out). --}}
+    @php($operator = App\Libraries\TomYumBranding::operator())
+    @php($country = App\Libraries\TomYumBranding::country())
+    {{ App\Libraries\TomYumBranding::name() }} is a community osu! private server run by {{ present($operator) ? $operator : 'its team' }}{{ present($country) ? " in {$country}" : '' }}, with the help of our
     staff. When these terms say "we" or "us", they mean the people who run {{ App\Libraries\TomYumBranding::name() }}. You can reach us at
     <a href="mailto:{{ App\Libraries\TomYumTickets::address('support') }}">{{ App\Libraries\TomYumTickets::address('support') }}</a>.
 </p>
@@ -90,8 +93,10 @@
     after a change means you accept the new terms.
 </p>
 
+@if (present(App\Libraries\TomYumBranding::country()))
 <h2>Law</h2>
 <p>
-    These terms are governed by the laws of Thailand.
+    These terms are governed by the laws of {{ App\Libraries\TomYumBranding::country() }}.
 </p>
+@endif
 @endsection

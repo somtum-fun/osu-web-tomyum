@@ -18,7 +18,10 @@ use Request;
 class BrandingController extends Controller
 {
     /** Texts where blank means "show nothing" rather than "use the default". */
-    private const HIDEABLE = ['support_note', 'support_signature', 'invoice_seller', 'invoice_contact', 'footer', 'keywords', 'support_team'];
+    private const HIDEABLE = [
+        'support_note', 'support_signature', 'invoice_seller', 'invoice_contact', 'footer', 'keywords', 'support_team',
+        'operator', 'country', 'description', 'privacy_payments', 'privacy_hosting', 'privacy_laws',
+    ];
 
     /** Texts where blank means the default (a button needs a name). */
     private const NAMED = ['downloads_client_name', 'downloads_patcher_name'];

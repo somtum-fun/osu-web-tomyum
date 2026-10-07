@@ -21,7 +21,7 @@
 <meta name="theme-color" content="{{ hsl_to_hex($currentHue, 0.1, 0.4) }}"> {{-- @osu-colour-b1 --}}
 
 <meta charset="utf-8">
-<meta name="description" content="{{ $opengraph['description'] ?? osu_trans('layout.defaults.page_description') }}">
+<meta name="description" content="{{ $opengraph['description'] ?? App\Libraries\TomYumBranding::text('description') }}">
 {{-- TomYum: this server's keywords and name. --}}
 <meta name="keywords" content="{{ App\Libraries\TomYumBranding::text('keywords') }}">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">

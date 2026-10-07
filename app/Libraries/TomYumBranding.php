@@ -62,10 +62,22 @@ class TomYumBranding
         'support_signature' => 'Server Operator, :brand',
         'invoice_seller' => 'Server Operator',
         'invoice_contact' => 'mind@example.com / +00 000 000 000',
-        'keywords' => ':brand, prod, osu! private server, osu private server, thailand, rhythm game, relax, autopilot',
+        'keywords' => ':brand, prod, osu! private server, osu private server, :country, rhythm game, relax, autopilot',
+        // Who runs the server and where (:operator and :country in the texts and the legal pages).
+        'operator' => 'Server Operator',
+        'country' => 'Thailand',
+        // The page description search engines and link previews show.
+        'description' => ':brand, an unofficial osu! private server from :country: osu!(stable) and lazer, Relax and Autopilot leaderboards, custom beatmaps and more.',
+        // The Privacy Policy's parts that depend on how the server is run (markdown lists).
+        'privacy_payments' => "- TrueMoney Privacy Policy (for players in Thailand): <https://www.truemoney.com/privacy-notice>\n"
+            .'- Stripe Privacy Policy (for players outside Thailand): <https://stripe.com/th/privacy>',
+        'privacy_hosting' => '- [OVHcloud](https://www.ovhcloud.com) (located in Singapore, operated by OVH Groupe SA)',
+        'privacy_laws' => "- **Thailand users:** [Thailand PDPA (Personal Data Protection Act)](https://www.ratchakitcha.soc.go.th/DATA/PDF/2562/A/069/T_0052.PDF)\n"
+            ."- **European Union users:** [General Data Protection Regulation (GDPR)](https://gdpr-info.eu)\n"
+            .'- **Other countries/regions:** We strive to comply with the privacy laws applicable in your specific country or state.',
         'footer' => ':brand :year · an unofficial osu! private server, not affiliated with ppy Pty Ltd. osu! is a trademark of ppy Pty Ltd.',
         // The support page's "Run by Volunteers" reason.
-        'support_team' => ':brand is a free, unofficial server run in our spare time by a couple of volunteers in Thailand. Nobody here gets paid.',
+        'support_team' => ':brand is a free, unofficial server run in our spare time by a couple of volunteers in :country. Nobody here gets paid.',
         // The download page: the lazer build's name, and the stable patcher's.
         'downloads_client_name' => 'lazer-fork',
         'downloads_patcher_name' => ':brand patcher',
@@ -86,6 +98,7 @@ class TomYumBranding
         'landing_video_url', 'download_video_url',
         'support_note', 'support_signature', 'invoice_seller', 'invoice_contact', 'keywords', 'footer',
         'support_team', 'downloads_client_name', 'downloads_patcher_name',
+        'operator', 'country', 'description', 'privacy_payments', 'privacy_hosting', 'privacy_laws',
         'downloads_host', 'downloads_lazer_url', 'downloads_patcher_url',
         'downloads_show_lazer', 'downloads_show_stable', 'downloads_show_legacy',
         'vote_enabled', 'vote_sites',
@@ -248,7 +261,21 @@ class TomYumBranding
             ':brand' => static::name(),
             ':year' => date('Y'),
             ':vote_url' => route('vote'),
+            ':operator' => static::operator(),
+            ':country' => static::country(),
         ]);
+    }
+
+    /** Who runs the server ('' when staff left it out). */
+    public static function operator(): string
+    {
+        return static::setting('operator', emptyIsSet: true) ?? static::DEFAULTS['operator'];
+    }
+
+    /** Where the server is run from, and whose laws the terms follow ('' when staff left it out). */
+    public static function country(): string
+    {
+        return static::setting('country', emptyIsSet: true) ?? static::DEFAULTS['country'];
     }
 
     /** An on/off setting ('1' or '0'), $default when unset. */

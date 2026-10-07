@@ -986,7 +986,8 @@ function js_localtime($date)
 
 function page_description($extra)
 {
-    $parts = ['osu!', page_title()];
+    // TomYum: this server's name, not osu!'s (TomYumBranding).
+    $parts = [App\Libraries\TomYumBranding::name(), page_title()];
 
     if (present($extra)) {
         $parts[] = $extra;

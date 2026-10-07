@@ -28,7 +28,24 @@
                         <input class="input-text" type="text" name="email_domain" value="{{ $saved['email_domain'] }}" placeholder="{{ App\Libraries\TomYumTickets::domain() }}">
                     </label>
                 </div>
-                <p class="tomyum-panel__hint">Now: <strong>{{ $name }}</strong>, {{ App\Libraries\TomYumBranding::email('support') }}</p>
+                <div class="tomyum-panel__row">
+                    <label class="input-container tomyum-panel__field">
+                        <span class="input-container__label">Run by (a name, or empty for "its team")</span>
+                        <input class="input-text" type="text" name="operator" maxlength="100" value="{{ $texts['operator'] }}">
+                    </label>
+                    <label class="input-container tomyum-panel__field">
+                        <span class="input-container__label">Country (whose laws the terms follow; empty leaves it out)</span>
+                        <input class="input-text" type="text" name="country" maxlength="100" value="{{ $texts['country'] }}">
+                    </label>
+                </div>
+                <label class="input-container" style="display: block">
+                    <span class="input-container__label">Site description (search engines and link previews)</span>
+                    <textarea class="input-text" name="description" rows="2" style="width: 100%">{{ $texts['description'] }}</textarea>
+                </label>
+                <p class="tomyum-panel__hint">
+                    Now: <strong>{{ $name }}</strong>, {{ App\Libraries\TomYumBranding::email('support') }}.
+                    In the texts below, <code>:operator</code> and <code>:country</code> are these two.
+                </p>
             </div>
 
             <div class="tomyum-panel__card">
@@ -183,6 +200,17 @@
                     Built-in: production's wording with this server's name and addresses. Your own: markdown, with <code>:brand</code> and <code>:year</code>.
                     Hidden: no page and no footer link.
                 </p>
+                <p class="tomyum-panel__hint">The built-in Privacy Policy's parts that depend on how you run the server (markdown lists; empty hides one):</p>
+                @foreach ([
+                    'privacy_payments' => 'Payment processors',
+                    'privacy_hosting' => 'Where the server is hosted',
+                    'privacy_laws' => 'Data protection laws you follow',
+                ] as $field => $label)
+                    <label class="input-container" style="display: block; margin-bottom: 10px">
+                        <span class="input-container__label">{{ $label }}</span>
+                        <textarea class="input-text" name="{{ $field }}" rows="3" style="width: 100%">{{ $texts[$field] }}</textarea>
+                    </label>
+                @endforeach
                 @foreach (App\Libraries\TomYumBranding::LEGAL_PAGES as $page => [$path, $title])
                     <div style="margin-bottom: 14px">
                         <div class="tomyum-panel__row">

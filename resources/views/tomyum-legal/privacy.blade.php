@@ -11,7 +11,7 @@
 <h2>1. Introduction</h2>
 <p>
     {{ App\Libraries\TomYumBranding::name() }} ("we," "us," or "our") is a private osu! server operated by an individual person and managed by
-    the {{ Appibrariestomyumbranding::name() }} team. Your privacy is important to us, and this Privacy Policy explains how we collect, use, and
+    the {{ App\Libraries\TomYumBranding::name() }} team. Your privacy is important to us, and this Privacy Policy explains how we collect, use, and
     protect your personal data.
 </p>
 <p>
@@ -97,7 +97,7 @@
         community.</li>
 </ul>
 <p>
-    We do not share, sell, or distribute your data to third parties. Only the {{ Appibrariestomyumbranding::name() }} team has access to this
+    We do not share, sell, or distribute your data to third parties. Only the {{ App\Libraries\TomYumBranding::name() }} team has access to this
     data.
 </p>
 
@@ -114,19 +114,13 @@
     debit/credit card details, as payments are processed securely by third-party payment processors.
 </p>
 <p>For more details, please refer to the respective payment processor's privacy policy:</p>
-<ul>
-    <li>TrueMoney Privacy Policy (for Thailand players):
-        <a href="https://www.truemoney.com/privacy-notice" rel="nofollow noreferrer">https://www.truemoney.com/privacy-notice</a></li>
-    <li>Stripe Privacy Policy (for players outside Thailand):
-        <a href="https://stripe.com/th/privacy" rel="nofollow noreferrer">https://stripe.com/th/privacy</a></li>
-</ul>
+{{-- TomYum: the payment processors (Admin panel > Branding). --}}
+{!! markdown_plain(App\Libraries\TomYumBranding::text('privacy_payments')) !!}
 
 <h2>6. Data Storage and Backup</h2>
 <p>Your data and our server infrastructure are backed up and hosted by:</p>
-<ul>
-    <li><a href="https://www.ovhcloud.com" rel="nofollow noreferrer">OVHcloud</a> (Located in Singapore, operated
-        by OVH Groupe SA)</li>
-</ul>
+{{-- TomYum: where the server is hosted (Admin panel > Branding). --}}
+{!! markdown_plain(App\Libraries\TomYumBranding::text('privacy_hosting')) !!}
 <p>This provider is used to maintain high availability, redundancy, and performance.</p>
 
 <h2>7. Data Retention</h2>
@@ -143,14 +137,8 @@
 
 <h2>8. Data Protection &amp; Security</h2>
 <p>We follow privacy regulations based on the user's region:</p>
-<ul>
-    <li><strong>Thailand Users:</strong>
-        <a href="https://www.ratchakitcha.soc.go.th/DATA/PDF/2562/A/069/T_0052.PDF" rel="nofollow noreferrer">Thailand PDPA (Personal Data Protection Act)</a></li>
-    <li><strong>European Union Users:</strong>
-        <a href="https://gdpr-info.eu" rel="nofollow noreferrer">General Data Protection Regulation (GDPR)</a></li>
-    <li><strong>Other Countries/Regions:</strong> We strive to comply with the privacy laws applicable in your
-        specific country or state.</li>
-</ul>
+{{-- TomYum: the data protection laws followed (Admin panel > Branding). --}}
+{!! markdown_plain(App\Libraries\TomYumBranding::text('privacy_laws')) !!}
 <p>Security measures include:</p>
 <ul>
     <li>Encryption of stored passwords (bcrypt + salt).</li>
