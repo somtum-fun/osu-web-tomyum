@@ -821,12 +821,10 @@
   }
 
   // A row's buttons as tall as its inputs, at their bottom edge.
-  &__row > div > .btn-osu-big,
-  &__row > .btn-osu-big,
-  &__row > form > .btn-osu-big {
-    align-items: center;
-    display: inline-flex;
-    justify-content: center;
+  // (not the small pill buttons, like a card head's Profile and GMT panel links)
+  &__row > div > .btn-osu-big:not(.btn-osu-big--rounded-small),
+  &__row > .btn-osu-big:not(.btn-osu-big--rounded-small),
+  &__row > form > .btn-osu-big:not(.btn-osu-big--rounded-small) {
     min-height: 38px;
   }
 
