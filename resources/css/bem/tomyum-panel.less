@@ -1331,16 +1331,20 @@
 
 .tomyum-panel__explainer,
 .tomyum-panel__more {
+  // height and a fade together, on a soft ease-out (fast start, gentle landing)
   &::details-content {
     block-size: 0;
+    opacity: 0;
     overflow: clip;
     transition:
-      block-size 280ms ease,
-      content-visibility 280ms allow-discrete;
+      block-size 320ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 240ms ease,
+      content-visibility 320ms allow-discrete;
   }
 
   &[open]::details-content {
     block-size: auto;
+    opacity: 1;
   }
 }
 
