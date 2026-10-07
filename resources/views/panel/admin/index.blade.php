@@ -121,16 +121,19 @@
         </div>
 
         <div class="tomyum-panel__card" id="development-banner">
-            <h2><i class="fas fa-flask"></i>Development banner</h2>
-            <p>
+            {{-- On or off beside the title, the explanation as a quiet note. --}}
+            <h2>
+                <i class="fas fa-flask"></i>Development banner
                 @if ($developmentBanner['enabled'])
                     <span class="tomyum-panel__badge tomyum-panel__badge--error">ON</span>
                 @else
                     <span class="tomyum-panel__badge">OFF</span>
                 @endif
-                The red bar at the bottom of every page of the website.
+            </h2>
+            <p class="tomyum-panel__hint">
+                The red bar at the bottom of every page of the website. Markdown works for links:
+                <code>[osu! website](https://osu.ppy.sh)</code>. Leave the message empty for the default one.
             </p>
-            <p class="tomyum-panel__hint">Markdown works for links: <code>[osu! website](https://osu.ppy.sh)</code>. Leave the message empty for the default one.</p>
             <form method="POST" action="{{ route('panel.admin.development-banner') }}" class="tomyum-panel__row" style="align-items: flex-end">
                 @csrf
                 <label class="input-container tomyum-panel__field">
@@ -201,7 +204,7 @@
             @endphp
             <h3>pp libraries</h3>
             @if ($ppStatus === null)
-                <p class="tomyum-panel__muted">The pp updater hasn't reported yet (it runs on the server itself: deploy/pp-updater).</p>
+                <p class="tomyum-panel__hint">The pp updater hasn't reported yet (it runs on the server itself: deploy/pp-updater).</p>
             @else
                 <table class="tomyum-panel__table">
                     <tr><th>Library</th><th>Running</th><th>Newest</th><th></th></tr>

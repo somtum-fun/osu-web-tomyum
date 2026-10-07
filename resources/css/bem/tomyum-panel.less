@@ -85,6 +85,11 @@
     opacity: 0.8;
   }
 
+  // A card's plain text at the panel's size, not the page's (the hints keep their own, smaller one).
+  &__card p:not(.tomyum-panel__hint) {
+    font-size: @font-size--title-small;
+  }
+
   // A destructive action that isn't the card's main one: red text on the quiet button.
   &__danger-text {
     color: hsl(var(--hsl-red-1));

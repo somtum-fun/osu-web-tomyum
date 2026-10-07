@@ -219,7 +219,7 @@
                         <form method="POST" action="{{ route('panel.admin.users.supporter', ['user' => $userId]) }}" onsubmit="return confirm('Remove supporter now?')">
                             @csrf
                             <input type="hidden" name="action" value="remove">
-                            <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit">Remove supporter</button>
+                            <button class="btn-osu-big btn-osu-big--rounded-small btn-osu-big--panel-secondary tomyum-panel__danger-text" type="submit"><i class="fas fa-heart-broken"></i>Remove supporter</button>
                         </form>
                     @endif
                 </div>
