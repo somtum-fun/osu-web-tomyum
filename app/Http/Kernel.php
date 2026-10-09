@@ -31,6 +31,8 @@ class Kernel extends HttpKernel
             Middleware\TomYumImportMissingBeatmaps::class,
             // TomYum: maintenance mode keeps players out of the API (score submission stays open).
             Middleware\TomYumMaintenanceGate::class,
+            // TomYum: refuses TumThai builds staff haven't allowed (Admin panel > TumThai versions).
+            Middleware\TomYumLazerVersionGate::class,
         ],
         'web' => [
             Middleware\EncryptCookies::class,

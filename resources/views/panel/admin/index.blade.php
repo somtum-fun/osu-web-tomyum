@@ -197,6 +197,39 @@
             </form>
         </div>
 
+        {{-- TomYum: TumThai (lazer) version gating (AdminController@tumthai); the API middleware TomYumLazerVersionGate enforces it. --}}
+        <div class="tomyum-panel__card" id="tumthai">
+            <h2>
+                <i class="fas fa-gamepad"></i>TumThai versions
+                @if ($tumthai['unrestricted'])
+                    <span class="tomyum-panel__badge">OPEN</span>
+                @else
+                    <span class="tomyum-panel__badge tomyum-panel__badge--success">GATED</span>
+                @endif
+            </h2>
+            <p class="tomyum-panel__hint">
+                Which TumThai (lazer) builds can connect. Lazer sends its build as <code>x-api-version</code> (YYYYMMDD; 0 for a local build).
+                A disallowed build sees "Realtime online functionality is not supported on this version of the game. Please upgrade to the latest version." (403).
+                Leave the minimum blank (or 0) and the whitelist blank for no limit. If a whitelist is set, only those exact builds are allowed; otherwise the minimum applies.
+            </p>
+            <form method="POST" action="{{ route('panel.admin.tumthai') }}" class="tomyum-panel__row" style="align-items: flex-end; flex-wrap: wrap">
+                @csrf
+                <label class="input-container tomyum-panel__field" style="flex: 0 1 200px">
+                    <span class="input-container__label">Minimum build (YYYYMMDD)</span>
+                    <input class="input-text" type="number" name="min" min="0" step="1" value="{{ $tumthai['min'] ?: '' }}" placeholder="e.g. 20260818">
+                </label>
+                <label class="input-container tomyum-panel__field" style="flex: 1 1 320px">
+                    <span class="input-container__label">Whitelist (comma or space separated, YYYYMMDD)</span>
+                    <input class="input-text" type="text" name="whitelist" value="{{ implode(', ', $tumthai['whitelist']) }}" placeholder="e.g. 20260818, 20260924">
+                </label>
+                <label class="tomyum-panel__field" style="flex: 0 0 auto; display: flex; gap: 6px; align-items: center">
+                    <input type="checkbox" name="allow_local" value="1" @if ($tumthai['allowLocal']) checked @endif>
+                    Allow local builds (version 0)
+                </label>
+                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-save"></i>Save</button>
+            </form>
+        </div>
+
         <div class="tomyum-panel__card" id="alert">
             <h2><i class="fas fa-bullhorn"></i>In-game alert</h2>
             <p class="tomyum-panel__hint">A notification to everyone online in stable (osu!'s yellow pop-up); lazer players get it as a BanchoBot message.</p>

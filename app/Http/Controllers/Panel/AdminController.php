@@ -75,11 +75,60 @@ class AdminController extends Controller
             ],
             'maintenance' => \App\Libraries\TomYumMaintenance::status(),
             'ppCap' => static::ppCapSettings(),
+            'tumthai' => static::tumthaiSettings(),
             'developmentBanner' => [
                 'enabled' => \App\Libraries\TomYumSiteSettings::developmentBannerEnabled(),
                 'message' => \App\Libraries\TomYumSiteSettings::developmentBannerMessage(),
             ],
         ]);
+    }
+
+    /** TumThai (lazer) version gating: the current settings. */
+    public static function tumthaiSettings(): array
+    {
+        return [
+            'min' => \App\Libraries\TomYumLazerVersions::minVersion(),
+            'whitelist' => \App\Libraries\TomYumLazerVersions::whitelist(),
+            'allowLocal' => \App\Libraries\TomYumLazerVersions::allowLocalBuild(),
+            'unrestricted' => \App\Libraries\TomYumLazerVersions::unrestricted(),
+        ];
+    }
+
+    /**
+     * TomYum: whichever TumThai (lazer) builds are allowed to connect, by API version (YYYYMMDD). A
+     * minimum, or an exact whitelist, or both left blank for no limit. 0 means a local build.
+     */
+    public function tumthai()
+    {
+        $min = Request::input('min');
+        $min = $min === null || trim($min) === '' ? '0' : (ctype_digit(trim($min)) ? trim($min) : null);
+        if ($min === null) {
+            return $this->backToIndex('error', 'Minimum must be a YYYYMMDD number, or blank.');
+        }
+
+        $whitelistRaw = trim((string) Request::input('whitelist', ''));
+        $whitelist = [];
+        foreach (preg_split('/[\s,]+/', $whitelistRaw) ?: [] as $part) {
+            if ($part === '') continue;
+            if (!ctype_digit($part)) {
+                return $this->backToIndex('error', 'Whitelist takes YYYYMMDD numbers, one or more (comma or space separated).');
+            }
+            $whitelist[] = $part;
+        }
+
+        \App\Libraries\TomYumSiteSettings::set('tumthai_min_api_version', $min);
+        \App\Libraries\TomYumSiteSettings::set('tumthai_whitelist', $whitelist === [] ? null : implode(',', $whitelist));
+        \App\Libraries\TomYumSiteSettings::set('tumthai_allow_zero', Request::boolean('allow_local') ? '1' : '0');
+
+        $parts = [];
+        $parts[] = $min === '0' ? 'no minimum' : "min {$min}";
+        $parts[] = $whitelist === [] ? 'no whitelist' : 'whitelist '.implode(',', $whitelist);
+        $parts[] = Request::boolean('allow_local') ? 'local allowed' : 'local blocked';
+        $this->staffLog('site.tumthai_versions', null, 'TumThai versions: '.implode(', ', $parts).'.');
+
+        $unrestricted = $min === '0' && $whitelist === [];
+
+        return $this->backToIndex('success', $unrestricted ? 'TumThai versions: no limit.' : 'TumThai versions updated.');
     }
 
     /** The development banner at the bottom of every page: on or off, and its message (markdown). */
