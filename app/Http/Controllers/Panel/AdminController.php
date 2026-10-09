@@ -74,6 +74,7 @@ class AdminController extends Controller
                 'signups' => \App\Libraries\TomYumCharts::signupsPerDay(),
             ],
             'maintenance' => \App\Libraries\TomYumMaintenance::status(),
+            'ppCap' => static::ppCapSettings(),
             'developmentBanner' => [
                 'enabled' => \App\Libraries\TomYumSiteSettings::developmentBannerEnabled(),
                 'message' => \App\Libraries\TomYumSiteSettings::developmentBannerMessage(),
@@ -91,6 +92,49 @@ class AdminController extends Controller
         $this->staffLog('site.development_banner', null, ($enabled ? 'Development banner on' : 'Development banner off').($message === '' ? '.' : ": {$message}"));
 
         return $this->backToIndex('success', $enabled ? 'The development banner is on.' : 'The development banner is off.');
+    }
+
+    /**
+     * TomYum: the pp cap's modes (setting name after ppcap_ => label) and defaults, the same as the game
+     * server's (PpCapSettings): a passed play over its mode's cap restricts the player unless whitelisted.
+     */
+    public const PP_CAP_MODES = [
+        'osu' => ['Standard', 1500],
+        'taiko' => ['Taiko', 1500],
+        'catch' => ['Catch', 1500],
+        'mania' => ['Mania', 1500],
+        'relax' => ['Relax (every mode)', 2500],
+        'autopilot' => ['Autopilot', 2500],
+    ];
+
+    /** The pp cap as set (or its defaults): ['enabled' => bool, 'caps' => [mode => pp]]. */
+    public static function ppCapSettings(): array
+    {
+        $caps = [];
+        foreach (static::PP_CAP_MODES as $mode => [, $default]) {
+            $value = \App\Libraries\TomYumSiteSettings::get("ppcap_{$mode}");
+            $caps[$mode] = is_numeric($value) ? (float) $value : $default;
+        }
+
+        return ['enabled' => \App\Libraries\TomYumSiteSettings::get('ppcap_enabled') !== '0', 'caps' => $caps];
+    }
+
+    /** TomYum: the pp cap on or off, and each mode's cap (0: no cap); the game server reads them within a minute. */
+    public function ppCap()
+    {
+        $enabled = Request::boolean('enabled');
+        \App\Libraries\TomYumSiteSettings::set('ppcap_enabled', $enabled ? '1' : '0');
+        $parts = [];
+        foreach (static::PP_CAP_MODES as $mode => [$label]) {
+            $value = Request::input("cap_{$mode}");
+            if (is_numeric($value) && (float) $value >= 0) {
+                \App\Libraries\TomYumSiteSettings::set("ppcap_{$mode}", (string) (float) $value);
+                $parts[] = "{$label} ".((float) $value > 0 ? ((float) $value).'pp' : 'no cap');
+            }
+        }
+        $this->staffLog('site.pp_cap', null, ($enabled ? 'pp cap on' : 'pp cap off').($parts === [] ? '.' : ': '.implode(', ', $parts).'.'));
+
+        return $this->backToIndex('success', $enabled ? 'The pp cap is on.' : 'The pp cap is off.');
     }
 
     /** Maintenance mode on (a message, a countdown) or off: only staff can log in while it's on. */

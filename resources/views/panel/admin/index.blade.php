@@ -167,6 +167,36 @@
             </form>
         </div>
 
+        {{-- TomYum: the pp cap (AdminController@ppCap); the game server's PpCapWatch enforces it. --}}
+        <div class="tomyum-panel__card" id="pp-cap">
+            <h2>
+                <i class="fas fa-shield-alt"></i>pp cap
+                @if ($ppCap['enabled'])
+                    <span class="tomyum-panel__badge tomyum-panel__badge--success">ON</span>
+                @else
+                    <span class="tomyum-panel__badge">OFF</span>
+                @endif
+            </h2>
+            <p class="tomyum-panel__hint">
+                Basic anti-cheat: a passed play (stable or lazer) worth more than its mode's cap gets the player restricted
+                automatically, unless they're whitelisted on their account page. 0 means no cap for that mode.
+            </p>
+            <form method="POST" action="{{ route('panel.admin.pp-cap') }}" class="tomyum-panel__row" style="align-items: flex-end; flex-wrap: wrap">
+                @csrf
+                @foreach (App\Http\Controllers\Panel\AdminController::PP_CAP_MODES as $mode => [$label])
+                    <label class="input-container tomyum-panel__field" style="flex: 0 1 140px">
+                        <span class="input-container__label">{{ $label }}</span>
+                        <input class="input-text" type="number" name="cap_{{ $mode }}" min="0" step="1" value="{{ $ppCap['caps'][$mode] }}">
+                    </label>
+                @endforeach
+                <label class="tomyum-panel__field" style="flex: 0 0 auto; display: flex; gap: 6px; align-items: center">
+                    <input type="checkbox" name="enabled" value="1" @if ($ppCap['enabled']) checked @endif>
+                    On
+                </label>
+                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-save"></i>Save</button>
+            </form>
+        </div>
+
         <div class="tomyum-panel__card" id="alert">
             <h2><i class="fas fa-bullhorn"></i>In-game alert</h2>
             <p class="tomyum-panel__hint">A notification to everyone online in stable (osu!'s yellow pop-up); lazer players get it as a BanchoBot message.</p>

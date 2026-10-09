@@ -176,6 +176,8 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('maintenance', 'AdminController@maintenance')->name('maintenance');
             Route::post('alert', 'AdminController@alert')->name('alert');
             Route::post('development-banner', 'AdminController@developmentBanner')->name('development-banner');
+            // TomYum: the pp cap (basic anti-cheat) the game server enforces.
+            Route::post('pp-cap', 'AdminController@ppCap')->name('pp-cap');
             Route::get('users', 'AdminController@users')->name('users.index');
             Route::get('users/{user}', 'AdminController@show')->name('users.show');
             Route::post('users/{user}/profile', 'AdminController@profile')->name('users.profile');
