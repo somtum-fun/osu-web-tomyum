@@ -10,11 +10,6 @@ the code, not the osu! name, logo or artwork.
 
 Known gaps: the store's prices and currency are still baht/US$ (`SupporterTag`, `store_currency()`).
 
-## AI use
-
-Our team uses AI as an assistant, always under human review. Low-effort AI-generated ("slop") pull requests
-or comments may be closed without notice.
-
 ---
 
 # osu!web
@@ -40,7 +35,7 @@ Please see [CONTRIBUTING.md](CONTRIBUTING.md) for information about the code sta
 
 While we have standards in place, nothing is set in stone. If you have an issue with the way code is structured; with any libraries we are using; with any processes involved with contributing, *please* bring it up. We welcome all feedback so we can make contributing to this project as pain-free as possible.
 
-Our team believes in **human contributions**. Any contribution – be it an issue report or a pull request – which is created by, documented by, or aided by AI/LLM usage will typically be **closed and locked without further discussion**.
+Our team believes in using AI as an assistant, always under human review. Low-effort AI-generated ("slop") pull requests or comments may be closed without notice.
 
 ## Seeking Help
 
