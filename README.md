@@ -10,6 +10,11 @@ the code, not the osu! name, logo or artwork.
 
 Known gaps: the store's prices and currency are still baht/US$ (`SupporterTag`, `store_currency()`).
 
+## AI use
+
+Our team uses AI as an assistant, always under human review. Low-effort AI-generated ("slop") pull requests
+or comments may be closed without notice.
+
 ---
 
 # osu!web
