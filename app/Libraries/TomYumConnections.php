@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Http;
 
 /**
  * TomYum: accounts a player links in their settings (tomyum_user_connections), as
- * example-org/private-repo's connections: Discord and their osu! account on osu.ppy.sh, both by OAuth.
+ * bancho.py-style connections: Discord and their osu! account on osu.ppy.sh, both by OAuth.
  * BN applications (QAT) need both, and no osu! restriction in the last 12 months.
  *
  * osu!'s API never shows past restrictions (not even to the player: only silences and tournament

@@ -14,9 +14,9 @@
         <div class="tomyum-panel__card">
             <h2><i class="fas fa-plus"></i>New version</h2>
             <p class="tomyum-panel__hint">
-                A version holds the changes players read on the <a href="{{ route('changelog.index') }}">changelog</a> (and in lazer-fork).
+                A version holds the changes players read on the <a href="{{ route('changelog.index') }}">changelog</a> (and in lazer, if your build reads it).
                 Leave the version empty for the next one of the day (like {{ App\Libraries\TomYumChangelog::nextVersion(6, Carbon\Carbon::now()) }}),
-                or write your own (1.4.0, b20150203-prod.3). Hidden versions aren't shown until you untick it.
+                or write your own (1.4.0, b20150203-patched.3). Hidden versions aren't shown until you untick it.
             </p>
             {{-- TomYum: the fields on panel-changelog__form's grid, the tick and button on a row below them. --}}
             <form method="POST" action="{{ route('panel.changelog.builds.store') }}" class="panel-changelog__form panel-changelog__form--3">

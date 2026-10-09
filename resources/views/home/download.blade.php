@@ -60,7 +60,7 @@
                 @endif
             </div>
             {{-- TomYum: this server's patcher for today's osu!(stable), in place of ppy's installer. --}}
-            @if ($showStable)
+            @if ($showStable && present($patcherUrl))
             <div class="download-page__banner-tail">
                 <div class="download-page__banner-content download-page__banner-content--tail">
                     <div class="download-page__text download-page__text--download-stable">

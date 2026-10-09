@@ -104,14 +104,14 @@
                         <input class="input-text" type="text" name="download_video_url" value="{{ $saved['download_video_url'] }}" placeholder="{{ $GLOBALS['cfg']['osu']['urls']['download_video'] }}">
                     </label>
                 </div>
-                <p class="tomyum-panel__hint">The built-in ones (/media/landing.mp4, /media/download.mp4) are production's.</p>
+                <p class="tomyum-panel__hint">Links to video files (mp4); empty shows none (or LANDING_VIDEO_URL / OSU_URL_DOWNLOAD_VIDEO).</p>
             </div>
 
             <div class="tomyum-panel__card">
                 <h2><i class="fas fa-paragraph"></i>Texts</h2>
                 <p class="tomyum-panel__hint">
                     <code>:brand</code> is the name, <code>:year</code> this year, <code>:vote_url</code> the vote page.
-                    Empty one to show nothing there. The defaults are production's.
+                    Empty one to show nothing there.
                 </p>
                 @foreach ([
                     'support_note' => ['Support page note (markdown)', 8],
@@ -137,7 +137,7 @@
                 <h2><i class="fas fa-download"></i>Download page</h2>
                 <p class="tomyum-panel__hint">
                     The buttons come from a file host's <code>manifest.json</code> (the lazer builds, the stable patcher, the hook and the legacy clients),
-                    unless you give a link of your own. The built-in host, dl.example.com, is production's: its patcher and hook connect to production.
+                    unless you give a link of your own. No host (here or TOMYUM_DL_URL): only your own links show.
                 </p>
                 <div class="tomyum-panel__row">
                     <label class="input-container tomyum-panel__field">
@@ -190,14 +190,14 @@
                     <textarea class="input-text" name="vote_sites" rows="4" style="width: 100%" placeholder="osu-server-list.com | https://osu-server-list.com/server/…/vote | rewarded">{{ $voteSites }}</textarea>
                 </label>
                 <p class="tomyum-panel__hint">
-                    The built-in links are production's listings. "rewarded" only works when that list calls back the game server's votes plugin.
+                    "rewarded" only works when that list calls back the game server's votes plugin.
                 </p>
             </div>
 
             <div class="tomyum-panel__card" id="legal">
                 <h2><i class="fas fa-balance-scale"></i>Legal pages</h2>
                 <p class="tomyum-panel__hint">
-                    Built-in: production's wording with this server's name and addresses. Your own: markdown, with <code>:brand</code> and <code>:year</code>.
+                    Built-in: the default wording with this server's name and addresses. Your own: markdown, with <code>:brand</code> and <code>:year</code>.
                     Hidden: no page and no footer link.
                 </p>
                 <p class="tomyum-panel__hint">The built-in Privacy Policy's parts that depend on how you run the server (markdown lists; empty hides one):</p>

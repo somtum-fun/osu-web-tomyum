@@ -65,7 +65,7 @@ class BeatmapsetSearch extends RecordSearch
         $this->addBlockedUsersFilter($query);
         $this->addFeaturedArtistFilter($query);
         $this->addFeaturedArtistsFilter($query);
-        $this->addProdFilter($query);
+        $this->addLocalFilter($query);
         $this->addFollowsFilter($query);
         $this->addGenreFilter($query);
         $this->addLanguageFilter($query);
@@ -174,9 +174,9 @@ class BeatmapsetSearch extends RecordSearch
     }
 
     // TomYum: sets uploaded to this server ("Uploaded here only"), numbered from BnController::CUSTOM_ID_FLOOR.
-    private function addProdFilter($query)
+    private function addLocalFilter($query)
     {
-        if ($this->params->showProd) {
+        if ($this->params->showLocal) {
             $query->filter(['range' => ['id' => ['gte' => \App\Http\Controllers\Panel\BnController::CUSTOM_ID_FLOOR]]]);
         }
     }

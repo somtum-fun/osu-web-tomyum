@@ -20,5 +20,3 @@ import 'register-components';
 
 // TomYum: :3
 import 'tomyum/cat-stampede';
-// TomYum: badApple() in the console on a profile
-import 'tomyum/bad-apple';

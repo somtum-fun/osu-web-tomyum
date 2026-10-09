@@ -733,8 +733,6 @@ class UsersController extends Controller
             $userArray['tomyum_default_variant'] = \App\Libraries\TomYumModeScores::defaultVariant($user);
             // TomYum: starred modes (vanilla/relax/autopilot) the player wants pinned.
             $userArray['tomyum_favorite_modes'] = \App\Libraries\TomYumModeScores::favoriteModes($user);
-            // TomYum: their highest osu!dan course per key count (the tomyum.dan plugin's clears).
-            $userArray['tomyum_dan'] = \App\Libraries\TomYumDan::highestFor($user);
             $currentUser = \Auth::user();
             if ($currentUser !== null && $currentUser->getKey() === $user->getKey()) {
                 $userCoverPresets = app('user-cover-presets')->json();

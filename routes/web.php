@@ -77,13 +77,6 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('builds/{build}/entries/{entry}/remove', 'ChangelogController@destroyEntry')->name('builds.entries.destroy');
         });
 
-        // TomYum: osu!dan courses: admins and the NAT (the game server's tomyum.dan plugin reads them).
-        Route::get('dan', 'DanController@index')->name('dan.index');
-        Route::post('dan', 'DanController@store')->name('dan.store');
-        Route::get('dan/{course}', 'DanController@show')->name('dan.show');
-        Route::post('dan/{course}', 'DanController@update')->name('dan.update');
-        Route::post('dan/{course}/remove', 'DanController@destroy')->name('dan.destroy');
-
         // Bot accounts: admins/developers make them; owners manage their own.
         Route::group(['as' => 'bots.', 'prefix' => 'bots'], function () {
             Route::get('/', 'BotsController@index')->name('index');
@@ -440,10 +433,6 @@ Route::group(['middleware' => ['web']], function () {
         // Older links.
         Route::redirect('loved/requests', '/community/loved');
 
-        // TomYum: osu!dan: the courses and their clears (the game server's tomyum.dan plugin).
-        Route::get('dan', 'DanController@index')->name('dan.index');
-        Route::get('dan/{course}', 'DanController@show')->name('dan.show');
-
         Route::group(['as' => 'forum.', 'namespace' => 'Forum'], function () {
             Route::group(['prefix' => 'forums'], function () {
                 Route::resource('forum-covers', 'ForumCoversController', ['only' => ['store', 'update', 'destroy']]);
@@ -700,7 +689,6 @@ Route::group(['middleware' => ['web']], function () {
             Route::resource('cart', 'CartController', ['only' => ['store']]);
 
             Route::resource('checkout', 'CheckoutController', ['only' => ['show', 'store']]);
-            Route::post('checkout/{checkout}/truemoney', 'TomYumCheckoutController@truemoney')->name('checkout.tomyum.truemoney');
             Route::post('checkout/{checkout}/stripe', 'TomYumCheckoutController@stripe')->name('checkout.tomyum.stripe');
             Route::get('checkout/{checkout}/stripe-return', 'TomYumCheckoutController@stripeReturn')->name('checkout.tomyum.stripe-return');
 
@@ -1028,7 +1016,7 @@ Route::group(['prefix' => '_lio', 'middleware' => 'lio', 'as' => 'interop.'], fu
 });
 
 Route::get('opensearch.xml', 'HomeController@opensearch')->name('opensearch');
-// TomYum: the web app manifest with this server's name and favicons (public/site.webmanifest is production's).
+// TomYum: the web app manifest with this server's name and favicons (public/site.webmanifest is the fallback).
 Route::get('brand.webmanifest', 'HomeController@webmanifest')->name('brand.webmanifest');
 // TomYum: the name drawn as a logo, and its first letter as a favicon (Admin panel > Branding).
 Route::get('brand-logo.svg', 'HomeController@brandLogo')->name('brand.logo');

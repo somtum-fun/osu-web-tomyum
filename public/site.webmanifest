@@ -1,6 +1,6 @@
 {
-    "name": "production",
-    "short_name": "production",
+    "name": "",
+    "short_name": "",
     "icons": [
         {
             "src": "/images/favicon/android-chrome-192x192.png",

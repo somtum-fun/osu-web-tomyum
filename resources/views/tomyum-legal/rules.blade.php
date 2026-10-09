@@ -36,7 +36,7 @@
     </li>
     <li>
         <strong>Make your account in the game, without a VPN or proxy.</strong> Accounts are made in
-        lazer-fork or osu! stable, not on the website. Sign-ups through a VPN, proxy, Tor or hosting network are
+        osu!(lazer) or osu! stable, not on the website. Sign-ups through a VPN, proxy, Tor or hosting network are
         blocked, and each network (a home, school or phone) can make one account a day. Don't try to get around
         this; if it stops you from signing up honestly, email <a href="mailto:{{ $accounts }}">{{ $accounts }}</a>.
     </li>

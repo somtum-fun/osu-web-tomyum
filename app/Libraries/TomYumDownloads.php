@@ -10,13 +10,13 @@ use Exception;
 use Http;
 
 /**
- * TomYum: what the download page offers, from the file host's manifest.json (dl.example.com):
- * lazer-fork (lazer) for Windows and Linux, the production patcher, the hook, and the patched
- * legacy clients (2008 to 2015).
+ * TomYum: what the download page offers, from the file host's manifest.json (Admin panel > Branding,
+ * or TOMYUM_DL_URL): a lazer build for Windows and Linux, a stable patcher, a hook, and legacy clients.
+ * Without a file host the page only links what Branding sets.
  */
 class TomYumDownloads
 {
-    const PATCHER_URL = 'https://github.com/example-org/private-repo/releases/download/v1.1/patcher-ui.exe';
+    const PATCHER_URL = null;
 
     public static function baseUrl(): string
     {
@@ -28,6 +28,10 @@ class TomYumDownloads
     {
         // Per host: changing it in the Branding page shows the new host's files at once.
         $cacheKey = 'tomyum_downloads_manifest:'.md5(static::baseUrl());
+        if (static::baseUrl() === '') {
+            return [];
+        }
+
         $cached = Cache::get($cacheKey);
         if (is_array($cached)) {
             return $cached;

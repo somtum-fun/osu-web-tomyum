@@ -51,7 +51,7 @@
     'links' => $links,
     'theme' => 'store',
 ]])
-    {{-- TomYum: no Xsolla here (payments are TrueMoney and Stripe). --}}
+    {{-- TomYum: no Xsolla here (payments are by card, through Stripe). --}}
 
     @slot('linksAppend')
         @if(isset($cart) && $cart && $cart->items()->exists())

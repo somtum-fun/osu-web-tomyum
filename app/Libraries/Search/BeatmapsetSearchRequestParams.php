@@ -19,7 +19,7 @@ class BeatmapsetSearchRequestParams extends BeatmapsetSearchParams
 {
     const AVAILABLE_STATUSES = ['any', 'leaderboard', 'ranked', 'qualified', 'loved', 'favourites', 'pending', 'wip', 'graveyard', 'mine'];
     const AVAILABLE_EXTRAS = ['video', 'storyboard'];
-    const AVAILABLE_GENERAL = ['recommended', 'converts', 'follows', 'spotlights', 'featured_artists', 'prod'];
+    const AVAILABLE_GENERAL = ['recommended', 'converts', 'follows', 'spotlights', 'featured_artists', 'local'];
     const AVAILABLE_PLAYED = ['any', 'played', 'unplayed'];
     const AVAILABLE_RANKS = ['XH', 'X', 'SH', 'S', 'A', 'B', 'C', 'D'];
 
@@ -107,7 +107,7 @@ class BeatmapsetSearchRequestParams extends BeatmapsetSearchParams
             $this->showFollows = in_array('follows', $generals, true);
             $this->showRecommended = in_array('recommended', $generals, true);
             $this->showSpotlights = in_array('spotlights', $generals, true);
-            $this->showProd = in_array('prod', $generals, true);
+            $this->showLocal = in_array('local', $generals, true);
 
             $this->includeNsfw = $params['nsfw']
                 ?? UserProfileCustomization::forUser($user)['beatmapset_show_nsfw'];

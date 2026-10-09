@@ -103,10 +103,6 @@ return [
         'loved_controller' => [
             '_' => 'project loved',
         ],
-        // TomYum: osu!dan.
-        'dan_controller' => [
-            '_' => 'osu!dan',
-        ],
         'news_controller' => [
             '_' => 'news',
         ],

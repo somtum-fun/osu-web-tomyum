@@ -12,20 +12,12 @@ namespace App\Libraries;
  * and legal pages), its logo and favicons, the addresses on its own domain, and the texts only its
  * team can write (the support page's note, the invoice's seller). Staff set them in Admin panel >
  * Branding (TomYumSiteSettings, brand_*); unset ones fall back to config('tomyum.branding'), and the
- * texts to production's, the server this was first written for.
+ * texts to the defaults below.
  */
 class TomYumBranding
 {
     /** Built-in logos: the image (normal, @2x), the white one for the menu bar, its triangles, and width ÷ height. */
     public const LOGOS = [
-        'prod' => [
-            'label' => 'production wordmark',
-            'image' => '/images/layout/prod-logo.png',
-            'image_2x' => '/images/layout/prod-logo@2x.png',
-            'nav' => '/images/layout/prod-logo@2x.png',
-            'nav_bg' => null,
-            'ratio' => 480 / 180,
-        ],
         'osu' => [
             'label' => 'osu!\'s logo (ppy\'s trademark)',
             'image' => '/images/layout/osu-logo.png',
@@ -42,7 +34,6 @@ class TomYumBranding
 
     /** Built-in favicon sets (folders under public/images; letter: the name's first letter, drawn). */
     public const FAVICONS = [
-        'prod' => ['label' => 'production\'s', 'folder' => '/images/favicon', 'ico' => '/favicon.ico'],
         'osu' => ['label' => 'osu!\'s (ppy\'s trademark)', 'folder' => '/images/favicon-osu', 'ico' => '/images/favicon-osu/favicon.ico'],
         'letter' => ['label' => 'The name\'s first letter', 'folder' => null, 'ico' => null],
     ];
@@ -50,7 +41,7 @@ class TomYumBranding
     /** The text logo's and letter favicon's colour (osu-web's pink, the site's own accent). */
     public const TEXT_COLOUR = '#ff66ab';
 
-    /** The texts' defaults: production's (":brand" is the name; :vote_url the vote page). */
+    /** The texts' defaults (":brand" is the name; :vote_url the vote page). */
     public const DEFAULTS = [
         'support_note' => "Running :brand isn't easy or cheap.\n\n"
             ."We're committed to making :brand a free-to-win experience. We put in a lot of time, effort, "
@@ -59,27 +50,25 @@ class TomYumBranding
             ."helps us keep :brand alive and growing. Can't pay? You can also earn supporter for free by "
             ."[voting for us](:vote_url).\n\n"
             ."A huge thank you to all our donors - you're the reason we can keep doing this.",
-        'support_signature' => 'Server Operator, :brand',
-        'invoice_seller' => 'Server Operator',
-        'invoice_contact' => 'mind@example.com / +00 000 000 000',
-        'keywords' => ':brand, prod, osu! private server, osu private server, :country, rhythm game, relax, autopilot',
+        'support_signature' => 'The :brand team',
+        'invoice_seller' => '',
+        'invoice_contact' => '',
+        'keywords' => ':brand, osu! private server, rhythm game, relax, autopilot',
         // Who runs the server and where (:operator and :country in the texts and the legal pages).
-        'operator' => 'Server Operator',
-        'country' => 'Thailand',
+        'operator' => '',
+        'country' => '',
         // The page description search engines and link previews show.
-        'description' => ':brand, an unofficial osu! private server from :country: osu!(stable) and lazer, Relax and Autopilot leaderboards, custom beatmaps and more.',
+        'description' => ':brand, an unofficial osu! private server: osu!(stable) and lazer, Relax and Autopilot leaderboards, custom beatmaps and more.',
         // The Privacy Policy's parts that depend on how the server is run (markdown lists).
-        'privacy_payments' => "- TrueMoney Privacy Policy (for players in Thailand): <https://www.truemoney.com/privacy-notice>\n"
-            .'- Stripe Privacy Policy (for players outside Thailand): <https://stripe.com/th/privacy>',
-        'privacy_hosting' => '- [OVHcloud](https://www.ovhcloud.com) (located in Singapore, operated by OVH Groupe SA)',
-        'privacy_laws' => "- **Thailand users:** [Thailand PDPA (Personal Data Protection Act)](https://www.ratchakitcha.soc.go.th/DATA/PDF/2562/A/069/T_0052.PDF)\n"
-            ."- **European Union users:** [General Data Protection Regulation (GDPR)](https://gdpr-info.eu)\n"
+        'privacy_payments' => '- Stripe Privacy Policy (card payments): <https://stripe.com/privacy>',
+        'privacy_hosting' => '',
+        'privacy_laws' => "- **European Union users:** [General Data Protection Regulation (GDPR)](https://gdpr-info.eu)\n"
             .'- **Other countries/regions:** We strive to comply with the privacy laws applicable in your specific country or state.',
         'footer' => ':brand :year · an unofficial osu! private server, not affiliated with ppy Pty Ltd. osu! is a trademark of ppy Pty Ltd.',
         // The support page's "Run by Volunteers" reason.
-        'support_team' => ':brand is a free, unofficial server run in our spare time by a couple of volunteers in :country. Nobody here gets paid.',
+        'support_team' => ':brand is a free, unofficial server run in our spare time by volunteers. Nobody here gets paid.',
         // The download page: the lazer build's name, and the stable patcher's.
-        'downloads_client_name' => 'lazer-fork',
+        'downloads_client_name' => 'osu!(lazer)',
         'downloads_patcher_name' => ':brand patcher',
     ];
 
@@ -123,7 +112,7 @@ class TomYumBranding
         return $local.'@'.static::emailDomain();
     }
 
-    /** The logo setting: a built-in's key (prod, osu) or an image's address. */
+    /** The logo setting: a built-in's key (text, osu) or an image's address. */
     public static function logoChoice(): string
     {
         return static::setting('logo') ?? $GLOBALS['cfg']['tomyum']['branding']['logo'];
@@ -181,7 +170,7 @@ class TomYumBranding
     {
         $choice = static::setting('favicon') ?? $GLOBALS['cfg']['tomyum']['branding']['favicon'];
 
-        return isset(static::FAVICONS[$choice]) ? $choice : 'prod';
+        return isset(static::FAVICONS[$choice]) ? $choice : 'letter';
     }
 
     /** A favicon file's address: favicon('favicon-32x32.png'), or favicon() for the .ico. */
@@ -251,7 +240,7 @@ class TomYumBranding
 
     /**
      * A text setting with its placeholders filled in (:brand, :year, :vote_url); an empty one is ''
-     * (hidden), an unset one production's default.
+     * (hidden), an unset one the default.
      */
     public static function text(string $name): string
     {
@@ -291,7 +280,7 @@ class TomYumBranding
     /** The file host with manifest.json (the lazer builds, the patcher, the hook, the legacy clients). */
     public static function downloadsHost(): string
     {
-        return rtrim(static::setting('downloads_host') ?? presence(env('TOMYUM_DL_URL')) ?? 'https://dl.example.com', '/');
+        return rtrim(static::setting('downloads_host') ?? presence(env('TOMYUM_DL_URL')) ?? '', '/');
     }
 
     /** Where the lazer button goes when it isn't the file host's build (null: the file host's). */
@@ -359,7 +348,7 @@ class TomYumBranding
 
     /**
      * A legal page's own text (markdown) when staff wrote one; null for the built-in page
-     * (tomyum-legal/*, production's wording with this server's name); '' when it's hidden.
+     * (tomyum-legal/*, the built-in wording with this server's name); '' when it's hidden.
      */
     public static function legalText(string $page): ?string
     {

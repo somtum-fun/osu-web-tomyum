@@ -1,3 +1,17 @@
+# osu-web for TomYum
+
+This is [ppy/osu-web](https://github.com/ppy/osu-web), with ppy's history, plus the changes that make it
+the website of a [TomYum](https://github.com/somtum-fun/TomYum-OSS) server: accounts shared with the game
+server, staff panels (BN, GMT, admin), branding, downloads, legal pages and store checkout through
+payments-service (Stripe). Changes to ppy's files are marked with a `TomYum:` comment.
+
+Not affiliated with ppy Pty Ltd. osu! is a trademark of ppy Pty Ltd; the licence below (AGPL-3.0) covers
+the code, not the osu! name, logo or artwork.
+
+Known gaps: the store's prices and currency are still baht/US$ (`SupporterTag`, `store_currency()`).
+
+---
+
 # osu!web
 
 [![Tests](https://github.com/ppy/osu-web/actions/workflows/tests.yml/badge.svg)](https://github.com/ppy/osu-web/actions/workflows/tests.yml)

@@ -173,7 +173,7 @@ return [
     'is_development_deploy' => get_bool(env('IS_DEVELOPMENT_DEPLOY')) ?? true,
     'landing' => [
         // TomYum: our own videos (public/media), not ppy's (they show osu!'s logo and pippi).
-        'video_url' => presence(env('LANDING_VIDEO_URL')) ?? '/media/landing.mp4',
+        'video_url' => presence(env('LANDING_VIDEO_URL')),
     ],
     'legacy' => [
         'bancho_bot_user_id' => get_int(env('BANCHO_BOT_USER_ID')) ?? 3,
@@ -247,7 +247,7 @@ return [
         'bounty-form' => env('OS_BOUNTY_URL'),
         // TomYum: our own Discord, status page and socials; empty, the link isn't shown.
         'dev' => presence(env('OSU_URL_DISCORD')),
-        'download_video' => presence(env('OSU_URL_DOWNLOAD_VIDEO')) ?? '/media/download.mp4',
+        'download_video' => presence(env('OSU_URL_DOWNLOAD_VIDEO')),
         'installer' => 'https://m1.ppy.sh/r/osu!install.exe',
         'installer-mirror' => 'https://m2.ppy.sh/r/osu!install.exe',
         'lazer_dl.android' => presence(env('OSU_URL_LAZER_ANDROID')) ?? 'https://github.com/ppy/osu/releases/latest/download/sh.ppy.osulazer.apk',

@@ -39,8 +39,8 @@ class OrderCheckout
         }
 
         if ($this->order->getTotal() > 0) {
-            // TomYum: TrueMoney and cards (Stripe) through payments-service, not PayPal or Xsolla.
-            return [Order::PROVIDER_TRUEMONEY, Order::PROVIDER_STRIPE];
+            // TomYum: cards (Stripe) through payments-service, not PayPal or Xsolla.
+            return [Order::PROVIDER_STRIPE];
         }
 
         return [Order::PROVIDER_FREE];

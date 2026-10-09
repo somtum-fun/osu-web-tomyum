@@ -44,7 +44,7 @@ return [
         'sites' => [
             [
                 'name' => 'osu-server-list.com',
-                'url' => presence(env('TOMYUM_VOTE_OSL_URL')) ?? 'https://osu-server-list.com/server/prod/vote',
+                'url' => presence(env('TOMYUM_VOTE_OSL_URL')),
                 'rewarded' => true,
             ],
             [
@@ -58,7 +58,7 @@ return [
     // Ranked status is TomYum's (the osu! API plus the BN panel): don't run modding:rank here.
     'manages_ranking' => get_bool(env('TOMYUM_MANAGES_RANKING')) ?? true,
 
-    // Store payments (TrueMoney, Stripe) through payments-service (Store\TomYumCheckoutController):
+    // Store payments (Stripe) through payments-service (Store\TomYumCheckoutController):
     // where it's reached from here; empty, paying fails with "not available".
     'payments' => [
         'url' => presence(env('TOMYUM_PAYMENTS_URL')),
@@ -85,7 +85,7 @@ return [
     // or else the Zoho mailbox NoCodeAPI reads; empty TICKETS_ENABLED turns the fetching off.
     'tickets' => [
         'enabled' => get_bool(env('TICKETS_ENABLED')) ?? true,
-        // (by default the site's domain without its "osu." part: osu.sundei.eu → sundei.eu)
+        // (by default the site's domain without its "osu." part: osu.example.com → example.com)
         'domain' => presence(env('TICKETS_MAIL_DOMAIN'))
             ?? preg_replace('/^osu\./', '', parse_url((string) env('APP_URL'), PHP_URL_HOST) ?? ''),
         // IMAP over TLS (port 993); the login is the SMTP one unless set apart.
@@ -106,20 +106,19 @@ return [
     // account can send as; if it refuses this one, the mail goes from MAIL_ADDRESS instead.
     'store_mail' => [
         'address' => presence(env('MAIL_STORE_ADDRESS')) ?? presence(env('MAIL_ADDRESS')),
-        'name' => presence(env('MAIL_STORE_SENDER')) ?? 'production store',
+        'name' => presence(env('MAIL_STORE_SENDER')) ?? 'TomYum store',
     ],
 
     // This server's name, logo, favicons and contact addresses (App\Libraries\TomYumBranding). These are
-    // the defaults; staff change them in Admin panel > Branding. They're production's, the server this
-    // branding was first written for, so its site looks the same without any settings.
+    // the defaults; staff change them in Admin panel > Branding.
     'branding' => [
-        'name' => presence(env('BRAND_NAME')) ?? 'production',
+        'name' => presence(env('BRAND_NAME')) ?? 'TomYum',
         // support@, dmca@, store@… on this domain; the tickets' (TICKETS_DOMAIN) if unset.
         'email_domain' => presence(env('BRAND_EMAIL_DOMAIN')),
-        // prod (the example.com wordmark), osu (osu!'s logo) or an image's address.
-        'logo' => presence(env('BRAND_LOGO')) ?? 'prod',
-        // prod or osu.
-        'favicon' => presence(env('BRAND_FAVICON')) ?? 'prod',
+        // text (the name, drawn), osu (osu!'s logo) or an image's address.
+        'logo' => presence(env('BRAND_LOGO')) ?? 'text',
+        // letter (the name's first letter, drawn) or osu.
+        'favicon' => presence(env('BRAND_FAVICON')) ?? 'letter',
     ],
 
     // Sign-up rules for accounts made in lazer and stable (App\Libraries\TomYumRegistrationGuard):

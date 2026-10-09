@@ -288,7 +288,7 @@ return [
     'general' => [
         'converts' => 'Include converted beatmaps',
         'featured_artists' => 'Featured Artists',
-        'prod' => 'Uploaded here only', // TomYum: sets uploaded to this server (custom ids)
+        'local' => 'Uploaded here only', // TomYum: sets uploaded to this server (custom ids)
         'follows' => 'Subscribed mappers',
         'recommended' => 'Recommended difficulty',
         'spotlights' => 'Spotlighted beatmaps',

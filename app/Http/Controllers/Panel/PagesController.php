@@ -33,7 +33,6 @@ class PagesController extends Controller
                 'kudosu' => KudosuController::canAdjustKudosu($user),
                 'packs' => PacksController::canUsePacks($user),
                 'changelog' => ChangelogController::canUseChangelog($user),
-                'dan' => DanController::canManageDan($user), // TomYum: osu!dan courses
                 'tickets' => TicketsController::canUseTickets($user),
             ],
         ]);

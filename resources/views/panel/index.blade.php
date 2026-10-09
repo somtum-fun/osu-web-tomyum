@@ -20,7 +20,6 @@
                 [$panels['tickets'], 'panel.tickets.index', 'fa-inbox', 'Support', 'Tickets', 'Mail to support@, accounts@, appeals, abuse@, privacy@, dmca@ and tournaments@.', $openTickets > 0 ? "{$openTickets} open" : null],
                 [$panels['loved'], 'loved.index', 'fa-heart', 'Project Loved', 'Loved requests', 'Players\' requests, most supported first: love, reject or blacklist.', null],
                 [$panels['packs'] ?? false, 'panel.packs.index', 'fa-box-open', 'Admins and the NAT', 'Beatmap packs', 'The packs: their sets, mode and download.', null],
-                [$panels['dan'] ?? false, 'panel.dan.index', 'fa-graduation-cap', 'Admins and the NAT', 'osu!dan', 'The courses: maps, accuracy, mods and order, and the latest attempts.', null],
             ],
             'Tools' => [
                 [$panels['bots'], 'panel.bots.index', 'fa-robot', 'Admins and developers', 'Bots', 'IRC bot accounts: owners, names, avatars and passwords.', null],

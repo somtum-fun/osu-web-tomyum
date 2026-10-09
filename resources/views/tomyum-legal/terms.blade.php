@@ -67,7 +67,7 @@
         official osu!supporter tag, and none of it goes to ppy.</li>
     <li>Supporter gives cosmetic and convenience perks only. It never gives an advantage in gameplay or
         rankings.</li>
-    <li>Payments are handled by TrueMoney and Stripe. Donations are non-refundable, except where the law says
+    <li>Payments are handled by Stripe. Donations are non-refundable, except where the law says
         otherwise. If something went wrong with a payment, write to
         <a href="mailto:{{ App\Libraries\TomYumTickets::address('support') }}">{{ App\Libraries\TomYumTickets::address('support') }}</a>.</li>
     <li>Supporter time you get by voting for us on server lists works the same way and has no cash value.</li>

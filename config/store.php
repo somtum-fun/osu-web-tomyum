@@ -6,7 +6,7 @@ return [
         // TomYum: from this server's store address, not osu!'s.
         'donation_thanks' => [
             'sender_address' => presence(env('STORE_THANKS_SENDER_ADDRESS')) ?? presence(env('MAIL_STORE_ADDRESS')) ?? presence(env('MAIL_ADDRESS')),
-            'sender_name' => presence(env('STORE_THANKS_SENDER_NAME')) ?? 'production',
+            'sender_name' => presence(env('STORE_THANKS_SENDER_NAME')) ?? 'TomYum',
         ],
     ],
     'order' => [

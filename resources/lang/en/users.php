@@ -577,8 +577,8 @@ return [
         'offline' => 'Offline',
     ],
     'store' => [
-        // TomYum: accounts are made in the game (lazer-fork or stable).
-        'from_client' => 'Please make your account in the game instead: lazer-fork or osu! stable.',
+        // TomYum: accounts are made in the game (lazer or stable).
+        'from_client' => 'Please make your account in the game instead: osu!(lazer) or osu! stable.',
         'from_web' => 'please complete registration using the osu! website',
         'saved' => 'User created',
     ],

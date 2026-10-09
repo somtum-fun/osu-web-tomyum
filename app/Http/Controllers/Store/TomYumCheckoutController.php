@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Http;
 use Request;
 
 /**
- * TomYum: paying for a store order (osu!supporter tags) with TrueMoney or a card, instead of PayPal and
+ * TomYum: paying for a store order (osu!supporter tags) with a card (Stripe), instead of PayPal and
  * Xsolla. payments-service takes the payment and tells the website the order is paid
  * (TomYumInterOpController::storeOrderPaid), which fulfils it like any osu!store order. The player's
  * requests go to it from here, with the shared secret and who's signed in, so it never faces the
@@ -32,29 +32,6 @@ class TomYumCheckoutController extends Controller
         $this->middleware('verify-user');
 
         parent::__construct();
-    }
-
-    /** A TrueMoney gift voucher for exactly the order's total: redeemed, and the order paid at once. */
-    public function truemoney($id)
-    {
-        $voucher = trim((string) Request::input('voucher'));
-        if ($voucher === '') {
-            return $this->failed($id, 'Paste the link of a TrueMoney gift voucher.');
-        }
-        [$order, $error] = $this->beginCheckout($id, Order::PROVIDER_TRUEMONEY);
-        if ($error !== null) {
-            return $error;
-        }
-
-        $response = $this->payments('/store/truemoney/redeem', $order, ['voucher_code' => $voucher]);
-        if ($response?->json('status') === 'success') {
-            return ujs_redirect(route('store.invoice.show', ['invoice' => $order->getKey(), 'thanks' => 1]));
-        }
-
-        // Nothing was taken (a wrong amount or a bad voucher is refused before redeeming): back to paying.
-        $this->release($order, Order::PROVIDER_TRUEMONEY);
-
-        return $this->failed($id, $this->message($response, 'The voucher couldn\'t be used. Nothing was charged.'));
     }
 
     /** A card payment on Stripe's checkout page; Stripe's webhook marks the order paid. */

@@ -16,7 +16,7 @@ return [
 
             'team' => [
                 'title' => 'Run by Volunteers',
-                'description' => ':brand is a free, unofficial server run in our spare time by a couple of volunteers in Thailand. Nobody here gets paid.',
+                'description' => ':brand is a free, unofficial server run in our spare time by volunteers. Nobody here gets paid.',
             ],
             'infra' => [
                 'title' => 'Server Infrastructure',

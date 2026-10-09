@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * TomYum: accounts players link from their settings (Discord, their osu! account on osu.ppy.sh), as
- * example-org/private-repo's user_connections. A Discord link is also written to TomYum's discord_links
+ * bancho.py-style user_connections. A Discord link is also written to TomYum's discord_links
  * (the Discord bot's). `data` keeps what the osu! check found (restriction seen, recent silences).
  */
 return new class extends Migration

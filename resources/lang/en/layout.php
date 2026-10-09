@@ -9,7 +9,7 @@ return [
     ],
 
     'defaults' => [
-        'page_description' => ':brand, an unofficial osu! private server from Thailand: osu!(stable) and lazer, Relax and Autopilot leaderboards, and free name changes.',
+        'page_description' => ':brand, an unofficial osu! private server: osu!(stable) and lazer, Relax and Autopilot leaderboards, and free name changes.',
     ],
 
     'header' => [

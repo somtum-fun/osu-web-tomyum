@@ -29,7 +29,7 @@ class TomYumInterOpController extends Controller
     }
 
     /**
-     * A store order payments-service took payment for (TrueMoney, Stripe): paid and fulfilled like any
+     * A store order payments-service took payment for (Stripe): paid and fulfilled like any
      * osu!store order (PaymentCompleted: the supporter tags, gift notifications, the receipt mail). Told
      * twice (a retried webhook), it only answers; an amount that isn't the order's total is refused.
      */
@@ -42,7 +42,7 @@ class TomYumInterOpController extends Controller
             'provider',
             'transaction_id',
         ], ['null_missing' => true]);
-        abort_unless(in_array($params['provider'], [Order::PROVIDER_STRIPE, Order::PROVIDER_TRUEMONEY], true), 422, 'unknown provider');
+        abort_unless(in_array($params['provider'], [Order::PROVIDER_STRIPE], true), 422, 'unknown provider');
         abort_unless(present($params['transaction_id']), 422, 'transaction_id is required');
 
         $order = Order::findOrFail($params['order_id']);
@@ -65,7 +65,7 @@ class TomYumInterOpController extends Controller
     }
 
     /**
-     * osu!supporter bought through payments-service (TrueMoney, Stripe): $days more for the target,
+     * osu!supporter bought through payments-service (Stripe): $days more for the target,
      * recorded as a donation from the donor like the admin panel's, so the support page and the
      * supporter level count it. A payment grants once: asked again for the same transaction_id (a
      * retried webhook), it only answers when supporter now ends.

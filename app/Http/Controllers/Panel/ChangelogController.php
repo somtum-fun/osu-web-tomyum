@@ -17,7 +17,7 @@ use Request;
 
 /**
  * TomYum: the changelog by hand (admins and developers). Versions (osu_builds) in the changelog's
- * streams (TomYumChangelog::STREAMS: lazer-fork, Stable, Legacy clients, Server, Web / Wiki,
+ * streams (TomYumChangelog::STREAMS: lazer, Stable, Legacy clients, Server, Web / Wiki,
  * Discord), and the changes in each: what kind, a title, a markdown message, a link, and who did it (a
  * player here or just a name). Versions written here have no commit hash, so the git importer's
  * --reset leaves them alone.

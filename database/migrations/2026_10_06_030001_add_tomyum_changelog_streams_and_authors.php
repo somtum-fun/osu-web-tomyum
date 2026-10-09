@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * TomYum: the changelog's streams (lazer-fork, Stable, Legacy clients, Server, Website, Discord,
+ * TomYum: the changelog's streams (lazer, Stable, Legacy clients, Server, Website, Discord,
  * Wiki: App\Libraries\TomYumChangelog), and who wrote a change written on the changelog panel: a
  * player here (tomyum_user_id) or just a name (tomyum_author), for changes without a GitHub account.
  */
