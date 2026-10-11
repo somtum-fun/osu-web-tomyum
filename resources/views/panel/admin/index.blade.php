@@ -197,6 +197,35 @@
             </form>
         </div>
 
+        <div class="tomyum-panel__card" id="bancho-welcome">
+            <h2>
+                <i class="fas fa-comment-dots"></i>In-game welcome
+                @if ($banchoWelcome['enabled'])
+                    <span class="tomyum-panel__badge tomyum-panel__badge--success">ON</span>
+                @else
+                    <span class="tomyum-panel__badge">OFF</span>
+                @endif
+            </h2>
+            <p class="tomyum-panel__hint">
+                The notice osu! (stable) shows when a player logs in. <code>{username}</code> is the player's name.
+                Leave the message empty for the default one. Logins use a change within a minute.
+            </p>
+            <form method="POST" action="{{ route('panel.admin.bancho-welcome') }}" class="tomyum-panel__row" style="align-items: flex-end">
+                @csrf
+                <label class="input-container tomyum-panel__field">
+                    <span class="input-container__label">Message</span>
+                    <input class="input-text" type="text" name="message" maxlength="500"
+                        value="{{ $banchoWelcome['message'] === App\Libraries\TomYumSiteSettings::BANCHO_WELCOME_DEFAULT ? '' : $banchoWelcome['message'] }}"
+                        placeholder="{{ App\Libraries\TomYumSiteSettings::BANCHO_WELCOME_DEFAULT }}">
+                </label>
+                <label class="tomyum-panel__field" style="flex: 0 0 auto; display: flex; gap: 6px; align-items: center">
+                    <input type="checkbox" name="enabled" value="1" @if ($banchoWelcome['enabled']) checked @endif>
+                    Show it
+                </label>
+                <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-save"></i>Save</button>
+            </form>
+        </div>
+
         {{-- TomYum: TumThai (lazer) version gating (AdminController@tumthai); the API middleware TomYumLazerVersionGate enforces it. --}}
         <div class="tomyum-panel__card" id="tumthai">
             <h2>

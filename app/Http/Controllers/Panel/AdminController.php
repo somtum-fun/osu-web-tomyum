@@ -80,6 +80,10 @@ class AdminController extends Controller
                 'enabled' => \App\Libraries\TomYumSiteSettings::developmentBannerEnabled(),
                 'message' => \App\Libraries\TomYumSiteSettings::developmentBannerMessage(),
             ],
+            'banchoWelcome' => [
+                'enabled' => \App\Libraries\TomYumSiteSettings::banchoWelcomeEnabled(),
+                'message' => \App\Libraries\TomYumSiteSettings::banchoWelcomeMessage(),
+            ],
         ]);
     }
 
@@ -184,6 +188,18 @@ class AdminController extends Controller
         $this->staffLog('site.pp_cap', null, ($enabled ? 'pp cap on' : 'pp cap off').($parts === [] ? '.' : ': '.implode(', ', $parts).'.'));
 
         return $this->backToIndex('success', $enabled ? 'The pp cap is on.' : 'The pp cap is off.');
+    }
+
+    /** The notice osu! (stable) shows at login: on or off, and its text ({username} is the player's name). */
+    public function banchoWelcome()
+    {
+        $enabled = Request::boolean('enabled');
+        $message = trim(Request::input('message') ?? '');
+        \App\Libraries\TomYumSiteSettings::set('bancho_welcome_enabled', $enabled ? '1' : '0');
+        \App\Libraries\TomYumSiteSettings::set('bancho_welcome_message', $message === '' ? null : mb_substr($message, 0, 500));
+        $this->staffLog('site.bancho_welcome', null, ($enabled ? 'In-game welcome on' : 'In-game welcome off').($message === '' ? '.' : ": {$message}"));
+
+        return $this->backToIndex('success', ($enabled ? 'The in-game welcome is on.' : 'The in-game welcome is off.').' Logins use it within a minute.');
     }
 
     /** Maintenance mode on (a message, a countdown) or off: only staff can log in while it's on. */

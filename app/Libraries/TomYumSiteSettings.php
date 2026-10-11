@@ -69,6 +69,20 @@ class TomYumSiteSettings
         return static::get('development_banner_message') ?? static::DEVELOPMENT_BANNER_DEFAULT;
     }
 
+    /** TomYum's welcome when staff haven't written their own ({username} is the player's name). */
+    public const BANCHO_WELCOME_DEFAULT = 'Welcome to TomYum, {username}!';
+
+    /** Whether osu! (stable) shows a welcome notice at login (TomYum reads bancho_welcome_*, within a minute). */
+    public static function banchoWelcomeEnabled(): bool
+    {
+        return static::get('bancho_welcome_enabled') !== '0';
+    }
+
+    public static function banchoWelcomeMessage(): string
+    {
+        return presence(static::get('bancho_welcome_message')) ?? static::BANCHO_WELCOME_DEFAULT;
+    }
+
     /** The banner's message as HTML: markdown links and emphasis, HTML escaped, on one line. */
     public static function developmentBannerHtml(): string
     {

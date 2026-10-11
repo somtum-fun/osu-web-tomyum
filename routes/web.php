@@ -178,6 +178,8 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('development-banner', 'AdminController@developmentBanner')->name('development-banner');
             // TomYum: the pp cap (basic anti-cheat) the game server enforces.
             Route::post('pp-cap', 'AdminController@ppCap')->name('pp-cap');
+            // TomYum: the notice osu! (stable) shows at login (TomYum's BanchoWelcome reads it).
+            Route::post('bancho-welcome', 'AdminController@banchoWelcome')->name('bancho-welcome');
             // TomYum: which TumThai (lazer) builds are allowed to connect (admin panel section).
             Route::post('tumthai', 'AdminController@tumthai')->name('tumthai');
             Route::get('users', 'AdminController@users')->name('users.index');
