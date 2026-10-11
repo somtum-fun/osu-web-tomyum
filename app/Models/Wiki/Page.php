@@ -384,8 +384,13 @@ class Page implements WikiObject
         }
 
         try {
-            // TomYum: only pages in the wiki's file list are fetched (a refresh reads the list again).
-            if (!OsuWiki::hasPage('wiki/'.$this->pagePath(), $force)) {
+            // TomYum: only pages in the wiki's file list are fetched (a refresh reads the list again). Without
+            // the list, the page is left as it is.
+            $hasPage = OsuWiki::hasPage('wiki/'.$this->pagePath(), $force);
+            if ($hasPage === null) {
+                return $this;
+            }
+            if (!$hasPage) {
                 throw new GitHubNotFoundException('not in the wiki\'s file list');
             }
 

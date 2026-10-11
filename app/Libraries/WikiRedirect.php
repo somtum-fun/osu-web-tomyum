@@ -5,6 +5,7 @@
 
 namespace App\Libraries;
 
+use App\Exceptions\GitHubNotFoundException;
 use App\Models\Wiki\WikiObject;
 use Exception;
 use Symfony\Component\Yaml\Yaml;
@@ -60,19 +61,24 @@ class WikiRedirect implements WikiObject
             return $this;
         }
 
+        // TomYum: a wiki without the file has no redirects, and a failed read keeps the old ones and tries
+        // again in 5 minutes. Before, both asked GitHub again on every unknown page, using up its hourly limit.
+        $cachedAt = time();
         try {
             $redirect = Yaml::parse(strip_utf8_bom(OsuWiki::fetchContent('wiki/redirect.yaml')));
+        } catch (GitHubNotFoundException $e) {
+            $redirect = [];
         } catch (Exception $e) {
             log_error($e);
-
-            return $this;
+            $redirect = $this->cache['redirect'] ?? [];
+            $cachedAt = time() - static::CACHE_DURATION + 300;
         } finally {
             $lock->release();
         }
 
         $this->cache = [
             'redirect' => $redirect ?? [],
-            'cached_at' => time(),
+            'cached_at' => $cachedAt,
         ];
         cache()->put(static::CACHE_KEY, $this->cache);
 
