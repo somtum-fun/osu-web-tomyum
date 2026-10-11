@@ -10,7 +10,7 @@
         ['title' => 'Branding'],
     ]])
     <div class="osu-page osu-page--admin tomyum-panel">
-        <form method="POST" action="{{ route('panel.admin.branding.update') }}">
+        <form method="POST" action="{{ route('panel.admin.branding.update') }}" class="tomyum-panel__form">
             @csrf
             <div class="tomyum-panel__card">
                 <h2><i class="fas fa-signature"></i>Name and addresses</h2>

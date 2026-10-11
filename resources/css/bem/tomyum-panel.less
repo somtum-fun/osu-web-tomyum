@@ -15,6 +15,24 @@
     padding-bottom: 0;
   }
 
+  // A form made of cards (the Branding page): as much space between them as between the panel's
+  // own cards, and between the fields in each.
+  &__form {
+    display: grid;
+    gap: 15px;
+
+    > .tomyum-panel__card {
+      align-content: start;
+      display: grid;
+      gap: 12px;
+
+      > h2,
+      > p {
+        margin: 0;
+      }
+    }
+  }
+
   // Cards: osu-web's page-extra look (a flat panel on the page, a title with its icon).
 
   &__card {
