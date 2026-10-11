@@ -40,6 +40,31 @@ class OsuWiki
             ->pluck('path');
     }
 
+    /**
+     * TomYum: whether the wiki has this file (wiki/<Path>/<locale>.md), from its file list (one GitHub request,
+     * kept 10 minutes; $refresh reads it again if it's over a minute old). Pages it doesn't have then cost no
+     * request: bots asking for osu!'s wiki pages here used up GitHub's 60 requests an hour. When the list
+     * can't be read, it's a yes.
+     */
+    public static function hasPage(string $path, bool $refresh = false): bool
+    {
+        $key = 'tomyum_wiki_page_list';
+        $list = \Cache::get($key);
+
+        if ($list === null || ($refresh && $list['at'] < time() - 60)) {
+            try {
+                $list = ['at' => time(), 'pages' => array_fill_keys(static::getPageList()->all(), true)];
+            } catch (\Exception $e) {
+                log_error($e);
+
+                return true;
+            }
+            \Cache::put($key, $list, 600);
+        }
+
+        return isset($list['pages'][$path]);
+    }
+
     public static function getTree(?string $sha = null, bool $recursive = true): array
     {
         return GitHub::gitData()->trees()->show(static::user(), static::repository(), $sha ?? static::branch(), $recursive);
