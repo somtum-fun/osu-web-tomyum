@@ -14,7 +14,8 @@ class LegalController extends Controller
     // TomYum: our own Terms, Privacy and Copyright pages (resources/views/tomyum-legal), in English for
     // every locale, in place of ppy's Legal/ pages from osu-wiki. Those are ppy's and name ppy as the
     // operator, so they (and the other Legal/ pages) aren't shown here.
-    // The Rules and Restrictions & Appeals pages are here too (from example.com's docs).
+    // The Rules and Restrictions & Appeals pages are here too (from example.com's docs). Each can come from our
+    // own wiki instead (its Legal/ pages), picked in Admin panel > Branding.
     private const PAGES = [
         'copyright' => 'Copyright',
         'privacy' => 'Privacy',
@@ -42,6 +43,20 @@ class LegalController extends Controller
         $canonical = parse_url(route('legal', ['locale' => $locale, 'path' => $name]), PHP_URL_PATH);
         if (request()->getPathInfo() !== $canonical) {
             return ujs_redirect(route('legal', ['locale' => $locale, 'path' => $name]));
+        }
+
+        // TomYum: the wiki's Legal/<name> page when picked in Admin panel > Branding (the built-in page while
+        // it's missing, or GitHub can't be reached the first time).
+        if (TomYumBranding::legalFromWiki($key)) {
+            $wikiPage = Wiki\Page::lookupForController("Legal/{$name}", $locale);
+            if ($wikiPage->isVisible()) {
+                return ext_view('tomyum-legal.wiki', [
+                    'page' => $key,
+                    'path' => $name,
+                    'titlePrepend' => $name,
+                    'wikiPage' => $wikiPage,
+                ]);
+            }
         }
 
         // TomYum: the text staff wrote in Admin panel > Branding, else the built-in page.

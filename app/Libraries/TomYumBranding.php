@@ -348,7 +348,7 @@ class TomYumBranding
 
     /**
      * A legal page's own text (markdown) when staff wrote one; null for the built-in page
-     * (tomyum-legal/*, the built-in wording with this server's name); '' when it's hidden.
+     * (tomyum-legal/*, the default wording with this server's name) or the wiki's; '' when it's hidden.
      */
     public static function legalText(string $page): ?string
     {
@@ -358,6 +358,12 @@ class TomYumBranding
         }
 
         return trim($value) === '' ? '' : strtr($value, [':brand' => static::name(), ':year' => date('Y')]);
+    }
+
+    /** Whether a legal page comes from the wiki (Legal/<path> in the wiki); the built-in page is its fallback. */
+    public static function legalFromWiki(string $page): bool
+    {
+        return TomYumSiteSettings::get("brand_legal_{$page}_source") === 'wiki' && static::legalText($page) === null;
     }
 
     public static function legalShown(string $page): bool

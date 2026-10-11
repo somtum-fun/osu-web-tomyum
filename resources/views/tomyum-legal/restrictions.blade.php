@@ -9,24 +9,12 @@
     $appealReview = App\Libraries\TomYumTickets::address('appeal');
     $rulesUrl = route('legal', ['locale' => app()->getLocale(), 'path' => 'Rules']);
     $appealUrl = route('tomyum-appeal.show');
-    $currentUser = Auth::user();
-    $appealAfter = $currentUser === null ? null : App\Libraries\TomYumAppeals::appealAfter($currentUser);
 @endphp
 @extends('tomyum-legal.layout')
 
 @section('legal-updated', 'Last updated: 6 October 2026')
 
 @section('legal-body')
-@if ($appealAfter !== null)
-    <div class="tomyum-legal__notice">
-        @if ($appealAfter->isFuture())
-            Your account is restricted. You can appeal from <strong>{{ $appealAfter->format('j F Y') }}</strong>.
-        @else
-            Your account is restricted, and your appeal cooldown is over: you can <a href="{{ $appealUrl }}">send your appeal</a> now.
-        @endif
-    </div>
-@endif
-
 <h2>What is a restriction?</h2>
 <p>
     Your account can be "restricted" if you break the <a href="{{ $rulesUrl }}">rules</a> badly enough to need a

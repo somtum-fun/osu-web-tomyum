@@ -197,7 +197,9 @@
             <div class="tomyum-panel__card" id="legal">
                 <h2><i class="fas fa-balance-scale"></i>Legal pages</h2>
                 <p class="tomyum-panel__hint">
-                    Built-in: the default wording with this server's name and addresses. Your own: markdown, with <code>:brand</code> and <code>:year</code>.
+                    Built-in: the default wording with this server's name and addresses. From the wiki: the page <code>Legal/&lt;name&gt;</code>
+                    in the wiki (<a href="https://github.com/{{ App\Libraries\OsuWiki::user() }}/{{ App\Libraries\OsuWiki::repository() }}/tree/{{ App\Libraries\OsuWiki::branch() }}/wiki/Legal" target="_blank">on GitHub</a>),
+                    changed by pull request; the built-in page shows while it's missing. Your own: markdown, with <code>:brand</code> and <code>:year</code>.
                     Hidden: no page and no footer link.
                 </p>
                 <p class="tomyum-panel__hint">The built-in Privacy Policy's parts that depend on how you run the server (markdown lists; empty hides one):</p>
@@ -223,6 +225,7 @@
                                 </span>
                                 <select class="input-text" name="legal_{{ $page }}_mode">
                                     <option value="builtin" @selected($legal[$page]['mode'] === 'builtin')>Built-in</option>
+                                    <option value="wiki" @selected($legal[$page]['mode'] === 'wiki')>From the wiki (Legal/{{ $path }})</option>
                                     <option value="custom" @selected($legal[$page]['mode'] === 'custom')>Your own text (below)</option>
                                     <option value="hidden" @selected($legal[$page]['mode'] === 'hidden')>Hidden</option>
                                 </select>

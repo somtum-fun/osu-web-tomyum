@@ -58,12 +58,14 @@ class BrandingController extends Controller
             'downloadsHost' => TomYumBranding::downloadsHost(),
             'switches' => array_combine(static::SWITCHES, array_map(fn ($name) => TomYumBranding::enabled($name), static::SWITCHES)),
             'voteSites' => TomYumBranding::voteSitesText(),
-            // Each legal page: builtin, custom (with its text) or hidden.
+            // Each legal page: builtin, wiki, custom (with its text) or hidden.
             'legal' => array_map(function ($key) use ($saved) {
                 $value = $saved["legal_{$key}"];
 
                 return [
-                    'mode' => $value === null ? 'builtin' : (trim($value) === '' ? 'hidden' : 'custom'),
+                    'mode' => $value === null
+                        ? (TomYumBranding::legalFromWiki($key) ? 'wiki' : 'builtin')
+                        : (trim($value) === '' ? 'hidden' : 'custom'),
                     'text' => $value ?? '',
                 ];
             }, array_combine(array_keys(TomYumBranding::LEGAL_PAGES), array_keys(TomYumBranding::LEGAL_PAGES))),
@@ -148,7 +150,7 @@ class BrandingController extends Controller
         }
         $put('vote_sites', $voteSites === TomYumBranding::voteSitesText(TomYumBranding::defaultVoteSites()) ? null : $voteSites);
 
-        // Legal pages: the built-in one (unset), staff's own text, or hidden ('').
+        // Legal pages: the built-in one (unset), the wiki's (unset, with source "wiki"), staff's own text, or hidden ('').
         foreach (TomYumBranding::LEGAL_PAGES as $page => [, $title]) {
             $mode = (string) Request::input("legal_{$page}_mode");
             $text = str_replace("\r\n", "\n", trim((string) Request::input("legal_{$page}")));
@@ -162,6 +164,7 @@ class BrandingController extends Controller
             };
             $before = TomYumSiteSettings::get("brand_legal_{$page}");
             $put("legal_{$page}", $value);
+            $put("legal_{$page}_source", $mode === 'wiki' ? 'wiki' : null);
             if ($mode === 'custom' && $before !== $value) {
                 TomYumSiteSettings::set("brand_legal_{$page}_updated", now()->toDateString());
             }
