@@ -214,24 +214,27 @@
                     </label>
                 @endforeach
                 @foreach (App\Libraries\TomYumBranding::LEGAL_PAGES as $page => [$path, $title])
-                    <div style="margin-bottom: 14px">
+                    <div class="js-legal-page" style="margin-bottom: 14px">
                         <div class="tomyum-panel__row">
                             <label class="input-container input-container--select tomyum-panel__field">
-                                <span class="input-container__label">
-                                    {{ $title }}
-                                    @if ($legal[$page]['mode'] !== 'hidden')
-                                        · <a href="{{ route('legal', ['locale' => app()->getLocale(), 'path' => $path]) }}" target="_blank">view</a>
-                                    @endif
-                                </span>
-                                <select class="input-text" name="legal_{{ $page }}_mode">
+                                <span class="input-container__label">{{ $title }}</span>
+                                <select class="input-text js-legal-mode" name="legal_{{ $page }}_mode">
                                     <option value="builtin" @selected($legal[$page]['mode'] === 'builtin')>Built-in</option>
                                     <option value="wiki" @selected($legal[$page]['mode'] === 'wiki')>From the wiki (Legal/{{ $path }})</option>
-                                    <option value="custom" @selected($legal[$page]['mode'] === 'custom')>Your own text (below)</option>
+                                    <option value="custom" @selected($legal[$page]['mode'] === 'custom')>Your own text</option>
                                     <option value="hidden" @selected($legal[$page]['mode'] === 'hidden')>Hidden</option>
                                 </select>
                             </label>
                         </div>
-                        <textarea class="input-text" name="legal_{{ $page }}" rows="{{ $legal[$page]['mode'] === 'custom' ? 10 : 2 }}" style="width: 100%" placeholder="Your own {{ $title }} (markdown), used when &quot;Your own text&quot; is picked">{{ $legal[$page]['text'] }}</textarea>
+                        <p class="tomyum-panel__hint">
+                            @if ($legal[$page]['mode'] !== 'hidden')
+                                <a href="{{ route('legal', ['locale' => app()->getLocale(), 'path' => $path]) }}" target="_blank">View the page</a>
+                            @endif
+                            <span class="js-legal-wiki" @if ($legal[$page]['mode'] !== 'wiki') hidden @endif>
+                                · <a href="https://github.com/{{ App\Libraries\OsuWiki::user() }}/{{ App\Libraries\OsuWiki::repository() }}/blob/{{ App\Libraries\OsuWiki::branch() }}/wiki/Legal/{{ $path }}/en.md" target="_blank">its wiki page on GitHub</a>
+                            </span>
+                        </p>
+                        <textarea class="input-text js-legal-text" name="legal_{{ $page }}" rows="10" style="width: 100%" placeholder="Your own {{ $title }} (markdown)" @if ($legal[$page]['mode'] !== 'custom') hidden @endif>{{ $legal[$page]['text'] }}</textarea>
                     </div>
                 @endforeach
             </div>
@@ -241,4 +244,20 @@
             </div>
         </form>
     </div>
+@endsection
+
+@section('script')
+    @parent
+    <script>
+        (() => {
+            // Each legal page: its text box only for "Your own text", its GitHub link only for the wiki.
+            document.querySelectorAll('.js-legal-page').forEach((page) => {
+                const mode = page.querySelector('.js-legal-mode');
+                mode.addEventListener('change', () => {
+                    page.querySelector('.js-legal-text').hidden = mode.value !== 'custom';
+                    page.querySelector('.js-legal-wiki').hidden = mode.value !== 'wiki';
+                });
+            });
+        })();
+    </script>
 @endsection
