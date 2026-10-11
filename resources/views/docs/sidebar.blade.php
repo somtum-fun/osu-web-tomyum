@@ -34,8 +34,9 @@
             </a>
         </li>
         <li style="padding-bottom: 5px;">
-            <a href="https://osu.ppy.sh">
-                osu!
+            {{-- TomYum: this server's site, not osu!'s. --}}
+            <a href="{{ $GLOBALS['cfg']['app']['url'] }}">
+                {{ $GLOBALS['cfg']['tomyum']['branding']['name'] }}
             </a>
         </li>
         @if($metadata['postman_collection_url'])

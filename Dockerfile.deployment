@@ -102,6 +102,8 @@ RUN yarn production
 
 RUN php artisan ip2asn:update
 RUN php artisan scribe:generate
+# TomYum: our addresses in the docs' examples, not osu!'s.
+RUN php artisan tomyum:docs-hosts
 
 RUN rm -rf node_modules
 
