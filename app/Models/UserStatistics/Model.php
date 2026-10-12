@@ -185,9 +185,18 @@ abstract class Model extends BaseModel
             // There's this alternative
             //   rank_score_index < $this->rank_score_index AND rank_score_index > 0 AND rank_score > 0
             // but it is slower.
-            return static::where('country_acronym', $this->country_acronym)
-                ->where('rank_score', '>', static::where('user_id', $this->user_id)->select('rank_score'))
-                ->count() + 1;
+            // TomYum: the inactivity rule, as in the rankings (inactive players have no country rank either).
+            $inactiveDays = $GLOBALS['cfg']['tomyum']['ranking_inactive_days'];
+            if ($inactiveDays > 0 && $this->last_played < now()->subDays($inactiveDays)) {
+                return;
+            }
+            $query = static::where('country_acronym', $this->country_acronym)
+                ->where('rank_score', '>', static::where('user_id', $this->user_id)->select('rank_score'));
+            if ($inactiveDays > 0) {
+                $query->where('last_played', '>=', now()->subDays($inactiveDays));
+            }
+
+            return $query->count() + 1;
         });
     }
 

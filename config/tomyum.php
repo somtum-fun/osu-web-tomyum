@@ -57,6 +57,9 @@ return [
 
     // Ranked status is TomYum's (the osu! API plus the BN panel): don't run modding:rank here.
     'manages_ranking' => get_bool(env('TOMYUM_MANAGES_RANKING')) ?? true,
+    // Players with no score in a ruleset for this many days are off its rankings (0: off; the game
+    // server's TOMYUM_RANKING__INACTIVEDAYS must say the same).
+    'ranking_inactive_days' => get_int(env('TOMYUM_RANKING_INACTIVE_DAYS')) ?? 0,
 
     // Store payments (Stripe) through payments-service (Store\TomYumCheckoutController):
     // where it's reached from here; empty, paying fails with "not available".
