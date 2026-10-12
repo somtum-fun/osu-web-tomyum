@@ -264,7 +264,8 @@ return [
         'smilies' => '/forum/images/smilies',
         'social.twitter' => presence(env('OSU_URL_TWITTER')),
         // TomYum: this site is built on ppy's osu-web (AGPL-3.0).
-        'source_code' => presence(env('OSU_URL_SOURCE_CODE')) ?? 'https://github.com/ppy/osu-web',
+        // TomYum: the footer's Source Code link is this fork (set OSU_URL_SOURCE_CODE for your own).
+        'source_code' => presence(env('OSU_URL_SOURCE_CODE')) ?? 'https://github.com/somtum-fun/osu-web-tomyum',
         'testflight.public' => env('TESTFLIGHT_LINK'),
         'testflight.supporter' => env('TESTFLIGHT_LINK_SUPPORTER'),
         'user.recover' => '/wiki/Help_centre/Account#sign-in',
