@@ -85,6 +85,7 @@ class LastFmController extends Controller
         } catch (InvariantException $e) {
             return $this->back('error', "The game server couldn't be reached; try again in a moment.");
         }
+        \App\Libraries\TomYumConnections::setShownOnProfile(Auth::user(), 'lastfm', false);
 
         return $this->back('success', 'Disconnected from Last.fm.');
     }

@@ -7,6 +7,7 @@
     $connections = App\Libraries\TomYumConnections::status(Auth::user());
     $connectionsStatus = session('connections_status');
     $icons = ['discord' => 'fab fa-discord', 'osu_bancho' => 'fal fa-extra-mode-osu'];
+    $shownOnProfile = App\Libraries\TomYumConnections::shownOnProfile(Auth::user());
 @endphp
 <div class="account-edit" id="connections">
     <div class="account-edit__section">
@@ -18,7 +19,7 @@
             @if ($connectionsStatus !== null)
                 <p style="color: hsl(var({{ $connectionsStatus['type'] === 'success' ? '--hsl-lime-1' : '--hsl-red-1' }}))">{{ $connectionsStatus['message'] }}</p>
             @endif
-            <p>Link your Discord and your osu! account (osu.ppy.sh). Applying to be a Beatmap Nominator needs both.</p>
+            <p>Link your Discord and your osu! account (osu.ppy.sh). Applying to be a Beatmap Nominator needs both. Linked accounts stay private unless you show them on your profile.</p>
 
             @foreach (App\Libraries\TomYumConnections::KINDS as $kind)
                 @php
@@ -42,6 +43,7 @@
                                     {{ $link['name'] ?? 'Discord account '.$link['id'] }}
                                 @endif
                             </p>
+                            @include('accounts._connection_profile_toggle', ['kind' => $kind, 'shown' => in_array($kind, $shownOnProfile, true)])
                             <form method="POST" action="{{ route('account.connections.destroy', ['kind' => $kind]) }}" onsubmit="return confirm('Unlink {{ $label }}?')">
                                 @csrf
                                 @method('DELETE')

@@ -199,6 +199,28 @@ function ListeningLink({ user }: Props) {
   );
 }
 
+// TomYum: linked accounts (osu!, Discord, Last.fm) they chose to show, from account settings.
+const connectionIcons = {
+  discord: ['fab fa-discord', 'Discord'],
+  lastfm: ['fab fa-lastfm', 'Last.fm'],
+  osu_bancho: ['fal fa-extra-mode-osu', 'osu!'],
+} as const;
+
+function ConnectionLink({ connection }: { connection: NonNullable<UserExtendedJson['tomyum_connections']>[number] }) {
+  const [icon, title] = connectionIcons[connection.kind];
+
+  return (
+    <div className='profile-links__item'>
+      <span className='profile-links__icon' title={title}>
+        <span className={`fa-fw ${icon}`} />
+      </span>
+      <a className='profile-links__value profile-links__value--link' href={connection.url} rel='nofollow noopener noreferrer' target='_blank'>
+        {connection.name}
+      </a>
+    </div>
+  );
+}
+
 export default class Links extends React.PureComponent<Props> {
   render() {
     const rows = [
@@ -207,7 +229,10 @@ export default class Links extends React.PureComponent<Props> {
         ...bioKeys.map(this.renderLink),
         this.props.user.tomyum_lastfm ? <ListeningLink key='listening' user={this.props.user} /> : null,
       ],
-      mediaKeys.map(this.renderLink),
+      [
+        ...mediaKeys.map(this.renderLink),
+        ...(this.props.user.tomyum_connections ?? []).map((connection) => <ConnectionLink key={`connection-${connection.kind}`} connection={connection} />),
+      ],
     ].map((row) => compact(row)).filter((x) => x.length > 0);
 
     return (

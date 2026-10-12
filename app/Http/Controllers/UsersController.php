@@ -729,6 +729,8 @@ class UsersController extends Controller
             $lastFm = static::tomyumListening($user);
             $userArray['tomyum_lastfm'] = $lastFm !== null;
             $userArray['tomyum_listening'] = $lastFm['listening'] ?? null;
+            // TomYum: the linked accounts (osu!, Discord, Last.fm) they chose to show.
+            $userArray['tomyum_connections'] = \App\Libraries\TomYumConnections::profileLinks($user, $lastFm['username'] ?? null);
             // TomYum: their default Relax/Autopilot mode, if any (the profile's "set as default").
             $userArray['tomyum_default_variant'] = \App\Libraries\TomYumModeScores::defaultVariant($user);
             // TomYum: starred modes (vanilla/relax/autopilot) the player wants pinned.
@@ -763,7 +765,7 @@ class UsersController extends Controller
     }
 
     /**
-     * TomYum: the player's Last.fm "now playing", as {listening: {artist, title, url} or null}; null
+     * TomYum: the player's Last.fm "now playing" and name, as {listening: {artist, title, url} or null, username}; null
      * when they haven't connected Last.fm (or the game server can't be reached).
      */
     private static function tomyumListening(User $user): ?array

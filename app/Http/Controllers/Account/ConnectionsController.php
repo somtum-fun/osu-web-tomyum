@@ -60,6 +60,21 @@ class ConnectionsController extends Controller
         return $this->back('success', TomYumConnections::LABELS[$kind].' unlinked.');
     }
 
+    /** "Show on my profile" for a linked osu!, Discord or Last.fm account. */
+    public function profile(string $kind)
+    {
+        abort_unless(in_array($kind, TomYumConnections::PROFILE_KINDS, true), 404);
+        $shown = Request::boolean('shown');
+        TomYumConnections::setShownOnProfile(Auth::user(), $kind, $shown);
+
+        $label = $kind === 'lastfm' ? 'Last.fm' : TomYumConnections::LABELS[$kind];
+        $message = $shown ? "Your {$label} account shows on your profile." : "Your {$label} account is hidden from your profile.";
+
+        return $kind === 'lastfm'
+            ? redirect(route('account.edit').'#lastfm')->with('lastfm_status', ['type' => 'success', 'message' => $message])
+            : $this->back('success', $message);
+    }
+
     /** GET /api/v2/me/tomyum-connections: what the signed-in player has linked (QAT's BN application). */
     public function me()
     {

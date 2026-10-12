@@ -29,6 +29,9 @@ class TomYumConnections
 
     public const LABELS = ['discord' => 'Discord', 'osu_bancho' => 'osu! (osu.ppy.sh)'];
 
+    /** Linked accounts a player can show on their profile (account settings, "Show on my profile"). */
+    public const PROFILE_KINDS = ['osu_bancho', 'discord', 'lastfm'];
+
     /** How long a restriction seen on osu! keeps a player from applying. */
     public const RESTRICTION_DAYS = 365;
 
@@ -134,6 +137,57 @@ class TomYumConnections
         if ($kind === 'discord') {
             DB::table('tomyum.discord_links')->where('user_id', $user->getKey())->delete();
         }
+        static::setShownOnProfile($user, $kind, false);
+    }
+
+    /** The kinds the player shows on their profile. */
+    public static function shownOnProfile(User $user): array
+    {
+        return DB::table('tomyum_profile_connections')->where('user_id', $user->getKey())->pluck('kind')->all();
+    }
+
+    public static function setShownOnProfile(User $user, string $kind, bool $shown): void
+    {
+        $key = ['user_id' => $user->getKey(), 'kind' => $kind];
+        if ($shown) {
+            DB::table('tomyum_profile_connections')->insertOrIgnore($key);
+        } else {
+            DB::table('tomyum_profile_connections')->where($key)->delete();
+        }
+    }
+
+    /**
+     * The linked accounts the player shows on their profile, in PROFILE_KINDS order:
+     * [['kind', 'name', 'url'], ...]. Last.fm's name comes from the game server (null: not connected).
+     */
+    public static function profileLinks(User $user, ?string $lastFmName): array
+    {
+        $shown = static::shownOnProfile($user);
+        if ($shown === []) {
+            return [];
+        }
+
+        $status = static::status($user, false);
+        $links = [];
+        foreach (static::PROFILE_KINDS as $kind) {
+            if (!in_array($kind, $shown, true)) {
+                continue;
+            }
+            if ($kind === 'lastfm') {
+                if ($lastFmName !== null) {
+                    $links[] = ['kind' => $kind, 'name' => $lastFmName, 'url' => 'https://www.last.fm/user/'.rawurlencode($lastFmName)];
+                }
+            } elseif ($status[$kind]['linked']) {
+                $id = $status[$kind]['id'];
+                $links[] = [
+                    'kind' => $kind,
+                    'name' => $status[$kind]['name'] ?? ($kind === 'discord' ? 'Discord' : (string) $id),
+                    'url' => $kind === 'osu_bancho' ? "https://osu.ppy.sh/users/{$id}" : "https://discord.com/users/{$id}",
+                ];
+            }
+        }
+
+        return $links;
     }
 
     /**

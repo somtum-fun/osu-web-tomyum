@@ -525,6 +525,7 @@ Route::group(['middleware' => ['web']], function () {
             Route::get('connections/{kind}', 'Account\ConnectionsController@create')->name('connections.create');
             Route::get('connections/{kind}/callback', 'Account\ConnectionsController@callback')->name('connections.callback');
             Route::delete('connections/{kind}', 'Account\ConnectionsController@destroy')->name('connections.destroy');
+            Route::post('connections/{kind}/profile', 'Account\ConnectionsController@profile')->name('connections.profile');
 
             // TomYum: Last.fm scrobbling.
             Route::get('lastfm', 'Account\LastFmController@create')->name('lastfm.create');

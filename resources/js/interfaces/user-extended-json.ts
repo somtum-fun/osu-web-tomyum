@@ -46,6 +46,8 @@ interface UserExtendedAdditionalAttributes {
   // TomYum: the song Last.fm says they are listening to (profile pages only).
   tomyum_listening?: { artist: string; image: string | null; title: string; url: string | null } | null;
   tomyum_lastfm?: boolean;
+  // TomYum: linked accounts they show on their profile (account settings).
+  tomyum_connections?: { kind: 'discord' | 'lastfm' | 'osu_bancho'; name: string; url: string }[];
   playmode: Ruleset;
   playstyle: string[];
   post_count: number;

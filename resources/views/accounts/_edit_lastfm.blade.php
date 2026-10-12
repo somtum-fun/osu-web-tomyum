@@ -28,6 +28,7 @@
                                 <a href="https://www.last.fm/user/{{ rawurlencode($lastFm['username']) }}" rel="nofollow noopener" target="_blank">{{ $lastFm['username'] }}</a>:
                                 every map you pass, on stable or lazer, as its song. Last.fm shows what you're playing while you play, and your profile shows what you're listening to.
                             </p>
+                            @include('accounts._connection_profile_toggle', ['kind' => 'lastfm', 'shown' => in_array('lastfm', App\Libraries\TomYumConnections::shownOnProfile(Auth::user()), true)])
                             <div id="lastfm-recent" data-url="{{ route('account.lastfm.recent') }}" style="margin: 12px 0 16px; max-width: 560px">
                                 @include('accounts._lastfm_recent', ['recent' => $lastFm['recent'] ?? []])
                             </div>
