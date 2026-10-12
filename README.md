@@ -35,6 +35,9 @@ Please see [CONTRIBUTING.md](CONTRIBUTING.md) for information about the code sta
 
 While we have standards in place, nothing is set in stone. If you have an issue with the way code is structured; with any libraries we are using; with any processes involved with contributing, *please* bring it up. We welcome all feedback so we can make contributing to this project as pain-free as possible.
 
+Everyone taking part follows our [Code of Conduct](CODE_OF_CONDUCT.md) (the Contributor Covenant); report
+problems to [mind@somtum.fun](mailto:mind@somtum.fun).
+
 Our team believes in using AI as an assistant, always under human review. Low-effort AI-generated ("slop") pull requests or comments may be closed without notice.
 
 ## Security
