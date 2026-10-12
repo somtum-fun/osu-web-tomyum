@@ -90,8 +90,22 @@ class TomYumSetup extends Command
 
     private function groups(): void
     {
-        if (Group::count() === 0) {
-            $this->call('db:seed', ['--class' => 'Database\Seeders\ModelSeeders\GroupSeeder', '--force' => true]);
+        // TomYum: the migrations add groups of their own (tc, spt, medal, ...) before this runs, so the
+        // table is rarely empty on a fresh database; make each of osu-web's groups that is missing,
+        // as the GroupSeeder would (which truncates, so it isn't run here).
+        foreach (Group::PRIV_IDENTIFIERS as $identifier) {
+            if (Group::where('identifier', $identifier)->exists()) {
+                continue;
+            }
+            Group::create([
+                'group_desc' => '',
+                'group_name' => $identifier,
+                'group_type' => 2,
+                'has_playmodes' => in_array($identifier, ['bng', 'bng_limited'], true),
+                'identifier' => $identifier,
+                'short_name' => $identifier,
+            ]);
+            $this->line("Group {$identifier}: made.");
         }
 
         foreach (static::GROUPS as $identifier => [$name, $short, $colour, $order, $listed]) {

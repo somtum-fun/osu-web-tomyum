@@ -306,11 +306,17 @@ class RankingController extends Controller
                     $candidate = 'tomyum_snapshot_'.(new $class())->getTable();
                     $snapshotTable = DB::getSchemaBuilder()->hasTable($candidate) ? $candidate : null;
                 }
-                $stats = ($snapshotTable === null ? $class::query() : $class::from($snapshotTable))
+                // The model itself reads the snapshot table, so its relations (whereHas('user')) qualify
+                // columns with that table too; from() alone would leave them on the live one.
+                $stats = ($snapshotTable === null ? $class::query() : (new $class())->setTable($snapshotTable)->newQuery())
                     ->with(['user', 'user.country', 'user.team'])->where('rank_score', '>', 0)
                     // TomYum: restricted, banned and deleted players aren't ranked (osu! zeroes their stats
                     // elsewhere; here they're kept, so an unrestricted player comes back as they were).
                     ->whereHas('user', fn ($user) => $user->default());
+                // TomYum: the inactivity rule (no score for a while: off the ranking until the next one).
+                if (($inactiveDays = $GLOBALS['cfg']['tomyum']['ranking_inactive_days']) > 0) {
+                    $stats->where('last_played', '>=', now()->subDays($inactiveDays));
+                }
 
                 if ($params['country'] === null) {
                     // force to order by rank(ed)_score instead of sucking down entire users table first.
