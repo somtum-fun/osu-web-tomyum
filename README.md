@@ -37,6 +37,11 @@ While we have standards in place, nothing is set in stone. If you have an issue 
 
 Our team believes in using AI as an assistant, always under human review. Low-effort AI-generated ("slop") pull requests or comments may be closed without notice.
 
+## Security
+
+Found a security problem? Please don't open an issue: email [mind@somtum.fun](mailto:mind@somtum.fun).
+See [SECURITY.md](SECURITY.md).
+
 ## Seeking Help
 
 If you need help with anything, you have two options:
