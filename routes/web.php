@@ -730,6 +730,55 @@ Route::group(['middleware' => ['web']], function () {
     route_redirect('forum/p/{post}', 'forum.posts.show');
     route_redirect('po/{post}', 'forum.posts.show:');
     route_redirect('forum/t/{topic}', 'forum.topics.show');
+
+    // TomYum: legacy clients (2008-2015 builds) hit hardcoded phpBB-era URLs for every forum / profile
+    // / account button in-game. Rewrite them to the modern URLs here so the buttons work. Must be
+    // registered BEFORE route_redirect('forum/{forum}', ...) below — that catch-all would otherwise
+    // match these .php names as a `{forum}` segment and drop the query string.
+    Route::get('forum/ucp.php', function () {
+        $mode = request()->query('mode');
+        $i = request()->query('i');
+        if ($mode === 'register') {
+            return redirect(route('users.create.legacy'), 301);
+        }
+        // Everything else under ucp.php (avatar edit, signature, prefs...) → account edit page.
+        return redirect(route('account.edit').($i === 'profile' && $mode === 'avatar' ? '#avatar' : ''), 301);
+    });
+    Route::get('forum/viewtopic.php', function () {
+        $t = request()->integer('t');
+        $p = request()->integer('p');
+        if ($p > 0) {
+            return redirect(route('forum.posts.show', ['post' => $p]), 301);
+        }
+        if ($t > 0) {
+            return redirect(route('forum.topics.show', ['topic' => $t]), 301);
+        }
+        return redirect(route('forum.forums.index'), 301);
+    });
+    Route::get('forum/viewforum.php', function () {
+        $f = request()->integer('f');
+        if ($f > 0) {
+            return redirect(route('forum.forums.show', ['forum' => $f]), 301);
+        }
+        return redirect(route('forum.forums.index'), 301);
+    });
+    Route::get('forum/memberlist.php', function () {
+        $mode = request()->query('mode');
+        $u = request()->integer('u');
+        if ($mode === 'viewprofile' && $u > 0) {
+            return redirect(route('users.show', ['user' => $u]), 301);
+        }
+        return redirect(route('rankings', ['mode' => 'osu', 'type' => 'performance']), 301);
+    });
+    Route::get('forum/posting.php', function () {
+        $t = request()->integer('t');
+        if ($t > 0) {
+            // Modern reply box is on the topic page itself.
+            return redirect(route('forum.topics.show', ['topic' => $t]), 301);
+        }
+        return redirect(route('forum.forums.index'), 301);
+    });
+
     route_redirect('forum/{forum}', 'forum.forums.show');
     // redirects to beatmapset anyways so there's no point
     // in having an another redirect on top of that
