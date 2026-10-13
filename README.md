@@ -8,6 +8,21 @@ payments-service (Stripe). Changes to ppy's files are marked with a `TomYum:` co
 Not affiliated with ppy Pty Ltd. osu! is a trademark of ppy Pty Ltd; the licence below (AGPL-3.0) covers
 the code, not the osu! name, logo or artwork.
 
+> [!WARNING]
+> **Change the branding before you go live.** Out of the box this website still shows ppy's osu! name,
+> logo and artwork (ppy's own images and resources, as in ppy/osu-web). The AGPL lets you use the code,
+> not osu!'s trademark: running a public server under the osu! name or with its logo and artwork can bring
+> you a trademark complaint or a cease-and-desist from ppy. We don't recommend using osu!'s artwork or
+> ppy's resources in production.
+>
+> - Give your server its own name and logo: **Admin panel > Branding** (name, logo, favicon, colours,
+>   email domain). Don't call it "osu!" or "osu!<something>".
+> - Replace osu!'s images and artwork you show (`public/images/`: backgrounds, menu art, the supporter
+>   and download pages) with your own or properly licensed ones.
+> - Keep the "not affiliated with ppy" note visible.
+>
+> We're not lawyers and this isn't legal advice; if in doubt, ask ppy or a lawyer first.
+
 Known gaps: the store's prices and currency are still baht/US$ (`SupporterTag`, `store_currency()`).
 
 ## Community
