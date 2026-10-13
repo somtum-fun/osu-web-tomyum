@@ -130,6 +130,10 @@ class TomYumModeScores
         if ($user === null || $beatmap === null || $beatmap->beatmapset === null) {
             return null;
         }
+        // Like osu!'s own score pages (Score::visibleUsers): a restricted player's scores are only for admins.
+        if (auth()->user()?->isAdmin() !== true && ((int) $user->user_warnings !== 0 || (int) $user->user_type !== 0)) {
+            return null;
+        }
 
         $variant = collect(static::MODES)->first(fn ($mode) => $mode[1] === $data['mode']) ?? ['osu', $data['mode']];
         $rulesetId = Beatmap::MODES[$variant[0]];

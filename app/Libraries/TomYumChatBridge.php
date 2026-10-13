@@ -66,6 +66,11 @@ class TomYumChatBridge
         static::$receivingFromGame = true;
         try {
             if ($target !== null) {
+                // The website's blocks and "friends only" count for PMs from the game too.
+                if (!static::mayMessage($sender, $target)) {
+                    abort(403, 'blocked');
+                }
+
                 return Chat::sendPrivateMessage($sender, $target, $content, $isAction, null, false);
             }
 
@@ -75,6 +80,24 @@ class TomYumChatBridge
         } finally {
             static::$receivingFromGame = false;
         }
+    }
+
+    /**
+     * Whether the sender may PM the target, by the rules of {@see \App\Singletons\OsuAuthorize::checkChatPmStart()}
+     * that matter for a message from the game: neither has blocked the other, and a target taking messages
+     * from friends only has added the sender. Moderators and bots (BanchoBot) may always write.
+     */
+    public static function mayMessage(User $sender, User $target): bool
+    {
+        if ($sender->isModerator() || $sender->isBot()) {
+            return true;
+        }
+
+        if ($target->hasBlocked($sender) || $sender->hasBlocked($target)) {
+            return false;
+        }
+
+        return !$target->pm_friends_only || $target->hasFriended($sender);
     }
 
     /** Creates (or updates the description of) the game's public channels on the website. */

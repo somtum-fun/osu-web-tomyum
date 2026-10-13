@@ -529,7 +529,7 @@ Route::group(['middleware' => ['web']], function () {
 
             // TomYum: Last.fm scrobbling.
             Route::get('lastfm', 'Account\LastFmController@create')->name('lastfm.create');
-            Route::get('lastfm/callback', 'Account\LastFmController@callback')->name('lastfm.callback');
+            Route::get('lastfm/callback/{state?}', 'Account\LastFmController@callback')->name('lastfm.callback');
             Route::get('lastfm/recent', 'Account\LastFmController@recent')->name('lastfm.recent');
             Route::delete('lastfm', 'Account\LastFmController@destroy')->name('lastfm.destroy');
         });

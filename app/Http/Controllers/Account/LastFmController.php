@@ -30,10 +30,10 @@ class LastFmController extends Controller
      * The player's Last.fm state: configured (the server has a Last.fm key), username (connected
      * account or null), authUrl. Null when the game server can't be reached.
      */
-    public static function status(User $user): ?array
+    public static function status(User $user, ?string $callback = null): ?array
     {
         try {
-            $response = (new TomYumAdmin())->get("/lastfm/{$user->getKey()}", ['callback' => route('account.lastfm.callback')]);
+            $response = (new TomYumAdmin())->get("/lastfm/{$user->getKey()}", ['callback' => $callback ?? route('account.lastfm.callback')]);
         } catch (InvariantException $e) {
             return null;
         }
@@ -50,18 +50,29 @@ class LastFmController extends Controller
             ->header('Cache-Control', 'no-store');
     }
 
-    /** Off to Last.fm to approve the server. */
+    /**
+     * Off to Last.fm to approve the server. The way back carries a nonce kept in this session, so only
+     * a connection the player started here is linked (else anyone could send them back with their own
+     * Last.fm token, and the player's plays would be scrobbled to that account).
+     */
     public function create()
     {
-        $url = static::status(Auth::user())['authUrl'] ?? null;
+        $state = bin2hex(random_bytes(16));
+        session()->put('tomyum_lastfm_state', $state);
+        $url = static::status(Auth::user(), route('account.lastfm.callback', ['state' => $state]))['authUrl'] ?? null;
         abort_if($url === null, 404);
 
         return redirect()->away($url);
     }
 
     /** Back from Last.fm with a token (or without one when the player said no). */
-    public function callback()
+    public function callback(?string $state = null)
     {
+        $expected = session()->pull('tomyum_lastfm_state');
+        if ($expected === null || $state === null || !hash_equals($expected, $state)) {
+            return $this->back('error', "That Last.fm connection wasn't started here. Press Connect to try again.");
+        }
+
         $token = presence(get_string(request('token')));
         if ($token === null) {
             return $this->back('error', "Last.fm wasn't connected.");

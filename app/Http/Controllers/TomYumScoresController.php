@@ -44,6 +44,8 @@ class TomYumScoresController extends Controller
 
     public function download($id)
     {
+        // Only a score the viewer may see (not a restricted player's: TomYumModeScores::one).
+        TomYumModeScores::one((int) $id) ?? abort(404);
         $response = (new TomYumAdmin(auth()->user()))->get('/replays/mode-score/'.((int) $id));
         abort_unless($response->successful(), 404);
 
