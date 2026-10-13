@@ -24,6 +24,7 @@
             'Tools' => [
                 [$panels['bots'], 'panel.bots.index', 'fa-robot', 'Admins and developers', 'Bots', 'IRC bot accounts: owners, names, avatars and passwords.', null],
                 [$panels['kudosu'], 'panel.kudosu.index', 'fa-medal', 'Admins and developers', 'Kudosu', 'Give or take kudosu, with a reason on the profile.', null],
+                [$panels['usernames'] ?? false, 'panel.usernames.index', 'fa-user-slash', 'Admins and developers', 'Blacklisted usernames', 'Names nobody can sign up with or rename to.', null],
                 [$panels['changelog'] ?? false, 'panel.changelog.index', 'fa-code-branch', 'Admins and developers', 'Changelog', 'Versions of the clients, the server and the website, and what changed.', null],
             ],
         ];

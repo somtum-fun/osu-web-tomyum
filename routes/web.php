@@ -77,6 +77,11 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('builds/{build}/entries/{entry}/remove', 'ChangelogController@destroyEntry')->name('builds.entries.destroy');
         });
 
+        // TomYum: blacklisted usernames (admins and developers).
+        Route::get('usernames', 'UsernamesController@index')->name('usernames.index');
+        Route::post('usernames', 'UsernamesController@store')->name('usernames.store');
+        Route::post('usernames/{name}/remove', 'UsernamesController@destroy')->name('usernames.destroy');
+
         // Bot accounts: admins/developers make them; owners manage their own.
         Route::group(['as' => 'bots.', 'prefix' => 'bots'], function () {
             Route::get('/', 'BotsController@index')->name('index');

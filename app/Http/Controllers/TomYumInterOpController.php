@@ -286,6 +286,11 @@ class TomYumInterOpController extends Controller
         ], ['null_missing' => true]);
         abort_unless(present($params['ip']), 422, 'ip is required');
 
+        // TomYum: blacklisted usernames (staff panel), as the website's and lazer's sign-ups refuse them.
+        if (present($params['username']) && !\App\Libraries\UsernameValidation::allowedName($params['username'])) {
+            return ['ok' => false, 'code' => 'blocked_username', 'message' => osu_trans('model_validation.user.username_not_allowed')];
+        }
+
         $blocked = TomYumRegistrationGuard::check(
             $params['ip'],
             $params['source'] ?? 'stable',
