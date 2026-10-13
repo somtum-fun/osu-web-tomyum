@@ -598,6 +598,19 @@ export default class Header extends React.Component<Props> {
             </>
           )}
 
+          {/* TomYum: the same set on osu.ppy.sh (not for sets uploaded here, ids from 10,000,000). */}
+          {this.beatmapset.id < 10_000_000 && (
+            <a
+              className='beatmapset-header-v2__button beatmapset-header-v2__button--wide'
+              href={`https://osu.ppy.sh/beatmapsets/${this.beatmapset.id}#${this.controller.currentBeatmap.mode}/${this.controller.currentBeatmap.id}`}
+              rel='noopener noreferrer'
+              target='_blank'
+              title='Open this beatmap on osu.ppy.sh'
+            >
+              osu.ppy.sh <span className='fas fa-external-link-alt' />
+            </a>
+          )}
+
           <button
             ref={this.moreMenu.setButtonRef}
             className='beatmapset-header-v2__button beatmapset-header-v2__button--more'

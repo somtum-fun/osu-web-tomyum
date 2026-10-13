@@ -37,12 +37,18 @@ class TomYumImportMissingBeatmaps
      */
     private const IMPORTS_PER_HOUR = 120;
 
+    /** Visitors who aren't signed in: only by opening a beatmap's or a set's page, and fewer an hour. */
+    private const ANONYMOUS_IMPORTS_PER_HOUR = 30;
+
     public function handle(Request $request, Closure $next)
     {
-        // Only for signed-in clients (lazer always sends a token; site visitors have a session),
-        // so anonymous traffic can't make the server fetch arbitrary maps.
+        // Signed-in clients (lazer always sends a token; site visitors have a session) for anything that
+        // names a map. Anyone else only by opening a beatmap's or a set's page (a link from osu.ppy.sh,
+        // /b/123 and /s/123), with a lower hourly limit, so anonymous traffic can't make the server
+        // fetch maps in bulk.
         $signedIn = auth()->check();
-        if ($signedIn && present($GLOBALS['cfg']['osu']['legacy']['shared_interop_secret'])) {
+        $allowed = $signedIn || ($request->isMethod('GET') && static::isPagePath($request));
+        if ($allowed && present($GLOBALS['cfg']['osu']['legacy']['shared_interop_secret'])) {
             try {
                 $this->importMissing($request);
             } catch (\Throwable $e) {
@@ -54,6 +60,12 @@ class TomYumImportMissingBeatmaps
         return $next($request);
     }
 
+    /** A beatmap's or a set's page on the website (not the API). */
+    private static function isPagePath(Request $request): bool
+    {
+        return preg_match('#^(beatmapsets|beatmaps|b|s)/[0-9]+$#', trim($request->path(), '/')) === 1;
+    }
+
     private function importMissing(Request $request): void
     {
         $path = preg_replace('#^api/v2/#', '', trim($request->path(), '/'));
@@ -63,15 +75,15 @@ class TomYumImportMissingBeatmaps
 
         if ($path === 'beatmapsets/lookup') {
             $beatmapIds[] = $request->query('beatmap_id');
-        } elseif (preg_match('#^beatmapsets/([0-9]+)(/|$)#', $path, $match) === 1) {
-            $setIds[] = $match[1];
+        } elseif (preg_match('#^(beatmapsets|s)/([0-9]+)(/|$)#', $path, $match) === 1) {
+            $setIds[] = $match[2];
         } elseif ($path === 'beatmaps/lookup') {
             $beatmapIds[] = $request->query('id');
             $checksums[] = $request->query('checksum');
         } elseif ($path === 'beatmaps') {
             $beatmapIds = array_slice((array) $request->query('ids', []), 0, 50);
-        } elseif (preg_match('#^beatmaps/([0-9]+)(/|$)#', $path, $match) === 1) {
-            $beatmapIds[] = $match[1];
+        } elseif (preg_match('#^(beatmaps|b)/([0-9]+)(/|$)#', $path, $match) === 1) {
+            $beatmapIds[] = $match[2];
         } elseif ($request->isMethod('POST') && preg_match('#^(_lio/multiplayer/rooms|rooms)$#', $path) === 1) {
             foreach ((array) $request->input('playlist', []) as $item) {
                 $beatmapIds[] = is_array($item) ? ($item['beatmap_id'] ?? null) : null;
@@ -109,7 +121,8 @@ class TomYumImportMissingBeatmaps
         }
 
         $ip = request()->ip() ?? 'unknown';
-        if (RateLimiter::tooManyAttempts("tomyum-import:{$ip}", static::IMPORTS_PER_HOUR)) {
+        $limit = auth()->check() ? static::IMPORTS_PER_HOUR : static::ANONYMOUS_IMPORTS_PER_HOUR;
+        if (RateLimiter::tooManyAttempts("tomyum-import:{$ip}", $limit)) {
             return;
         }
         RateLimiter::hit("tomyum-import:{$ip}", 3600);
