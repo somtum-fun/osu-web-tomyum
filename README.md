@@ -10,6 +10,20 @@ the code, not the osu! name, logo or artwork.
 
 Known gaps: the store's prices and currency are still baht/US$ (`SupporterTag`, `store_currency()`).
 
+## Community
+
+Questions about TomYum and this website go to the **somtum.fun Discord server**, in its **tomyum-bancho**
+category: [join the server](https://discord.gg/U6Ztb3mRyz), then ask in
+[#discussion](https://discord.com/channels/1512525725255860425/1559643196995149824) or report bugs in
+[#bug-problem](https://discord.com/channels/1512525725255860425/1559643294315843746). Please don't ask ppy's
+Discord about this fork. Setting up a server is covered on [docs.somtum.fun](https://docs.somtum.fun).
+
+Example TomYum plugins, all running on somtum.fun:
+
+- [tomyum-plugin-template](https://github.com/somtum-fun/tomyum-plugin-template): the starting point, compiled or loose source.
+- [tomyum-bpy-api](https://github.com/somtum-fun/tomyum-bpy-api): bancho.py's public v1 API on TomYum's data.
+- [tomyum-votes-plugins](https://github.com/somtum-fun/tomyum-votes-plugins): osu-server-list.com votes, rewarded with osu!direct time.
+
 ---
 
 # osu!web
@@ -51,11 +65,13 @@ If you need help with anything, you have two options:
 
 ### Create an Issue
 
-If you have something you want to discuss in detail, or have hit an issue which you believe others will also have in deployment or development of the system, [opening an issue](https://github.com/ppy/osu-web/issues) is the best way to get help. It creates a permanent resource for others wishing to contribute to conversation. Please **make sure to search first** in case someone else has already addressed the same issue!
+If you have something you want to discuss in detail, or have hit an issue which you believe others will also have in deployment or development of the system, [opening an issue](https://github.com/somtum-fun/osu-web-tomyum/issues) is the best way to get help. It creates a permanent resource for others wishing to contribute to conversation. Please **make sure to search first** in case someone else has already addressed the same issue!
 
 ### Discord
 
-Alternatively, you can join the [development discord](https://discord.gg/ppy) for assistance.
+Alternatively, ask in [#discussion](https://discord.com/channels/1512525725255860425/1559643196995149824) on the
+[somtum.fun Discord server](https://discord.gg/U6Ztb3mRyz) (tomyum-bancho category). ppy's development
+Discord is for ppy's osu-web, not this fork.
 
 ## Licence
 
