@@ -169,8 +169,12 @@ class RankingController extends Controller
         $scores = new LengthAwarePaginator($stats, $maxPages * static::PAGE_SIZE, static::PAGE_SIZE, $page, ['path' => route('rankings', $params)]);
         $countryStats = null;
         $showRankChange = false;
+        // The country filter's choices: the countries in this ranking (whose players may have no
+        // vanilla stats, which the vanilla list goes by), and the picked one's name.
+        $countryOptions = \App\Models\Country::whereIn('acronym', $data['countries'] ?? [])->get();
+        $selectedCountry = $params['country'] === null ? null : \App\Models\Country::find($params['country']);
 
-        return ext_view('rankings.global', compact('countryStats', 'params', 'scores', 'showRankChange'));
+        return ext_view('rankings.global', compact('countryOptions', 'countryStats', 'params', 'scores', 'selectedCountry', 'showRankChange'));
     }
 
     private static function getVariant(?string $variant, $ruleset): ?string

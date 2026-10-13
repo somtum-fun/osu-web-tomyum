@@ -3,7 +3,8 @@
     See the LICENCE file in the repository root for full licence text.
 --}}
 @php
-    $country = $countryStats?->country;
+    // TomYum: a Relax/Autopilot ranking gives its own countries and the picked one.
+    $country = $countryStats?->country ?? $selectedCountry ?? null;
 @endphp
 
 <div class="js-react u-contents" data-react="ranking-country-filter">
@@ -22,6 +23,6 @@
 <script id="json-country-filter" type="application/json">
     {!! json_encode(json_options(
         $country,
-        App\Models\Country::whereHasRuleset($params['mode'])->get(),
+        $countryOptions ?? App\Models\Country::whereHasRuleset($params['mode'])->get(),
     )) !!}
 </script>
