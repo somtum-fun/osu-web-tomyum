@@ -68,6 +68,12 @@ class Kernel extends ConsoleKernel
         // Ranks sets qualified here once their qualified period is over. With TomYum deciding ranked
         // status, Beatmapset::setApproved passes the change on to it (the game follows); sets imported
         // qualified from osu! have no queue date here, so they're left to osu!'s own status.
+        // TomYum: new pages (players, news, wiki, sets made here) to IndexNow's search engines.
+        $schedule->command('tomyum:indexnow')
+            ->daily()
+            ->withoutOverlapping(30)
+            ->onOneServer();
+
         // TomYum: new email to the ticket addresses becomes support tickets (staff panel → Tickets).
         $schedule->command('tomyum:tickets-fetch')
             ->everyMinute()

@@ -50,7 +50,8 @@
     @endif
 @endforeach
 
-@if ($noindex ?? false)
+{{-- TomYum: osu.ppy.sh's own beatmaps are its pages: kept out of search results here. --}}
+@if (($noindex ?? false) || App\Libraries\TomYumSeo::mirrorsOsu())
     <meta name="robots" content="noindex">
 @endif
 

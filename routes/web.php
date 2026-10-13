@@ -1072,6 +1072,10 @@ Route::group(['prefix' => '_lio', 'middleware' => 'lio', 'as' => 'interop.'], fu
 });
 
 Route::get('opensearch.xml', 'HomeController@opensearch')->name('opensearch');
+// TomYum: what search engines read (TomYumSeo).
+Route::get('robots.txt', 'TomYumSeoController@robots')->name('tomyum.robots');
+Route::get('sitemap.xml', 'TomYumSeoController@sitemap')->name('tomyum.sitemap');
+Route::get('indexnow.txt', 'TomYumSeoController@indexNowKey')->name('tomyum.indexnow-key');
 // TomYum: the web app manifest with this server's name and favicons (public/site.webmanifest is the fallback).
 Route::get('brand.webmanifest', 'HomeController@webmanifest')->name('brand.webmanifest');
 // TomYum: the name drawn as a logo, and its first letter as a favicon (Admin panel > Branding).
