@@ -12,6 +12,9 @@ class LivestreamsController extends Controller
 {
     public function index()
     {
+        // TomYum: no livestreams page (Twitch's osu! streams aren't ours).
+        abort(404);
+
         $livestream = new LivestreamCollection();
         $streams = $livestream->all();
         $featuredStream = $livestream->featured();
@@ -21,6 +24,8 @@ class LivestreamsController extends Controller
 
     public function promote()
     {
+        abort(404); // TomYum: no livestreams page.
+
         priv_check('LivestreamPromote')->ensureCan();
 
         LivestreamCollection::promote(Request::input('id'));

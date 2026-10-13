@@ -15,7 +15,6 @@ use App\Libraries\TomYumDownloads;
 use App\Models\BeatmapDownload;
 use App\Models\Beatmapset;
 use App\Models\Forum\Post;
-use App\Models\LivestreamCollection;
 use App\Models\Multiplayer\Room;
 use App\Models\NewsPost;
 use App\Models\User;
@@ -175,8 +174,8 @@ class HomeController extends Controller
 
             $dailyChallenge = Room::dailyChallengeFor(CarbonImmutable::now());
 
-            $livestream = new LivestreamCollection();
-            $featuredStream = $livestream->featured();
+            // TomYum: no livestreams (the page is off), so no featured stream either.
+            $featuredStream = null;
 
             return ext_view('home.user', compact(
                 'menuImages',

@@ -1316,7 +1316,6 @@ function nav_links()
         'page_title.main.contests_controller._' => route('contests.index'),
         'page_title.main.tournaments_controller._' => route('tournaments.index'),
         'page_title.main.loved_controller._' => route('loved.index'),
-        'page_title.main.livestreams_controller._' => route('livestreams.index'),
     ];
     // TomYum: our Discord, when there's an invite (OSU_URL_DISCORD).
     if (osu_url('dev') !== null) {
@@ -1355,7 +1354,6 @@ function footer_landing_links()
         'help' => [
             'faq' => wiki_url('FAQ'),
             'forum' => route('forum.forums.index'),
-            'livestreams' => route('livestreams.index'),
             'wiki' => wiki_url('Main_page'),
         ],
         'legal' => footer_legal_links(),
