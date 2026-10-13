@@ -305,6 +305,9 @@ class Score extends Model implements Traits\ReportableInterface
             ->default()
             ->forRuleset($ruleset)
             ->includeFails($includeFails)
+            // TomYum: Relax/Autopilot plays are their modes' (TomYum's lists), not the vanilla ruleset's.
+            ->whereRaw("JSON_SEARCH(data, 'one', 'RX', NULL, '$.mods[*].acronym') IS NULL")
+            ->whereRaw("JSON_SEARCH(data, 'one', 'AP', NULL, '$.mods[*].acronym') IS NULL")
             // unix_updated_at may be updated arbitrarily, so also filter by `ended_at` to ensure
             // only recent scores are returned.
             ->where('ended_at', '>', $minTime)

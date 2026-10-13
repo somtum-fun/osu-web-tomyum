@@ -223,6 +223,18 @@ class ScoresController extends Controller
         }
         $score = $scoreQuery->whereHas('beatmap')->firstOrFail();
 
+        // TomYum: a lazer Relax/Autopilot play is its mode's (TomYum's, with its pp and place): its page
+        // is there. lazer's own requests (json) still get the website's score.
+        if (!is_json_request() && !$score->isLegacy()) {
+            $acronyms = array_column($score->data->mods, 'acronym');
+            if (in_array('RX', $acronyms, true) || in_array('AP', $acronyms, true)) {
+                $response = (new \App\Libraries\TomYumAdmin(\Auth::user()))->get("/mode-scores/by-website/{$score->getKey()}");
+                if ($response->successful() && ($tomyumId = $response->json('id')) !== null) {
+                    return ujs_redirect(route('scores.tomyum', ['score' => $tomyumId]));
+                }
+            }
+        }
+
         $userIncludes = array_map(function ($include) {
             return "user.{$include}";
         }, UserCompactTransformer::CARD_INCLUDES);
