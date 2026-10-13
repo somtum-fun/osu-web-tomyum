@@ -22,9 +22,7 @@ use App\Models\Forum\PollOption;
 use App\Models\Forum\Post;
 use App\Models\Forum\Topic;
 use App\Models\Forum\TopicCover;
-use App\Models\Genre;
 use App\Models\Group;
-use App\Models\Language;
 use App\Models\LegacyMatch\LegacyMatch;
 use App\Models\Multiplayer\Room;
 use App\Models\OAuth\Client;
@@ -641,9 +639,7 @@ class OsuAuthorize
             return $prefix.'owner';
         }
 
-        if ($beatmapset->genre_id === Genre::UNSPECIFIED || $beatmapset->language_id === Language::UNSPECIFIED) {
-            return $prefix.'set_metadata';
-        }
+        // TomYum: no genre or language needed to nominate; they can be set later.
 
         if ($user->beatmapsetNominationsToday() >= $GLOBALS['cfg']['osu']['beatmapset']['user_daily_nominations']) {
             return $prefix.'exhausted';

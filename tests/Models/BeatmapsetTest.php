@@ -439,9 +439,8 @@ class BeatmapsetTest extends TestCase
         ])->create();
         $nominator = User::factory()->withGroup('bng', $beatmapset->playmodesStr())->create();
 
-        $this->expectException(AuthorizationException::class);
-        $this->expectExceptionMessage(osu_trans('authorization.beatmap_discussion.nominate.set_metadata'));
-        priv_check_user($nominator, 'BeatmapsetNominate', $beatmapset)->ensureCan();
+        // TomYum: a set without genre or language can be nominated (they can be set later).
+        $this->assertTrue(priv_check_user($nominator, 'BeatmapsetNominate', $beatmapset)->can());
     }
 
     #[DataProvider('qualifyingNominationsDataProvider')]
