@@ -266,6 +266,11 @@ class TomYumModeScores
         $id = !($score['stable'] ?? true) && isset($score['osuWebScoreId'])
             ? (int) $score['osuWebScoreId']
             : static::ID_OFFSET + $score['id'];
+        // TomYum: a lazer play is shown as it was played: its mods (Classic and their settings), score and
+        // hits, from the website's own score. TomYum's copy only keeps stable's mod bits and no maximum
+        // hits, so lazer showed it without CL and worked out a wrong classic score.
+        $lazer = !($score['stable'] ?? true) && isset($score['osuWebScoreId']) ? \App\Models\Solo\Score::find($id) : null;
+        $lazerData = $lazer === null ? null : json_decode((string) $lazer->getRawOriginal('data'), true);
 
         return [
             'id' => $id,
@@ -279,7 +284,7 @@ class TomYumModeScores
             // Its own best (TomYum keeps one per map): the site shows pp only for bests.
             'best_id' => $id,
             'build_id' => null,
-            'classic_total_score' => $score['score'],
+            'classic_total_score' => $lazer?->getClassicTotalScore() ?? $score['score'],
             'current_user_attributes' => ['pin' => null],
             'ended_at' => json_time(Carbon::parse($score['playedAt'])),
             'has_replay' => $score['hasReplay'] ?? false,
@@ -287,12 +292,12 @@ class TomYumModeScores
             'legacy_perfect' => $score['perfect'],
             // Stable or lazer (the score page's "Played on").
             'legacy_score_id' => ($score['stable'] ?? true) ? $score['id'] : null,
-            'legacy_total_score' => $score['score'],
+            'legacy_total_score' => $lazer === null ? $score['score'] : $lazer->legacy_total_score,
             'max_combo' => $score['maxCombo'],
             // Objects, not arrays, even when empty: lazer reads them as dictionaries.
-            'maximum_statistics' => new \stdClass(),
+            'maximum_statistics' => (object) ($lazerData['maximum_statistics'] ?? []),
             // osu!stable plays carry the Classic mod, as osu! shows them; lazer's don't.
-            'mods' => array_map(
+            'mods' => $lazerData['mods'] ?? array_map(
                 fn ($acronym) => ['acronym' => $acronym],
                 [...app('mods')->bitsetToIds($score['mods']), ...(($score['stable'] ?? true) ? ['CL'] : [])],
             ),
@@ -305,7 +310,7 @@ class TomYumModeScores
             'replay' => $score['hasReplay'] ?? false,
             'ruleset_id' => $rulesetId,
             'started_at' => null,
-            'statistics' => (object) array_filter([
+            'statistics' => isset($lazerData['statistics']) ? (object) $lazerData['statistics'] : (object) array_filter([
                 'great' => $score['count300'],
                 'ok' => $score['count100'],
                 'meh' => $score['count50'],
@@ -313,7 +318,7 @@ class TomYumModeScores
                 'perfect' => $score['countGeki'] ?: null,
                 'good' => $score['countKatu'] ?: null,
             ], fn ($value) => $value !== null),
-            'total_score' => $score['score'],
+            'total_score' => $lazer?->total_score ?? $score['score'],
             'weight' => $weight === null ? null : ['percentage' => $weight * 100, 'pp' => $score['pp'] * $weight],
             'tomyum_url' => route('scores.tomyum', ['score' => $score['id']]),
             'tomyum_replay_url' => ($score['hasReplay'] ?? false) ? route('scores.tomyum.download', ['score' => $score['id']]) : null,
