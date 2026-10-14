@@ -316,6 +316,17 @@ class NewsPost extends Model implements CommentableInterface, Wiki\WikiObject
     {
         $url = presence($this->firstImage());
 
+        // TomYum: images uploaded here (/uploads/news/…) get this site's address, so clients that only
+        // have the path (lazer would ask osu.ppy.sh) load them; their @2x copy only when one was uploaded.
+        if ($url !== null && str_starts_with($url, '/') && !str_starts_with($url, '//')) {
+            $url2x = retinaify($url);
+
+            return [
+                '1x' => url($url),
+                '2x' => url(is_file(public_path(ltrim($url2x, '/'))) ? $url2x : $url),
+            ];
+        }
+
         if ($url !== null) {
             $origUrl = proxy_media_original_url($url);
             $url2x = proxy_media(retinaify($origUrl));

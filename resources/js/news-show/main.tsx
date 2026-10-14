@@ -141,7 +141,10 @@ export default class Main extends React.Component<Props> {
     const firstImageUrl = this.props.post.first_image;
 
     if (firstImageUrl != null) {
-      const firstImage = contentHTML.querySelector(`img[src="${CSS.escape(firstImageUrl)}"]`);
+      // TomYum: an image uploaded here is given as a full address, but the post links it by its path.
+      const firstImagePath = firstImageUrl.startsWith(window.location.origin) ? firstImageUrl.slice(window.location.origin.length) : null;
+      const firstImage = contentHTML.querySelector(`img[src="${CSS.escape(firstImageUrl)}"]`)
+        ?? (firstImagePath == null ? null : contentHTML.querySelector(`img[src="${CSS.escape(firstImagePath)}"]`));
 
       if (firstImage != null) {
         const firstImageParent = firstImage.parentElement;
