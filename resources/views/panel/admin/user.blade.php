@@ -295,10 +295,28 @@
 
             const links = new Map([...bar.querySelectorAll('[data-section]')].map((link) => [link.dataset.section, link.querySelector('.page-mode-link')]));
             const visible = new Set();
+            // A tab clicked (or a #section link opened) keeps the underline until the page is scrolled by hand:
+            // a short section above it (Content above Rollback) is still in view after the jump, and the first
+            // section in view would otherwise take it.
+            let picked = links.has(location.hash.slice(1)) ? location.hash.slice(1) : null;
             const update = () => {
-                const current = [...links.keys()].find((id) => visible.has(id));
+                const current = picked ?? [...links.keys()].find((id) => visible.has(id));
                 links.forEach((link, id) => link.classList.toggle('page-mode-link--is-active', id === current));
             };
+            window.addEventListener('hashchange', () => {
+                picked = links.has(location.hash.slice(1)) ? location.hash.slice(1) : null;
+                update();
+            });
+            bar.querySelectorAll('[data-section]').forEach((tab) => tab.addEventListener('click', () => {
+                picked = tab.dataset.section;
+                update();
+            }));
+            ['wheel', 'touchmove', 'keydown'].forEach((type) => window.addEventListener(type, () => {
+                if (picked != null) {
+                    picked = null;
+                    update();
+                }
+            }, { passive: true }));
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach((entry) => entry.isIntersecting ? visible.add(entry.target.id) : visible.delete(entry.target.id));
                 update();
