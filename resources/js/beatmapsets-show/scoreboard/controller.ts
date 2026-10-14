@@ -25,6 +25,10 @@ export type ScoreboardSort = 'pp' | 'score';
 
 export const defaultSort = (variant: ScoreboardVariant): ScoreboardSort => variant === 'vn' ? 'score' : 'pp';
 
+// TomYum: Relax/Autopilot boards are by pp only: stable's and lazer's scores there come from two
+// scoring systems that can't be compared. Vanilla boards sort either way.
+export const sortsFor = (variant: ScoreboardVariant): ScoreboardSort[] => variant === 'vn' ? ['pp', 'score'] : ['pp'];
+
 export const variantsByRuleset: Partial<Record<string, ScoreboardVariant[]>> = {
   fruits: ['vn', 'rx'],
   osu: ['vn', 'rx', 'ap'],
@@ -112,7 +116,7 @@ export default class Controller {
       this.allData = storedState.allData;
       this.enabledMods = new Set(storedState.enabledMods);
       this.variant = storedState.variant ?? 'vn';
-      this.sort = storedState.sort ?? defaultSort(this.variant);
+      this.sort = storedState.sort != null && sortsFor(this.variant).includes(storedState.sort) ? storedState.sort : defaultSort(this.variant);
     }
 
     makeObservable(this);
@@ -172,7 +176,7 @@ export default class Controller {
       this.variant = options.variant;
     }
 
-    if (options.sort != null) {
+    if (options.sort != null && sortsFor(this.variant).includes(options.sort)) {
       this.sort = options.sort;
     }
 

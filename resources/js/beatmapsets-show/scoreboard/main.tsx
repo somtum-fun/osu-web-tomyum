@@ -14,7 +14,7 @@ import { shouldShowPp } from 'utils/beatmap-helper';
 import { classWithModifiers } from 'utils/css';
 import { trans } from 'utils/lang';
 import { SwitchError } from 'utils/switch-never';
-import Controller, { ScoreboardSort, ScoreboardVariant, variantsByRuleset } from './controller';
+import Controller, { ScoreboardSort, ScoreboardVariant, sortsFor, variantsByRuleset } from './controller';
 import Mod from './mod';
 import { scoreboardTypes } from './scoreboard-type';
 import Tab from './tab';
@@ -30,7 +30,6 @@ const legacyMods = {
 };
 const maniaConvertMods = new Set(['1K', '2K', '3K', '4K', '5K', '6K', '7K', '8K', '9K', '10K', 'DS']);
 const variantLabels: Record<ScoreboardVariant, string> = { ap: 'Autopilot', rx: 'Relax', vn: 'Vanilla' };
-const sorts: ScoreboardSort[] = ['pp', 'score'];
 const sortLabels: Record<ScoreboardSort, string> = { pp: 'pp', score: 'Score' };
 
 interface Props {
@@ -174,7 +173,7 @@ export default class Main extends React.Component<Props> {
   }
 
   // TomYum: one row under the board tabs: Vanilla / Relax / Autopilot (for the rulesets that have
-  // them) and the order (by pp or by score), as small buttons like the listing's "Sort by".
+  // them) and, on Vanilla, the order (by pp or by score), as small buttons like the listing's "Sort by".
   private renderOptions() {
     if (!this.controller.beatmap.is_scoreable) return null;
 
@@ -198,9 +197,10 @@ export default class Main extends React.Component<Props> {
           </div>
         }
 
+        {sortsFor(this.controller.variant).length > 1 &&
         <div className='sort__items'>
           <span className='sort__item sort__item--title'>{trans('sort._')}</span>
-          {sorts.map((sort) => (
+          {sortsFor(this.controller.variant).map((sort) => (
             <button
               key={sort}
               className={classWithModifiers('sort__item', 'button', { active: this.controller.sort === sort })}
@@ -212,6 +212,7 @@ export default class Main extends React.Component<Props> {
             </button>
           ))}
         </div>
+        }
       </div>
     );
   }

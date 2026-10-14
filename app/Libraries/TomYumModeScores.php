@@ -154,7 +154,8 @@ class TomYumModeScores
      * a ruleset without that variant (mania, or AP outside osu!) has no scores. $mods (acronyms, "NM"
      * for none) keeps plays with exactly those mods, as the in-game "Selected Mods" board does. $type
      * is the website's: global, or only the viewer's country, friends (and themselves) or team. $sort
-     * is "pp" or "score" (each player's best play, ordered by score). $stableOnly is the website's
+     * is ignored: these boards are by pp only (stable's and lazer's scores come from two scoring systems
+     * that can't be compared). $stableOnly is the website's
      * stable mode (not lazer's), as on the vanilla board: each player's best stable play, no lazer
      * plays (stable has no custom DT speed, for one).
      */
@@ -181,7 +182,7 @@ class TomYumModeScores
             'limit' => 50,
             'viewerId' => $viewer?->getKey(),
             'mods' => $mods === [] ? null : app('mods')->idsToBitset(array_diff($mods, ['NM'])),
-            'sort' => $sort,
+            'sort' => 'pp',
             'stableOnly' => $stableOnly ? 'true' : null,
         ];
         $path = "/beatmaps/{$beatmap->getKey()}/mode-scores/{$mode[1]}";
