@@ -114,7 +114,10 @@ class TomYumConnections
             ['user_id' => $user->getKey(), 'kind' => $kind],
             [
                 'external_id' => $externalId,
-                'display_name' => mb_substr((string) ($profile['global_name'] ?? $profile['username'] ?? ''), 0, 100),
+                // Discord's as the bot keeps it too: "Display Name (@username)", or "@username".
+                'display_name' => mb_substr($kind === 'discord'
+                    ? static::discordName((string) ($profile['username'] ?? ''), $profile['global_name'] ?? null)
+                    : (string) ($profile['username'] ?? ''), 0, 100),
                 'data' => $data === null ? null : json_encode($data),
                 'connected_at' => $now,
                 'checked_at' => $kind === 'osu_bancho' ? $now : null,
@@ -129,6 +132,14 @@ class TomYumConnections
         }
 
         return null;
+    }
+
+    /** A Discord account's name: "Display Name (@username)", or "@username" without a display name (or the same one). */
+    private static function discordName(string $username, ?string $globalName): string
+    {
+        return !present($globalName) || strcasecmp($globalName, $username) === 0
+            ? "@{$username}"
+            : "{$globalName} (@{$username})";
     }
 
     public static function unlink(User $user, string $kind): void

@@ -13,6 +13,17 @@
                 <td class="tomyum-panel__nowrap" style="width: 110px"><i class="fab fa-discord"></i> Discord</td>
                 @if ($links['discord'] !== null)
                     <td>
+                        {{-- TomYum: their Discord name, kept by the bot (or the website's Discord login), above the id. --}}
+                        @php
+                            $discordName = DB::table('tomyum_user_connections')
+                                ->where('user_id', $userId)
+                                ->where('kind', 'discord')
+                                ->where('external_id', (string) $links['discord']['discordId'])
+                                ->value('display_name');
+                        @endphp
+                        @if (present($discordName))
+                            <div><strong>{{ $discordName }}</strong></div>
+                        @endif
                         <code>{{ $links['discord']['discordId'] }}</code>
                         <div class="tomyum-panel__hint">linked {!! timeago(Carbon\Carbon::parse($links['discord']['linkedAt'])) !!}</div>
                     </td>
