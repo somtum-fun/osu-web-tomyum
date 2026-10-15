@@ -16,6 +16,9 @@
                 </label>
                 <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Open</button>
                 <a class="btn-osu-big btn-osu-big--rounded-thin" href="{{ route('panel.gmt.chat') }}" style="background: hsl(var(--hsl-b3)); color: inherit">Chat logs</a>
+                @if ((Auth::user()?->isAdmin() ?? false))
+                    <a class="btn-osu-big btn-osu-big--rounded-thin" href="{{ route('panel.gmt.scores.restore.form') }}" style="background: hsl(var(--hsl-b3)); color: inherit">Restore removed score</a>
+                @endif
             </form>
             @if ($query !== '')
                 @if (count($matches) === 0)

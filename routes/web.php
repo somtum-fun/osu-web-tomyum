@@ -123,6 +123,9 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('users/{user}/unsilence', 'GmtController@unsilence')->name('users.unsilence');
             Route::post('users/{user}/wipe', 'GmtController@wipe')->name('users.wipe');
             Route::post('users/{user}/scores/{score}/remove', 'GmtController@removeScore')->name('users.scores.remove');
+            // TomYum: restoring a removed score from a backup row (admins only, admin-API-side).
+            Route::get('scores/restore', 'GmtController@restoreScoreForm')->name('scores.restore.form');
+            Route::post('scores/restore', 'GmtController@restoreScore')->name('scores.restore');
             // TomYum: sign-ups (made and refused), the sign-up rules and their allowlist; appeal cooldowns.
             Route::get('registrations', 'RegistrationsController@index')->name('registrations.index');
             Route::post('registrations/settings', 'RegistrationsController@settings')->name('registrations.settings');

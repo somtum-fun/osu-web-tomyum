@@ -288,6 +288,71 @@ class GmtController extends Controller
         return $this->back($target, 'success', "Wiped {$response->json('removed')} score(s) ({$which}).");
     }
 
+    /**
+     * TomYum: show the "restore removed score" form (admins only). Staff paste the row from a backup
+     * SQL dump (same shape as TomYum.scores) and optionally the .osr replay; the POST hands it to
+     * TomYum's /_admin/scores/restore.
+     */
+    public function restoreScoreForm()
+    {
+        $this->ensure(Auth::user()?->isAdmin() ?? false);
+
+        return ext_view('panel.gmt.restore_score', ['preset' => Request::input('preset')]);
+    }
+
+    /** Submit the paste. The payload is validated minimally here; TomYum does the real validation. */
+    public function restoreScore()
+    {
+        $this->ensure(Auth::user()?->isAdmin() ?? false);
+
+        $raw = trim((string) Request::input('payload'));
+        if ($raw === '') {
+            return $this->restoreBack('error', 'Paste the score row from the backup.');
+        }
+        try {
+            $payload = json_decode($raw, true, 32, JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            return $this->restoreBack('error', "That isn't valid JSON: {$e->getMessage()}");
+        }
+        if (!is_array($payload) || !isset($payload['Id'], $payload['UserId'], $payload['BeatmapId'])) {
+            return $this->restoreBack('error', 'The payload needs at least Id, UserId and BeatmapId.');
+        }
+
+        $reason = trim((string) Request::input('reason'));
+        if ($reason === '') {
+            return $this->restoreBack('error', 'Give a reason (what happened; why restore).');
+        }
+
+        $replayBase64 = null;
+        if (Request::hasFile('replay')) {
+            $file = Request::file('replay');
+            if ($file->getSize() > 10 * 1024 * 1024) {
+                return $this->restoreBack('error', 'Replay is too big (max 10 MB).');
+            }
+            $replayBase64 = base64_encode(file_get_contents($file->getRealPath()));
+        }
+
+        $response = $this->tomyum()->post('/scores/restore', [
+            'payload' => $payload,
+            'replayBase64' => $replayBase64,
+            'reason' => $reason,
+        ]);
+        if ($response->status() === 409) {
+            return $this->restoreBack('error', 'A score with that id already exists. Restores don\'t overwrite — remove it first if you really want to replace it.');
+        }
+        if (!$response->successful()) {
+            return $this->restoreBack('error', "The restore failed (HTTP {$response->status()}): ".mb_substr((string) $response->body(), 0, 200));
+        }
+        $result = $response->json();
+
+        return $this->restoreBack('success', 'Restored score #'.($result['id'] ?? '?').' for user '.($result['userId'] ?? '?').(isset($result['osuWebScoreId']) ? ' (website id '.$result['osuWebScoreId'].')' : '').'.');
+    }
+
+    private function restoreBack(string $type, string $message)
+    {
+        return redirect(route('panel.gmt.scores.restore.form'))->with('panel_status', ['type' => $type, 'message' => $message, 'link' => null]);
+    }
+
     public function chat()
     {
         $userQuery = trim(Request::input('user') ?? '');
