@@ -109,9 +109,63 @@
                     <div style="white-space: pre-wrap; word-break: break-word">{{ $message->body }}</div>
                     @if ($message->is_summary && $message->mail_message_id)
                         <p class="tomyum-panel__hint" style="margin: 6px 0 0">
-                            Only the start of the email is shown here.
-                            <a href="{{ TomYumTickets::webMailUrl($message->mail_message_id) }}" target="_blank" rel="noopener">Read the whole email in Zoho Mail</a>
+                            @if (str_starts_with($message->mail_message_id, 'imap:'))
+                                This email was too big to read whole: only its text is here. Its files are in the mailbox.
+                            @else
+                                Only the start of the email is shown here.
+                                <a href="{{ TomYumTickets::webMailUrl($message->mail_message_id) }}" target="_blank" rel="noopener">Read the whole email in Zoho Mail</a>
+                            @endif
                         </p>
+                    @endif
+
+                    {{-- TomYum: the email's files; pictures shown, anything else to download. --}}
+                    @php
+                        $files = $attachments[$message->id] ?? collect();
+                        $pictures = $files->filter(fn ($file) => in_array($file->mime, TomYumTickets::IMAGE_TYPES, true));
+                        $others = $files->diffKeys($pictures);
+                        $fileUrl = fn ($file, $download = false) => route('panel.tickets.attachment', ['ticket' => $ticketId, 'attachment' => $file->id] + ($download ? ['download' => 1] : []));
+                        $size = fn ($bytes) => $bytes >= 1048576 ? round($bytes / 1048576, 1).' MB' : max(1, round($bytes / 1024)).' KB';
+                    @endphp
+                    @if ($pictures->isNotEmpty())
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px">
+                            @foreach ($pictures as $file)
+                                <a href="{{ $fileUrl($file) }}" target="_blank" rel="noopener" title="{{ $file->filename }} ({{ $size($file->size) }})">
+                                    <img src="{{ $fileUrl($file) }}" alt="{{ $file->filename }}" loading="lazy" style="display: block; max-width: min(240px, 100%); max-height: 180px; border-radius: 4px; background: hsl(var(--hsl-b6))">
+                                </a>
+                            @endforeach
+                        </div>
+                    @endif
+                    @if ($others->isNotEmpty())
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px">
+                            @foreach ($others as $file)
+                                <a class="tomyum-panel__badge" href="{{ $fileUrl($file, true) }}" style="overflow-wrap: anywhere">
+                                    <i class="fas fa-paperclip"></i> {{ $file->filename }} · {{ $size($file->size) }}
+                                </a>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    @if ($message->quoted !== null)
+                        <details style="margin-top: 8px">
+                            <summary class="tomyum-panel__hint" style="cursor: pointer">Show the quoted earlier messages</summary>
+                            <div style="white-space: pre-wrap; word-break: break-word; margin-top: 6px; padding-left: 10px; border-left: 2px solid hsl(var(--hsl-b2)); opacity: 0.8">{{ $message->quoted }}</div>
+                        </details>
+                    @endif
+                    @if ($message->html !== null)
+                        <details style="margin-top: 8px">
+                            <summary class="tomyum-panel__hint" style="cursor: pointer">Show the email as it was formatted</summary>
+                            {{-- Cleaned, in a sandbox without scripts; outside pictures aren't loaded (they'd tell the sender who read it). --}}
+                            <div style="height: 360px; margin-top: 6px; overflow: hidden; resize: vertical; border-radius: 4px; background: #fff">
+                                <iframe
+                                    src="{{ route('panel.tickets.html', ['ticket' => $ticketId, 'message' => $message->id]) }}"
+                                    sandbox="allow-popups allow-popups-to-escape-sandbox"
+                                    referrerpolicy="no-referrer"
+                                    loading="lazy"
+                                    title="The email as it was formatted"
+                                    style="width: 100%; height: 100%; border: 0; display: block"
+                                ></iframe>
+                            </div>
+                        </details>
                     @endif
                 </div>
             @endforeach
@@ -121,11 +175,16 @@
             <h2><i class="fas fa-reply"></i>Reply</h2>
             <p class="tomyum-panel__hint">
                 Goes to {{ $ticket->requester_email }} from {{ $ticket->mailbox }}, as "Hello, … Regards, {{ App\Libraries\TomYumTickets::signature() }}", with
-                "[Ticket #{{ $ticketId }}]" in the subject so their answer comes back here.
+                "[Ticket #{{ $ticketId }}]" in the subject, as an answer to their last email, so their mail app keeps it in the same
+                conversation and their answer comes back here.
             </p>
-            <form method="POST" action="{{ route('panel.tickets.reply', ['ticket' => $ticketId]) }}" style="display: grid; gap: 10px">
+            <form method="POST" action="{{ route('panel.tickets.reply', ['ticket' => $ticketId]) }}" enctype="multipart/form-data" style="display: grid; gap: 10px">
                 @csrf
                 <textarea class="input-text" name="message" rows="8" style="width: 100%" placeholder="Your message (without greeting or signature)" required></textarea>
+                <label class="input-container tomyum-panel__field">
+                    <span class="input-container__label">Attach files (up to 10, 20 MB in all)</span>
+                    <input class="input-text" type="file" name="files[]" multiple>
+                </label>
                 <div class="tomyum-panel__row" style="align-items: flex-end">
                     <label class="tomyum-panel__check"><input type="checkbox" name="close" value="1"> Close the ticket after sending</label>
                     <label class="input-container tomyum-panel__field">
@@ -143,7 +202,7 @@
                 @csrf
                 <label class="input-container tomyum-panel__field">
                     <span class="input-container__label">Only staff see notes</span>
-                    <input class="input-text" type="text" name="note" maxlength="5000" required>
+                    <textarea class="input-text" name="note" rows="3" maxlength="5000" required></textarea>
                 </label>
                 <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--panel-secondary" type="submit">Add note</button>
             </form>

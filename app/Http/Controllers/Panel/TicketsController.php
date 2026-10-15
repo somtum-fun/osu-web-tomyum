@@ -83,13 +83,64 @@ class TicketsController extends Controller
         $messages = DB::table('tomyum_ticket_messages')->where('ticket_id', $row->id)->orderBy('created_at')->orderBy('id')->get();
         $handlers = $this->handlersOf([$row->id])[$row->id] ?? collect();
         $people = User::whereIn('user_id', $messages->pluck('author_id')->merge([$row->closed_by, $row->user_id])->filter()->unique())->get()->keyBy('user_id');
+        $attachments = DB::table('tomyum_ticket_attachments')->whereIn('message_id', $messages->pluck('id'))->orderBy('id')->get()->groupBy('message_id');
 
         return ext_view('panel.tickets.show', [
             'ticket' => $row,
             'messages' => $messages,
+            'attachments' => $attachments,
             'handlers' => $handlers,
             'people' => $people,
             'categories' => TomYumTickets::categoriesFor(Auth::user()),
+        ]);
+    }
+
+    /** An attachment: pictures shown, anything else downloaded; never run by the browser. */
+    public function attachment(string $ticket, string $attachment)
+    {
+        $row = $this->ticket($ticket);
+        $file = DB::table('tomyum_ticket_attachments')
+            ->join('tomyum_ticket_messages', 'tomyum_ticket_messages.id', '=', 'tomyum_ticket_attachments.message_id')
+            ->where('tomyum_ticket_messages.ticket_id', $row->id)
+            ->where('tomyum_ticket_attachments.id', (int) $attachment)
+            ->select('tomyum_ticket_attachments.*')
+            ->first();
+        abort_if($file === null, 404);
+        $data = TomYumTickets::attachmentData($file);
+        abort_if($data === null, 404);
+
+        $image = Request::boolean('download') ? null : TomYumTickets::imageType($data);
+        $name = str_replace(['"', '\\'], '_', $file->filename);
+
+        return response($data, 200, [
+            'Content-Type' => $image ?? 'application/octet-stream',
+            'Content-Disposition' => ($image === null ? 'attachment' : 'inline').'; filename="'.preg_replace('/[^\x20-\x7e]/', '_', $name).'"; filename*=UTF-8\'\''.rawurlencode($file->filename),
+            'Content-Security-Policy' => "default-src 'none'; sandbox",
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, max-age=86400',
+        ]);
+    }
+
+    /** An email's HTML, cleaned (TomYumTickets::cleanHtml), for the sandboxed frame on the ticket. */
+    public function html(string $ticket, string $message)
+    {
+        $row = $this->ticket($ticket);
+        $email = DB::table('tomyum_ticket_messages')->where('ticket_id', $row->id)->where('id', (int) $message)->first();
+        abort_if($email === null || $email->html === null, 404);
+        $attachments = DB::table('tomyum_ticket_attachments')->where('message_id', $email->id)->get();
+
+        $body = TomYumTickets::cleanHtml($email->html, $attachments);
+        $page = '<!DOCTYPE html><html><head><meta charset="utf-8"><base target="_blank">'
+            .'<style>body{background:#fff;color:#222;font:14px/1.5 sans-serif;margin:12px;overflow-wrap:anywhere}img{height:auto;max-width:100%}</style>'
+            .'</head><body>'.$body.'</body></html>';
+
+        return response($page, 200, [
+            'Content-Type' => 'text/html; charset=utf-8',
+            // Nothing from outside (the cleaning already took out outside pictures), no scripts.
+            'Content-Security-Policy' => "default-src 'none'; img-src data:; style-src 'unsafe-inline'; font-src data:; sandbox allow-popups allow-popups-to-escape-sandbox",
+            'X-Content-Type-Options' => 'nosniff',
+            'Referrer-Policy' => 'no-referrer',
+            'Cache-Control' => 'private, no-store',
         ]);
     }
 
@@ -100,7 +151,29 @@ class TicketsController extends Controller
         if ($message === '') {
             return $this->back($row, 'error', 'Write a reply.');
         }
-        $error = TomYumTickets::reply($row, Auth::user(), $message);
+
+        // Files to send with it: up to 10, 20 MB in all.
+        $files = [];
+        $total = 0;
+        foreach (Request::file('files') ?? [] as $upload) {
+            if ($upload === null) {
+                continue;
+            }
+            if (!$upload->isValid()) {
+                return $this->back($row, 'error', "{$upload->getClientOriginalName()} couldn't be uploaded.");
+            }
+            $total += $upload->getSize();
+            if (count($files) >= 10 || $total > 20 * 1024 * 1024) {
+                return $this->back($row, 'error', 'Attach at most 10 files, 20 MB in all.');
+            }
+            $files[] = [
+                'filename' => $upload->getClientOriginalName(),
+                'mime' => $upload->getMimeType() ?? 'application/octet-stream',
+                'data' => $upload->get(),
+            ];
+        }
+
+        $error = TomYumTickets::reply($row, Auth::user(), $message, $files);
         if ($error !== null) {
             return $this->back($row, 'error', $error);
         }

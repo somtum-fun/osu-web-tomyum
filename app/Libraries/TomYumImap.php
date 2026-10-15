@@ -70,11 +70,23 @@ class TomYumImap
         return $uids;
     }
 
-    /** The whole message (raw RFC 822) and when the server got it, or null if it's gone. */
-    public function fetch(int $uid): ?array
+    /**
+     * The whole message (raw RFC 822) and when the server got it, or null if it's gone. A message
+     * bigger than $maxBytes (huge attachments) is only fetched up to there ('truncated' => true).
+     */
+    public function fetch(int $uid, int $maxBytes = PHP_INT_MAX): ?array
     {
-        foreach ($this->command("UID FETCH {$uid} (INTERNALDATE BODY.PEEK[])") as $response) {
-            if (!preg_match('/BODY\[\] \{(\d+)\}\r\n/', $response, $match, PREG_OFFSET_CAPTURE)) {
+        $size = null;
+        foreach ($this->command("UID FETCH {$uid} (RFC822.SIZE)") as $response) {
+            if (preg_match('/RFC822\.SIZE (\d+)/i', $response, $match)) {
+                $size = (int) $match[1];
+            }
+        }
+        $truncated = $size !== null && $size > $maxBytes;
+        $part = $truncated ? "BODY.PEEK[]<0.{$maxBytes}>" : 'BODY.PEEK[]';
+
+        foreach ($this->command("UID FETCH {$uid} (INTERNALDATE {$part})") as $response) {
+            if (!preg_match('/BODY\[\](?:<\d+>)? \{(\d+)\}\r\n/', $response, $match, PREG_OFFSET_CAPTURE)) {
                 continue;
             }
             $start = $match[0][1] + strlen($match[0][0]);
@@ -83,6 +95,7 @@ class TomYumImap
             return [
                 'raw' => substr($response, $start, (int) $match[1][0]),
                 'date' => isset($date[1]) ? trim($date[1]) : null,
+                'truncated' => $truncated,
             ];
         }
 

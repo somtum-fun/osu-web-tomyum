@@ -26,6 +26,14 @@ use Illuminate\Support\Facades\Mail;
  * by SMTP, the site's MAIL_* server), with whole emails, or Zoho through NoCodeAPI, which only gives
  * the start of each email (its summary, about 250 characters; the panel links to it in Zoho Mail).
  *
+ * From IMAP a message keeps its whole text (the quoted earlier messages apart), its HTML (shown
+ * cleaned, in a sandbox, its inline pictures in it), its attachments (the tomyum-tickets disk, only
+ * served to staff who can see the ticket) and its Message-ID. Our mail gets a Message-ID of its own
+ * and In-Reply-To / References, so mail apps keep the conversation together and an answer finds its
+ * ticket by those, or else by "[Ticket #12]" in the subject.
+ *
+ * Mail from programs never becomes a ticket: bounces, automatic replies, DMARC and TLS reports.
+ *
  * Who sees what: admins and developers every category; GMT accounts and appeals; the Support Team
  * (SPT) general support; the Tournament Committee (TC) tournaments.
  */
@@ -41,6 +49,16 @@ class TomYumTickets
         'dmca' => ['DMCA request', 'dmca'],
         'tournaments' => ['Tournaments', 'tournaments'],
     ];
+
+    /** An email bigger than this (attachments) is only read this far: its text, without the files. */
+    private const MAX_EMAIL_BYTES = 40 * 1024 * 1024;
+
+    /** Attachments kept per email, and the biggest one. */
+    private const MAX_ATTACHMENTS = 30;
+    private const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024;
+
+    /** Pictures the panel shows (others are downloads), as getimagesize names them. */
+    public const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
 
     /** Which groups handle which categories (admins and developers handle all of them). */
     private const GROUP_CATEGORIES = [
@@ -104,7 +122,8 @@ class TomYumTickets
         $created = 0;
         $added = 0;
         // Each email, oldest first (so a reply lands after the email it answers), as
-        // [id, to (every recipient), from, name, subject, body, is_summary, received_at, automated].
+        // [id, to (every recipient), from, name, subject, body, is_summary, received_at, automated]
+        // and, from IMAP, [quoted, html, attachments, rfc_id, reply_to].
         $handle = function (array $email) use (&$created, &$added) {
             if (DB::table('tomyum_ticket_messages')->where('mail_message_id', $email['id'])->exists()) {
                 return;
@@ -152,7 +171,7 @@ class TomYumTickets
             // "n:*" always includes the newest message, even when it's older than n.
             $uids = array_values(array_filter($imap->search('UID '.($state['last'] + 1).':*'), fn ($uid) => $uid > $state['last']));
             foreach (array_slice($uids, 0, 50) as $uid) {
-                $fetched = $imap->fetch($uid);
+                $fetched = $imap->fetch($uid, static::MAX_EMAIL_BYTES);
                 if ($fetched !== null) {
                     $handle(static::fromImap($fetched, $box['uidvalidity'], $uid));
                 }
@@ -163,9 +182,68 @@ class TomYumTickets
         }
     }
 
+    /**
+     * Fills in messages saved before the panel kept whole emails (or from NoCodeAPI's summaries): the
+     * mailbox's emails since $since are matched to the ticket messages they became (by Message-ID),
+     * and those get the full text, quote, HTML, attachments and Message-ID. Returns how many.
+     */
+    public static function refetch(Carbon $since, bool $dryRun = false, ?callable $log = null): int
+    {
+        $config = static::imapConfig();
+        if ($config === null) {
+            throw new \RuntimeException('Refetching needs the IMAP mailbox (tomyum.tickets.imap).');
+        }
+
+        $updated = 0;
+        $imap = new TomYumImap($config['host'], $config['port']);
+        try {
+            $imap->login($config['username'], $config['password']);
+            $box = $imap->examine($config['folder']);
+            foreach ($imap->search('SINCE '.$since->format('j-M-Y')) as $uid) {
+                $fetched = $imap->fetch($uid, static::MAX_EMAIL_BYTES);
+                if ($fetched === null) {
+                    continue;
+                }
+                $email = static::fromImap($fetched, $box['uidvalidity'], $uid);
+                $from = static::firstAddress($email['from']) ?? '';
+                // NoCodeAPI's ids were Zoho's own: those are found by sender, subject and time instead.
+                $row = DB::table('tomyum_ticket_messages')->where('direction', 'in')->where('mail_message_id', $email['id'])->first()
+                    ?? DB::table('tomyum_ticket_messages')->where('direction', 'in')->where('is_summary', true)
+                        ->where('from_address', $from)
+                        ->where('subject', mb_substr(trim($email['subject']) ?: '(no subject)', 0, 255))
+                        ->whereBetween('created_at', [$email['received_at']->copy()->subMinutes(10), $email['received_at']->copy()->addMinutes(10)])
+                        ->first();
+                if ($row === null || ($row->rfc_message_id !== null && !$row->is_summary)) {
+                    continue;
+                }
+
+                $log && $log("#{$row->ticket_id} message {$row->id}: ".mb_strlen($email['body']).' characters, '.count($email['attachments']).' attachments');
+                if (!$dryRun) {
+                    DB::table('tomyum_ticket_messages')->where('id', $row->id)->update([
+                        'body' => $email['body'],
+                        'quoted' => $email['quoted'],
+                        'html' => $email['html'],
+                        'is_summary' => $email['is_summary'],
+                        'rfc_message_id' => $email['rfc_id'],
+                        'updated_at' => Carbon::now(),
+                    ]);
+                    if (!DB::table('tomyum_ticket_attachments')->where('message_id', $row->id)->exists()) {
+                        static::saveAttachments($row->id, $email['attachments']);
+                    }
+                }
+                $updated++;
+            }
+        } finally {
+            $imap->logout();
+        }
+
+        return $updated;
+    }
+
     private static function fromImap(array $fetched, int $validity, int $uid): array
     {
         $message = TomYumMailMessage::parse($fetched['raw']);
+        $truncated = $fetched['truncated'] ?? false;
 
         $receivedAt = null;
         foreach ([[$fetched['date'], 'd-M-Y H:i:s O'], [$message->header('date'), null]] as [$date, $format]) {
@@ -187,7 +265,14 @@ class TomYumTickets
             'name' => $message->fromName(),
             'subject' => $message->header('subject'),
             'body' => $message->text,
-            'is_summary' => false,
+            'quoted' => $message->quoted,
+            // A cut-off email's HTML and last attachment are broken: only its text is kept.
+            'html' => $truncated ? null : $message->html,
+            'attachments' => $truncated ? [] : $message->attachments,
+            'rfc_id' => $message->messageId(),
+            'reply_to' => $message->replyTo(),
+            // Too big to fetch whole: the panel says so.
+            'is_summary' => $truncated,
             'received_at' => $receivedAt ?? Carbon::now(),
             'automated' => $message->isAutomated(),
         ];
@@ -236,12 +321,20 @@ class TomYumTickets
         $isSummary = $email['is_summary'];
         $messageId = $email['id'];
 
+        // The ticket it answers: by the Message-IDs it names (In-Reply-To, References), else by
+        // "[Ticket #12]" in the subject; from the ticket's own requester either way.
         $ticket = null;
-        if (preg_match('/\[Ticket #(\d+)\]/i', $subject, $match)) {
+        if (($email['reply_to'] ?? []) !== []) {
+            $ticketId = DB::table('tomyum_ticket_messages')->whereIn('rfc_message_id', $email['reply_to'])->orderByDesc('id')->value('ticket_id');
+            if ($ticketId !== null) {
+                $ticket = DB::table('tomyum_tickets')->where('id', $ticketId)->where('requester_email', $from)->first();
+            }
+        }
+        if ($ticket === null && preg_match('/\[Ticket #(\d+)\]/i', $subject, $match)) {
             $ticket = DB::table('tomyum_tickets')->where('id', (int) $match[1])->where('requester_email', $from)->first();
         }
 
-        [$isNew, $ticketId] = DB::transaction(function () use ($ticket, $category, $from, $name, $subject, $receivedAt, $body, $isSummary, $messageId) {
+        [$isNew, $ticketId] = DB::transaction(function () use ($ticket, $category, $from, $name, $subject, $receivedAt, $body, $isSummary, $messageId, $email) {
             $isNew = $ticket === null;
             if ($isNew) {
                 $ticketId = DB::table('tomyum_tickets')->insertGetId([
@@ -266,17 +359,21 @@ class TomYumTickets
                 DB::table('tomyum_tickets')->where('id', $ticketId)->update($update);
             }
 
-            DB::table('tomyum_ticket_messages')->insert([
+            $rowId = DB::table('tomyum_ticket_messages')->insertGetId([
                 'ticket_id' => $ticketId,
                 'direction' => 'in',
                 'from_address' => $from,
                 'subject' => mb_substr($subject, 0, 255),
                 'body' => $body,
+                'quoted' => $email['quoted'] ?? null,
+                'html' => $email['html'] ?? null,
                 'is_summary' => $isSummary,
                 'mail_message_id' => $messageId,
+                'rfc_message_id' => $email['rfc_id'] ?? null,
                 'created_at' => $receivedAt,
                 'updated_at' => Carbon::now(),
             ]);
+            static::saveAttachments($rowId, $email['attachments'] ?? []);
 
             return [$isNew, $ticketId];
         });
@@ -366,25 +463,31 @@ class TomYumTickets
         return 'Re: '.preg_replace('/^(re:\s*)+/i', '', $subject)." [Ticket #{$ticket->id}]";
     }
 
-    /** Sends a staff reply and records it; null when sent, otherwise why not. */
-    public static function reply(object $ticket, User $staff, string $message): ?string
+    /**
+     * Sends a staff reply and records it; null when sent, otherwise why not. $files are attached:
+     * [filename, mime, data] each.
+     */
+    public static function reply(object $ticket, User $staff, string $message, array $files = []): ?string
     {
         $text = static::replyText($message);
-        if (!static::send($ticket, $text)) {
+        $rfcId = static::send($ticket, $text, $files);
+        if ($rfcId === null) {
             return "The email couldn't be sent. Please try again.";
         }
 
-        DB::transaction(function () use ($ticket, $staff, $text) {
-            DB::table('tomyum_ticket_messages')->insert([
+        DB::transaction(function () use ($ticket, $staff, $text, $rfcId, $files) {
+            $rowId = DB::table('tomyum_ticket_messages')->insertGetId([
                 'ticket_id' => $ticket->id,
                 'direction' => 'out',
                 'from_address' => $ticket->mailbox,
                 'subject' => mb_substr(static::subjectFor($ticket), 0, 255),
                 'body' => $text,
+                'rfc_message_id' => $rfcId,
                 'author_id' => $staff->getKey(),
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ]);
+            static::saveAttachments($rowId, array_map(fn ($file) => $file + ['content_id' => null, 'inline' => false], $files));
             DB::table('tomyum_tickets')->where('id', $ticket->id)->update(['last_message_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
             static::addHandler($ticket->id, $staff->getKey());
         });
@@ -407,13 +510,15 @@ class TomYumTickets
     private static function sendAutoReply(object $ticket): void
     {
         $text = static::autoReplyText($ticket);
-        if (static::send($ticket, $text)) {
+        $rfcId = static::send($ticket, $text);
+        if ($rfcId !== null) {
             DB::table('tomyum_ticket_messages')->insert([
                 'ticket_id' => $ticket->id,
                 'direction' => 'auto',
                 'from_address' => $ticket->mailbox,
                 'subject' => mb_substr(static::subjectFor($ticket), 0, 255),
                 'body' => $text,
+                'rfc_message_id' => $rfcId,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ]);
@@ -422,17 +527,18 @@ class TomYumTickets
 
     /**
      * Sends from the ticket's address; if the mail server refuses it (not set up as an alias), from
-     * the server's main address instead, so the requester still gets an answer.
+     * the server's main address instead, so the requester still gets an answer. Returns the sent
+     * email's Message-ID ('' through NoCodeAPI, which picks its own), or null when it couldn't be sent.
      */
-    private static function send(object $ticket, string $text): bool
+    private static function send(object $ticket, string $text, array $files = []): ?string
     {
         if (static::imapConfig() !== null) {
-            return static::sendSmtp($ticket, $text);
+            return static::sendSmtp($ticket, $text, $files);
         }
 
         $base = static::apiBase();
         if ($base === null) {
-            return false;
+            return null;
         }
 
         $fallback = $GLOBALS['cfg']['mail']['from']['address'];
@@ -448,7 +554,7 @@ class TomYumTickets
                     ])
                     ->post("{$base}/sendEmail", (object) []);
                 if ($response->successful() && ($response->json('status.code') ?? 200) === 200) {
-                    return true;
+                    return '';
                 }
                 \Log::warning("Ticket #{$ticket->id}: sending from {$from} failed", ['response' => $response->body()]);
             } catch (\Throwable $e) {
@@ -456,29 +562,165 @@ class TomYumTickets
             }
         }
 
-        return false;
+        return null;
     }
 
-    /** The same through the site's mail server (MAIL_*), replies coming back to the ticket's address. */
-    private static function sendSmtp(object $ticket, string $text): bool
+    /**
+     * The same through the site's mail server (MAIL_*), replies coming back to the ticket's address:
+     * with a Message-ID of our own and In-Reply-To / References to the conversation so far, so the
+     * requester's mail app threads it and their answer names it.
+     */
+    private static function sendSmtp(object $ticket, string $text, array $files = []): ?string
     {
+        $rfcId = 'ticket'.$ticket->id.'.'.bin2hex(random_bytes(8)).'@'.static::domain();
+        $thread = DB::table('tomyum_ticket_messages')->where('ticket_id', $ticket->id)->whereNotNull('rfc_message_id')
+            ->where('rfc_message_id', '<>', '')->orderBy('id')->get(['direction', 'rfc_message_id']);
+        $inReplyTo = $thread->where('direction', 'in')->last()?->rfc_message_id ?? $thread->last()?->rfc_message_id;
+        $ids = $thread->pluck('rfc_message_id')->unique()->values();
+        // The first and the latest ones (RFC 5322 keeps the start of a long thread).
+        $references = $ids->count() > 10 ? [$ids->first(), ...$ids->slice(-9)->all()] : $ids->all();
+
         $fallback = $GLOBALS['cfg']['mail']['from']['address'];
         foreach (array_unique([$ticket->mailbox, $fallback]) as $from) {
             try {
-                Mail::raw($text, function ($message) use ($ticket, $from) {
+                Mail::raw($text, function ($message) use ($ticket, $from, $rfcId, $inReplyTo, $references, $files) {
                     $message->from($from, static::signature())
                         ->replyTo($ticket->mailbox)
                         ->to($ticket->requester_email)
                         ->subject(static::subjectFor($ticket));
+                    $headers = $message->getSymfonyMessage()->getHeaders();
+                    $headers->addIdHeader('Message-ID', $rfcId);
+                    if ($inReplyTo !== null) {
+                        static::addIds($headers, 'In-Reply-To', [$inReplyTo]);
+                        static::addIds($headers, 'References', $references);
+                    }
+                    foreach ($files as $file) {
+                        $message->attachData($file['data'], $file['filename'], ['mime' => $file['mime']]);
+                    }
                 });
 
-                return true;
+                return $rfcId;
             } catch (\Throwable $e) {
                 \Log::warning("Ticket #{$ticket->id}: sending from {$from} failed: {$e->getMessage()}");
             }
         }
 
-        return false;
+        return null;
+    }
+
+    /** An id header; a sender's Message-ID that isn't a valid address (Symfony checks) goes as text. */
+    private static function addIds(\Symfony\Component\Mime\Header\Headers $headers, string $name, array $ids): void
+    {
+        try {
+            $headers->addIdHeader($name, $ids);
+        } catch (\Throwable) {
+            $headers->remove($name);
+            $headers->addTextHeader($name, implode(' ', array_map(fn ($id) => "<{$id}>", $ids)));
+        }
+    }
+
+    // ── Attachments ──────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Saves a message's attachments on the tomyum-tickets disk (at most MAX_ATTACHMENTS, each up to
+     * MAX_ATTACHMENT_BYTES; the rest are left out). Each: [filename, mime, content_id, inline, data].
+     */
+    public static function saveAttachments(int $messageId, array $attachments): void
+    {
+        $disk = \Storage::disk('tomyum-tickets');
+        $kept = 0;
+        foreach ($attachments as $attachment) {
+            $data = $attachment['data'];
+            if ($kept >= static::MAX_ATTACHMENTS || strlen($data) === 0 || strlen($data) > static::MAX_ATTACHMENT_BYTES) {
+                continue;
+            }
+            $kept++;
+            $path = "{$messageId}/{$kept}";
+            $disk->put($path, $data);
+            DB::table('tomyum_ticket_attachments')->insert([
+                'message_id' => $messageId,
+                'filename' => static::filename($attachment['filename'] ?? null, $attachment['mime'], $kept),
+                'mime' => mb_substr(strtolower($attachment['mime']), 0, 127),
+                'size' => strlen($data),
+                'content_id' => $attachment['content_id'] === null ? null : mb_substr($attachment['content_id'], 0, 255),
+                'inline' => $attachment['inline'],
+                'sha256' => hash('sha256', $data),
+                'path' => $path,
+                'created_at' => Carbon::now(),
+            ]);
+        }
+    }
+
+    /** A file's bytes, or null if it's gone. */
+    public static function attachmentData(object $attachment): ?string
+    {
+        $disk = \Storage::disk('tomyum-tickets');
+
+        return $disk->exists($attachment->path) ? $disk->get($attachment->path) : null;
+    }
+
+    /** The picture type of these bytes (image/png, …: IMAGE_TYPES), or null when they aren't one. */
+    public static function imageType(string $data): ?string
+    {
+        $info = @getimagesizefromstring($data);
+        $mime = $info === false ? null : $info['mime'];
+
+        return in_array($mime, static::IMAGE_TYPES, true) ? $mime : null;
+    }
+
+    /** A safe file name: the sender's without folders or control characters, else "attachment-N.ext". */
+    private static function filename(?string $name, string $mime, int $index): string
+    {
+        $name = str_replace('\\', '/', $name ?? '');
+        $name = substr($name, strrpos($name, '/') === false ? 0 : strrpos($name, '/') + 1);
+        $name = trim(preg_replace('/[\x00-\x1f\x7f:*?"<>|]+/u', '_', $name) ?? '', " ._");
+        if ($name !== '') {
+            return mb_substr($name, -200);
+        }
+        $extension = [
+            'image/png' => 'png', 'image/jpeg' => 'jpg', 'image/gif' => 'gif', 'image/webp' => 'webp',
+            'application/pdf' => 'pdf', 'text/plain' => 'txt', 'message/rfc822' => 'eml', 'text/calendar' => 'ics',
+        ][strtolower($mime)] ?? 'bin';
+
+        return "attachment-{$index}.{$extension}";
+    }
+
+    /**
+     * An email's HTML, safe to show: cleaned by HTMLPurifier (no scripts, forms, frames or outside
+     * pictures; links open in a new tab) with its inline pictures (cid:) put in as data: URLs. It's
+     * served in a sandboxed frame with a CSP that allows nothing else either.
+     */
+    public static function cleanHtml(string $html, iterable $attachments): string
+    {
+        $images = [];
+        foreach ($attachments as $attachment) {
+            if ($attachment->content_id !== null && $attachment->size <= 5 * 1024 * 1024) {
+                $images[strtolower($attachment->content_id)] = $attachment;
+            }
+        }
+        $html = preg_replace_callback('/\bcid:([^"\'\s>)]+)/i', function ($match) use ($images) {
+            $attachment = $images[strtolower(rawurldecode($match[1]))] ?? null;
+            $data = $attachment === null ? null : static::attachmentData($attachment);
+            $type = $data === null ? null : static::imageType($data);
+
+            return $type === null ? 'about:blank' : "data:{$type};base64,".base64_encode($data);
+        }, $html) ?? '';
+
+        $cachePath = storage_path('htmlpurifier');
+        if (!is_dir($cachePath)) {
+            @mkdir($cachePath, 0700, true);
+        }
+        $config = \HTMLPurifier_Config::createDefault();
+        $config->set('Cache.SerializerPath', $cachePath);
+        $config->set('HTML.TargetBlank', true);
+        $config->set('HTML.ForbiddenElements', ['form', 'input', 'button', 'select', 'textarea']);
+        $config->set('URI.AllowedSchemes', ['http' => true, 'https' => true, 'mailto' => true, 'data' => true]);
+        $config->set('URI.DisableExternalResources', true);
+        $config->set('Attr.AllowedFrameTargets', ['_blank']);
+        // (Not the picture's address, which is a whole data: URL here.)
+        $config->set('Attr.DefaultImageAlt', '');
+
+        return (new \HTMLPurifier($config))->purify($html);
     }
 
     // ── Handling ─────────────────────────────────────────────────────────────────────────────
@@ -571,11 +813,19 @@ class TomYumTickets
         return preg_match('/[\w.+-]+@[\w.-]+\.\w+/', strtolower($text), $match) ? $match[0] : null;
     }
 
-    /** Mail that mustn't open tickets: ours, bounces, and other automatic replies. */
-    private static function isAutomated(string $from, string $subject): bool
+    /**
+     * Mail that mustn't open tickets: ours, bounces, other automatic replies, and DMARC / TLS reports
+     * ("Report domain: somtum.fun Submitter: google.com Report-ID: …", from noreply-dmarc-support@,
+     * dmarc.report@, …).
+     */
+    public static function isAutomated(string $from, string $subject): bool
     {
+        $subject = html_entity_decode($subject);
+
         return str_ends_with($from, '@'.static::domain())
-            || preg_match('/^(mailer-daemon|postmaster|no-?reply|do-?not-?reply)@/', $from) === 1
-            || preg_match('/^(auto(matic)?[ -]?reply|out of office|undeliver|delivery status)/i', html_entity_decode($subject)) === 1;
+            || preg_match('/^(mailer-daemon|postmaster|no-?reply|do-?not-?reply|bounces?)([-.+_][^@]*)?@/', $from) === 1
+            || preg_match('/^[^@]*(dmarc|tlsrpt)[^@]*@/', $from) === 1
+            || preg_match('/^(auto(matic)?[ -]?reply|out of office|undeliver|delivery status)/i', $subject) === 1
+            || preg_match('/^\s*Report\s+domain:\s*\S+\s+Submitter:/i', $subject) === 1;
     }
 }

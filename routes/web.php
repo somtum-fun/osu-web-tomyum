@@ -43,6 +43,8 @@ Route::group(['middleware' => ['web']], function () {
         Route::group(['as' => 'tickets.', 'prefix' => 'tickets'], function () {
             Route::get('/', 'TicketsController@index')->name('index');
             Route::get('{ticket}', 'TicketsController@show')->name('show');
+            Route::get('{ticket}/attachments/{attachment}', 'TicketsController@attachment')->name('attachment');
+            Route::get('{ticket}/messages/{message}/html', 'TicketsController@html')->name('html');
             Route::post('{ticket}/reply', 'TicketsController@reply')->name('reply');
             Route::post('{ticket}/note', 'TicketsController@note')->name('note');
             Route::post('{ticket}/close', 'TicketsController@close')->name('close');

@@ -96,6 +96,13 @@ return [
             'visibility' => 'private',
         ],
 
+        // TomYum: support tickets' attachments; private, only the staff panel serves them.
+        'tomyum-tickets' => [
+            'driver' => 'local',
+            'root' => storage_path('app/tickets'),
+            'visibility' => 'private',
+        ],
+
         'local-replay' => [
             'driver' => 'local',
             'root' => public_path('uploads/replay'),
