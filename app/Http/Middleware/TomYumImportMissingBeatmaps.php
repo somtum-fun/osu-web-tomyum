@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Libraries\TomYumAdmin;
+use App\Libraries\TomYumBeatmapSync;
 use App\Models\Beatmap;
 use App\Models\Beatmapset;
 use Cache;
@@ -20,7 +21,8 @@ use Illuminate\Http\Request;
  * player has. Before a request about a beatmap or set the site doesn't have, ask TomYum to import
  * it from bancho (its /_admin/beatmaps/import and /_admin/beatmapsets/{id}/import), so lazer's
  * leaderboards, score submission and multiplayer find it. Maps osu! doesn't know are remembered for
- * a while so they aren't looked up on every request. See TomYum's docs/lazer.md.
+ * a while so they aren't looked up on every request. A set it has with the details missing is
+ * imported again too (TomYumBeatmapSync). See TomYum's docs/lazer.md.
  */
 class TomYumImportMissingBeatmaps
 {
@@ -93,16 +95,23 @@ class TomYumImportMissingBeatmaps
         }
 
         $imports = 0;
+        // Sets with missing details: one per request, and not from batch lookups (lazer's song select
+        // asks about many maps at once; the scheduled re-sync gets to those).
+        $resync = $path !== 'beatmaps';
         foreach (array_unique(array_filter(array_map('get_int', $setIds))) as $setId) {
             if ($imports < static::MAX_IMPORTS && !Beatmapset::whereKey($setId)->exists()) {
                 $imports++;
                 $this->import('set', (string) $setId, fn (TomYumAdmin $admin, array $via) => $admin->post("/beatmapsets/{$setId}/import", null, $via));
+            } elseif ($resync && $this->resyncIncomplete($setId)) {
+                $resync = false;
             }
         }
         foreach (array_unique(array_filter(array_map('get_int', $beatmapIds))) as $beatmapId) {
             if ($imports < static::MAX_IMPORTS && !Beatmap::whereKey($beatmapId)->exists()) {
                 $imports++;
                 $this->import('beatmap', (string) $beatmapId, fn (TomYumAdmin $admin, array $via) => $admin->post('/beatmaps/import', ['beatmapId' => $beatmapId], $via));
+            } elseif ($resync && ($setId = Beatmap::whereKey($beatmapId)->value('beatmapset_id')) !== null && $this->resyncIncomplete((int) $setId)) {
+                $resync = false;
             }
         }
         foreach (array_unique(array_filter($checksums, fn ($c) => is_string($c) && preg_match('/^[0-9a-f]{32}$/i', $c) === 1)) as $checksum) {
@@ -111,6 +120,28 @@ class TomYumImportMissingBeatmaps
                 $this->import('checksum', strtolower($checksum), fn (TomYumAdmin $admin, array $via) => $admin->post('/beatmaps/import', ['checksum' => $checksum], $via));
             }
         }
+    }
+
+    /**
+     * A set the site has with its details missing (from bancho.py, or before they were kept: 0K mania
+     * maps, no genre): imported again from bancho, at most once a day per set (TomYumBeatmapSync).
+     * Whether it was.
+     */
+    private function resyncIncomplete(int $setId): bool
+    {
+        if (!TomYumBeatmapSync::isIncomplete($setId) || TomYumBeatmapSync::syncedWithin($setId, TomYumBeatmapSync::INCOMPLETE_RETRY)) {
+            return false;
+        }
+
+        $ip = request()->ip() ?? 'unknown';
+        $limit = auth()->check() ? static::IMPORTS_PER_HOUR : static::ANONYMOUS_IMPORTS_PER_HOUR;
+        if (RateLimiter::tooManyAttempts("tomyum-import:{$ip}", $limit)) {
+            return false;
+        }
+        RateLimiter::hit("tomyum-import:{$ip}", 3600);
+        TomYumBeatmapSync::sync($setId, auth()->user(), request()->bearerToken() !== null ? 'lazer' : 'website');
+
+        return true;
     }
 
     private function import(string $type, string $value, callable $send): void

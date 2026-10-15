@@ -662,8 +662,45 @@ export default class Header extends React.Component<Props> {
           user={{ username: this.beatmapset.creator }}
         />
       )}
+      {this.renderStaffSyncItems()}
     </div>
   );
+
+  // TomYum: BNs, the NAT and admins read an osu! set again from bancho (details, and its status
+  // unless staff set one here), or put its status back to osu!'s; the BN panel shows the result.
+  private renderStaffSyncItems() {
+    const user = core.currentUser;
+    if (user == null || this.beatmapset.id >= 10_000_000 || !(user.is_admin || user.is_bng || user.is_nat)) {
+      return null;
+    }
+
+    return (
+      <>
+        <a
+          className='simple-menu__item'
+          data-method='post'
+          href={route('panel.bn.sets.refresh', { set: this.beatmapset.id })}
+          rel='nofollow'
+        >
+          <span className='fas fa-sync-alt' />
+          {' Sync from osu!'}
+        </a>
+        {(user.is_admin || user.is_nat || user.is_full_bn) && (
+          <a
+            className='simple-menu__item'
+            data-confirm="Put every difficulty back to osu!'s own status? Statuses set here and the current nominations are dropped."
+            data-method='post'
+            data-params='status=bancho'
+            href={route('panel.bn.sets.status', { set: this.beatmapset.id })}
+            rel='nofollow'
+          >
+            <span className='fas fa-undo' />
+            {" Status back to osu!'s"}
+          </a>
+        )}
+      </>
+    );
+  }
 
   // The title and artist, and who created the set.
   private renderTitle() {

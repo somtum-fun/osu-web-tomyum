@@ -80,6 +80,14 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping(10)
             ->onOneServer();
 
+        // TomYum: beatmap sets read again from bancho: missing details (key count, genre, …) first,
+        // then sets whose osu! status may still change (TomYumBeatmapSync).
+        // About a second a set (mostly from the mirror): 100 every 10 minutes.
+        $schedule->command('tomyum:beatmaps-resync --limit=100')
+            ->everyTenMinutes()
+            ->withoutOverlapping(30)
+            ->onOneServer();
+
         // TomYum: players online every 5 minutes, for the admin panel's chart.
         $schedule->command('tomyum:online-sample')
             ->everyFiveMinutes()

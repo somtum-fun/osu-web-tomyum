@@ -318,6 +318,7 @@ class BnSetsController extends Controller
     {
         $setId = (int) $set;
         $response = $this->tomyum()->post("/beatmapsets/{$setId}/import");
+        \App\Libraries\TomYumBeatmapSync::record($setId, $response->successful() ? 'synced' : ($response->notFound() ? 'not_found' : 'failed'));
         if ($response->notFound()) {
             return $this->back($setId, 'error', "osu! doesn't have this set (anymore), so there's nothing to refresh from.");
         }
