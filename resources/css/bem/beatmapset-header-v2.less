@@ -597,6 +597,14 @@
     display: flex;
     gap: 5px;
     margin-left: auto;
+
+    // TomYum: on phones the buttons fill the card's width and take two lines if they must,
+    // rather than run off the screen (which scrolled the whole page sideways).
+    @media @mobile {
+      flex-wrap: wrap;
+      margin-left: 0;
+      width: 100%;
+    }
   }
 
   &__button {
@@ -628,6 +636,11 @@
 
     &--wide {
       min-width: 120px;
+
+      @media @mobile {
+        flex: 1 0 auto;
+        min-width: 0;
+      }
     }
 
     &--favourite {

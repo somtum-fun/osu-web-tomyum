@@ -233,11 +233,58 @@
     .link-hover({
       color: #fff;
     });
+
+    // Phones: the column's width, smaller hearts (as osu!'s own narrow card has it).
+    @media @mobile {
+      display: block;
+      font-size: 6px;
+      height: 10px;
+      line-height: 10px;
+      margin-top: 6px;
+      overflow: hidden;
+      padding: 0 2px;
+      white-space: nowrap;
+      width: 100%;
+    }
   }
 
   &--card &__row--flag {
     gap: 4px;
     margin-top: 4px;
+
+    // Phones: the 35px column takes the team flag, then the country flag, one above the other and
+    // each its width (as on osu!), instead of side by side and out over the post.
+    @media @mobile {
+      align-items: center;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 6px;
+
+      > a {
+        display: block;
+        line-height: 0;
+        width: 100%;
+      }
+
+      > a:has(.flag-team) {
+        order: -1;
+      }
+
+      .flag-team,
+      .flag-country {
+        display: block;
+        height: auto;
+        width: 100%;
+      }
+
+      .flag-team {
+        aspect-ratio: 2 / 1;
+      }
+
+      .flag-country {
+        aspect-ratio: 100 / 72;
+      }
+    }
   }
 
   &--card &__row--posts {

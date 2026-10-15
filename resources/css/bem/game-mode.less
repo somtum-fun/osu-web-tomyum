@@ -27,6 +27,24 @@
     }
   }
 
+  // TomYum: the profile's Relax/Autopilot pills with the mode icons: too wide to pin over the "info"
+  // menu on phones, so there they take their own line under it, the icons kept on the right.
+  &--variants {
+    @media @mobile {
+      position: static;
+      height: auto;
+      width: 100%;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px 10px;
+      padding-bottom: 10px;
+
+      > :last-child {
+        margin-left: auto;
+      }
+    }
+  }
+
   &--inline {
     position: static;
     height: auto;

@@ -31,13 +31,16 @@ export default class GameModeSwitcher extends React.Component<Props> {
       return null;
     }
 
+    const variants = this.renderVariants();
+
     return (
       <>
         {this.renderSetDefault()}
         {/* TomYum: the Relax/Autopilot pills sit with the mode icons, on their left: one pinned group (the
-            icons are pinned to the right on their own otherwise, and would overlap anything next to them). */}
-        <div className='game-mode'>
-          {this.renderVariants()}
+            icons are pinned to the right on their own otherwise, and would overlap anything next to them).
+            On phones a group with pills takes its own line under the "info" menu (game-mode--variants). */}
+        <div className={variants == null ? 'game-mode' : 'game-mode game-mode--variants'}>
+          {variants}
           <PlaymodeTabs
             currentMode={this.props.controller.currentMode}
             defaultMode={this.props.controller.state.user.playmode}
@@ -74,7 +77,7 @@ export default class GameModeSwitcher extends React.Component<Props> {
     const canEdit = this.props.controller.withEdit;
 
     return (
-      <div style={{ alignItems: 'center', display: 'flex', gap: 6 }}>
+      <div style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: 6 }}>
         {[['Vanilla', mode], ...list.map(([, target, title]) => [title, target])].map(([label, target]) => {
           const active = shown === target;
           const favourite = favourites.includes(target);
