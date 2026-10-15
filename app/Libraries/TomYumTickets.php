@@ -640,7 +640,8 @@ class TomYumTickets
             DB::table('tomyum_ticket_attachments')->insert([
                 'message_id' => $messageId,
                 'filename' => static::filename($attachment['filename'] ?? null, $attachment['mime'], $kept),
-                'mime' => mb_substr(strtolower($attachment['mime']), 0, 127),
+                // What it really is when it's a picture (some mail apps send pictures as octet-stream).
+                'mime' => mb_substr(static::imageType($data) ?? strtolower($attachment['mime']), 0, 127),
                 'size' => strlen($data),
                 'content_id' => $attachment['content_id'] === null ? null : mb_substr($attachment['content_id'], 0, 255),
                 'inline' => $attachment['inline'],
