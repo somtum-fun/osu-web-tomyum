@@ -159,7 +159,7 @@ class TomYumModeScores
      * stable mode (not lazer's), as on the vanilla board: each player's best stable play, no lazer
      * plays (stable has no custom DT speed, for one).
      */
-    public static function beatmapLeaderboard(Beatmap $beatmap, ?string $ruleset, string $variant, array $mods = [], string $type = 'global', string $sort = 'pp', bool $stableOnly = false): array
+    public static function beatmapLeaderboard(Beatmap $beatmap, ?string $ruleset, string $variant, array $mods = [], string $type = 'global', string $sort = 'score', bool $stableOnly = false): array
     {
         $ruleset ??= Beatmap::modeStr($beatmap->playmode);
         $mode = static::variant($ruleset.$variant);

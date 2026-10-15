@@ -437,8 +437,8 @@ class BeatmapsController extends Controller
                 $variant,
                 array_values(array_filter(get_arr(request('mods'), 'get_string') ?? [])),
                 $type,
-                // TomYum: by pp (the default here) or by score.
-                get_string(request('sort')) === 'score' ? 'score' : 'pp',
+                // TomYum: by score (the default, as the in-game boards) or by pp.
+                get_string(request('sort')) === 'pp' ? 'pp' : 'score',
                 // TomYum: stable mode (legacy_only, or the "legacy scores only" setting) has no lazer plays, as the vanilla board.
                 ScoreSearchParams::showLegacyForUser(\Auth::user()) === true,
             );
