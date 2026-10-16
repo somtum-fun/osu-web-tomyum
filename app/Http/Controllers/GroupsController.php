@@ -12,7 +12,10 @@ class GroupsController extends Controller
 {
     public function show($id)
     {
-        $group = app('groups')->byIdOrFail($id);
+        // TomYum: also by identifier (/groups/admin), so links (the wiki's) work on any server, where ids differ.
+        $group = ctype_digit((string) $id)
+            ? app('groups')->byIdOrFail($id)
+            : (app('groups')->byIdentifier($id) ?? abort(404));
         abort_unless($group->hasListing(), 404);
 
         $currentMode = default_mode();

@@ -63,6 +63,10 @@ class TomYumAdmin
         }
 
         $query['timestamp'] = time();
+        // A nonce makes every request unique: TomYum refuses a signed request it has already seen (a
+        // replay), and two identical calls within the same second (checking a medal's rule, then
+        // approving it) would otherwise carry the same signature.
+        $query['nonce'] = bin2hex(random_bytes(8));
         $pathAndQuery = '/_admin'.$path.'?'.http_build_query($query, '', '&', PHP_QUERY_RFC3986);
         $json = $body === null ? '' : json_encode($body);
         $actorId = (string) ($this->actor?->getKey() ?? '');

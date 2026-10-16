@@ -28,7 +28,7 @@ class TomYumSetup extends Command
     /** identifier => [name, badge, colour, display order (null = no badge), listed]. */
     private const GROUPS = [
         'admin' => ['Administrators', 'ADM', 'FF66AB', 0, true],
-        'dev' => ['osu! Developers', 'DEV', 'E45678', 1, true],
+        'dev' => ['Developers', 'DEV', 'E45678', 1, true],
         'gmt' => ['Global Moderation Team', 'GMT', '99EB47', 2, true],
         'tc' => ['Tournament Committee', 'TC', 'FFC266', 3, true],
         'nat' => ['Nomination Assessment Team', 'NAT', 'FA3703', 4, true],
@@ -36,7 +36,7 @@ class TomYumSetup extends Command
         'bng_limited' => ['Beatmap Nominators (Probationary)', 'BN', 'D6A8F2', 6, true],
         'loved' => ['Project Loved', 'LVD', 'FFD1DC', 7, true],
         'spt' => ['Support Team', 'SPT', 'EB8C47', 8, true],
-        'alumni' => ['osu! Alumni', 'ALM', '999999', 9, true],
+        'alumni' => ['Alumni', 'ALM', '999999', 9, true],
         'featured_artist' => ['Featured Artist', 'FA', '00FFFF', 10, true],
         'bot' => ['Chat Bots', 'BOT', 'D3D3D3', 11, true],
         // Permission only (chat announcements): no badge, no listing, like on osu.ppy.sh.

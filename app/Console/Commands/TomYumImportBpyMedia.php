@@ -21,7 +21,8 @@ use Illuminate\Http\File;
  * their images, and userpages. Everything goes through the website's own code (image processing,
  * storage, the team's chat channel), which the C# importer can't do. Load bancho.py's database next
  * to the website's (same MySQL server). Running it again writes the same files again and skips
- * teams that exist.
+ * teams that exist. --discussions also brings the somtum fork's beatmap discussions, hypes and
+ * comments (skipping what is already here).
  */
 class TomYumImportBpyMedia extends Command
 {
@@ -32,12 +33,16 @@ class TomYumImportBpyMedia extends Command
         {--clans= : folder with clan images: avatar/<clan id>.png and banner/<clan id>.png (gukarkka: www/assets/clans)}
         {--userpages= : folder with <user id>.txt userpages (bancho.py: .data/user/about_me); users.userpage_content is used too}
         {--teams : make the clans into teams (with their images from --clans)}
+        {--discussions : beatmap discussions (with replies), hypes and beatmap comments (somtum fork)}
+        {--set-map= : the importer\'s custom-set-ids.csv (old set id,new set id), for discussions on private sets}
         {--only= : only this user id}
         {--dry-run : only say what would happen}';
 
     protected $description = 'Imports a bancho.py server\'s avatars, covers, clans (as teams) and userpages after tools/ImportBanchoPy.';
 
     private array $userMap = [];
+    /** Private sets' old -> new beatmap ids (from --set-map). */
+    private array $beatmapMap = [];
     private bool $dry = false;
 
     public function handle(): int
@@ -67,6 +72,10 @@ class TomYumImportBpyMedia extends Command
         $done = ['avatar' => 0, 'cover' => 0, 'userpage' => 0];
         foreach ($users as $row) {
             $newId = $this->mapId((int) $row->id);
+            // bancho.py's bot (id 1) has no account of its own: its files go to this server's bot.
+            if ($newId === null && (int) $row->id === 1) {
+                $newId = (int) $GLOBALS['cfg']['osu']['legacy']['bancho_bot_user_id'];
+            }
             if ($newId === null || ($only !== null && $newId !== $only)) {
                 continue;
             }
@@ -125,6 +134,10 @@ class TomYumImportBpyMedia extends Command
 
         if ($this->option('teams')) {
             $this->teams($database, $this->folder('clans'), $only);
+        }
+
+        if ($this->option('discussions')) {
+            $this->discussions($database, $this->readSetMap());
         }
 
         $this->info($this->dry ? 'Dry run: nothing changed.' : 'Done.');
@@ -204,6 +217,179 @@ class TomYumImportBpyMedia extends Command
             }
         }
         $this->info("Teams {$made}.");
+    }
+
+    /**
+     * The somtum fork's beatmap discussions (with their replies), hypes and beatmap comments, as the
+     * website's discussions and comments. Its types: 0 problem, 1 suggestion, 2 praise, 3 note, and 4
+     * the note a nominator left with a nomination action (vote/rank: praise; cancel: suggestion).
+     * What is already here (same set, author and time) is skipped, so it can run again.
+     */
+    private function discussions(string $database, array $setMap): void
+    {
+        $tables = collect(DB::select('SELECT table_name AS t FROM information_schema.tables WHERE table_schema = ?', [$database]))
+            ->pluck('t')->map(fn ($t) => strtolower((string) $t))->all();
+        $types = [0 => 'problem', 1 => 'suggestion', 2 => 'praise', 3 => 'mapper_note'];
+        $setId = fn (int $old): int => $setMap[$old] ?? $old;
+        $done = ['discussions' => 0, 'posts' => 0, 'hypes' => 0, 'comments' => 0, 'skipped' => 0];
+        $sets = [];
+
+        // One discussion with its posts; null when it can't be placed (set not on the website, author not imported).
+        $place = function (int $oldSet, ?int $oldBeatmap, int $oldUser) use ($setId): ?array {
+            $set = $setId($oldSet);
+            $user = $this->mapId($oldUser);
+            if ($user === null || !DB::table('osu_beatmapsets')->where('beatmapset_id', $set)->exists() || !DB::table('phpbb_users')->where('user_id', $user)->exists()) {
+                return null;
+            }
+            $oldBeatmap = $oldBeatmap === null ? null : ($this->beatmapMap[$oldBeatmap] ?? $oldBeatmap);
+            $beatmap = $oldBeatmap !== null && DB::table('osu_beatmaps')->where(['beatmap_id' => $oldBeatmap, 'beatmapset_id' => $set])->exists() ? $oldBeatmap : null;
+
+            return [$set, $beatmap, $user];
+        };
+        $write = function (array $where, string $type, bool $resolved, array $posts) use (&$done, &$sets): void {
+            [$set, $beatmap, $user, $at] = $where;
+            if (DB::table('beatmap_discussions')->where(['beatmapset_id' => $set, 'user_id' => $user, 'created_at' => $at])->exists()) {
+                $done['skipped']++;
+
+                return;
+            }
+            if ($this->dry) {
+                $done['discussions']++;
+
+                return;
+            }
+            DB::transaction(function () use ($set, $beatmap, $user, $at, $type, $resolved, $posts, &$done) {
+                $id = DB::table('beatmap_discussions')->insertGetId([
+                    'beatmapset_id' => $set,
+                    'beatmap_id' => $beatmap,
+                    'user_id' => $user,
+                    'message_type' => \App\Models\BeatmapDiscussion::MESSAGE_TYPES[$type],
+                    'resolved' => $resolved,
+                    'created_at' => $at,
+                    'updated_at' => $at,
+                    'last_post_at' => max(array_column($posts, 'at')),
+                ]);
+                foreach ($posts as $post) {
+                    DB::table('beatmap_discussion_posts')->insert([
+                        'beatmap_discussion_id' => $id,
+                        'user_id' => $post['user'],
+                        'message' => $post['message'],
+                        'system' => false,
+                        'created_at' => $post['at'],
+                        'updated_at' => $post['at'],
+                    ]);
+                    $done['posts']++;
+                }
+                $done['discussions']++;
+            });
+            $sets[$set] = true;
+        };
+
+        if (in_array('beatmap_discussions', $tables, true)) {
+            $replies = in_array('beatmap_discussion_replies', $tables, true)
+                ? collect(DB::select("SELECT discussion_id, user_id, content, created_at FROM `{$database}`.`beatmap_discussion_replies` ORDER BY id"))->groupBy('discussion_id')
+                : collect();
+            foreach (DB::select("SELECT * FROM `{$database}`.`beatmap_discussions` ORDER BY id") as $row) {
+                $where = $place((int) $row->set_id, $row->beatmap_id === null ? null : (int) $row->beatmap_id, (int) $row->user_id);
+                if ($where === null) {
+                    $this->line("  discussion #{$row->id} on set {$row->set_id}: the set or its author isn't here, skipped");
+                    $done['skipped']++;
+                    continue;
+                }
+                $type = $types[(int) $row->type] ?? ($row->system_action === 'cancel' ? 'suggestion' : 'praise');
+                $posts = [['user' => $where[2], 'message' => (string) $row->content, 'at' => $row->created_at]];
+                foreach ($replies->get($row->id, []) as $reply) {
+                    if (($replyUser = $this->mapId((int) $reply->user_id)) !== null) {
+                        $posts[] = ['user' => $replyUser, 'message' => (string) $reply->content, 'at' => $reply->created_at];
+                    }
+                }
+                // Only problems and suggestions can be resolved on the website.
+                $write([...$where, $row->created_at], $type, (bool) $row->resolved && in_array($type, ['problem', 'suggestion'], true), $posts);
+            }
+        }
+
+        if (in_array('beatmap_hype', $tables, true)) {
+            foreach (DB::select("SELECT * FROM `{$database}`.`beatmap_hype` ORDER BY id") as $row) {
+                $where = $place((int) $row->set_id, null, (int) $row->user_id);
+                if ($where === null) {
+                    $done['skipped']++;
+                    continue;
+                }
+                $message = trim((string) ($row->comment ?? ''));
+                $before = $done['discussions'];
+                $write([...$where, $row->created_at], 'hype', false, [['user' => $where[2], 'message' => $message === '' ? 'Hype!' : $message, 'at' => $row->created_at]]);
+                $done['hypes'] += $done['discussions'] - $before;
+                $done['discussions'] = $before;
+            }
+        }
+
+        if (in_array('beatmap_comments', $tables, true)) {
+            $commentIds = [];
+            foreach (DB::select("SELECT * FROM `{$database}`.`beatmap_comments` ORDER BY parent_id IS NOT NULL, id") as $row) {
+                $set = $setId((int) $row->set_id);
+                $user = $this->mapId((int) $row->user_id);
+                if ($user === null || !DB::table('osu_beatmapsets')->where('beatmapset_id', $set)->exists()) {
+                    $this->line("  comment #{$row->id} on set {$row->set_id}: the set or its author isn't here, skipped");
+                    $done['skipped']++;
+                    continue;
+                }
+                $existing = DB::table('comments')->where(['commentable_type' => 'beatmapset', 'commentable_id' => $set, 'user_id' => $user, 'created_at' => $row->created_at])->value('id');
+                if ($existing !== null) {
+                    $commentIds[(int) $row->id] = (int) $existing;
+                    $done['skipped']++;
+                    continue;
+                }
+                if ($this->dry) {
+                    $done['comments']++;
+                    continue;
+                }
+                $parent = $row->parent_id === null ? null : ($commentIds[(int) $row->parent_id] ?? null);
+                $commentIds[(int) $row->id] = (int) DB::table('comments')->insertGetId([
+                    'parent_id' => $parent,
+                    'user_id' => $user,
+                    'message' => (string) $row->content,
+                    'commentable_type' => 'beatmapset',
+                    'commentable_id' => $set,
+                    'pinned' => (bool) $row->pinned,
+                    'created_at' => $row->created_at,
+                    'updated_at' => $row->updated_at ?? $row->created_at,
+                ]);
+                if ($parent !== null) {
+                    DB::table('comments')->where('id', $parent)->increment('replies_count_cache');
+                }
+                $done['comments']++;
+            }
+        }
+
+        // The sets' hype counts follow their hype discussions.
+        if (!$this->dry) {
+            foreach (array_keys($sets) as $set) {
+                $hype = DB::table('beatmap_discussions')->where(['beatmapset_id' => $set, 'message_type' => \App\Models\BeatmapDiscussion::MESSAGE_TYPES['hype']])->whereNull('deleted_at')->count();
+                DB::table('osu_beatmapsets')->where('beatmapset_id', $set)->update(['hype' => $hype]);
+            }
+        }
+        $this->info("Discussions {$done['discussions']} ({$done['posts']} posts), hypes {$done['hypes']}, comments {$done['comments']}, skipped {$done['skipped']}.");
+    }
+
+    /** The importer's custom-set-ids.csv (old set, new set[, old beatmap, new beatmap, ...] per line), or nothing. */
+    private function readSetMap(): array
+    {
+        $path = presence($this->option('set-map'));
+        if ($path === null || !is_file($path)) {
+            return [];
+        }
+        $map = [];
+        foreach (file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+            $cells = str_getcsv($line);
+            if (count($cells) >= 2 && ctype_digit(trim($cells[0])) && ctype_digit(trim($cells[1]))) {
+                $map[(int) trim($cells[0])] = (int) trim($cells[1]);
+                if (count($cells) >= 4 && ctype_digit(trim($cells[2])) && ctype_digit(trim($cells[3]))) {
+                    $this->beatmapMap[(int) trim($cells[2])] = (int) trim($cells[3]);
+                }
+            }
+        }
+
+        return $map;
     }
 
     /** Old id -> new id from TomYum's bpy_import_user_map (same ids when the table is missing). */

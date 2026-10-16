@@ -44,7 +44,22 @@ class TomYumMaintenance
 
     public static function isStaff(?User $user): bool
     {
-        return $user !== null && ($user->isAdmin() || $user->isDev() || $user->isGMT());
+        if ($user === null) {
+            return false;
+        }
+
+        // Membership, not isAdmin()/isDev()/isGMT(): those are false for any OAuth token request
+        // (osu-web never lets a token act as staff), which kept staff out of lazer during maintenance.
+        // Getting past maintenance gives the token nothing else.
+        $groups = app('groups');
+        foreach (['admin', 'dev', 'gmt'] as $identifier) {
+            $group = $groups->byIdentifier($identifier);
+            if ($group !== null && $user->findUserGroup($group) !== null) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /** Whether this user is kept out right now (maintenance is locked and they aren't staff). */

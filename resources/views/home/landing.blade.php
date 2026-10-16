@@ -152,6 +152,12 @@
                     <span class="fab fa-twitter"></span>
                 </a>
             @endif
+            {{-- TomYum: our Discord (OSU_URL_DISCORD). --}}
+            @if (osu_url('dev') !== null)
+                <a href="{{ osu_url('dev') }}" class="landing-footer-social__icon landing-footer-social__icon--discord" title="Discord">
+                    <span class="fab fa-discord"></span>
+                </a>
+            @endif
         </div>
 
         @include('layout.footer', ['modifiers' => ['landing'], 'withLinks' => false])

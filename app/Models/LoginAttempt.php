@@ -37,7 +37,7 @@ class LoginAttempt extends Model
      * TomYum: minutes after its last attempt that an address's record is cleared (unlocking it), as
      * osu.ppy.sh clears them on its side ("wait a few minutes"); nothing else cleared them here.
      */
-    public const RESET_AFTER_MINUTES = 10;
+    public const RESET_AFTER_MINUTES = 5;
 
     /** TomYum: the address's record, after removing it if its last attempt was over RESET_AFTER_MINUTES ago. */
     private static function findCurrent($ip): ?static
