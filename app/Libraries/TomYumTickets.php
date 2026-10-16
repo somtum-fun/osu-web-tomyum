@@ -816,7 +816,7 @@ class TomYumTickets
 
     /**
      * Mail that mustn't open tickets: ours, bounces, other automatic replies, and DMARC / TLS reports
-     * ("Report domain: somtum.fun Submitter: google.com Report-ID: …", from noreply-dmarc-support@,
+     * ("Report domain: example.com Submitter: google.com Report-ID: …", from noreply-dmarc-support@,
      * dmarc.report@, …).
      */
     public static function isAutomated(string $from, string $subject): bool

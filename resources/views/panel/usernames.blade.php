@@ -14,7 +14,7 @@
         <div class="tomyum-panel__card">
             <h2><i class="fas fa-user-slash"></i>Blacklist a username</h2>
             <p class="tomyum-panel__hint">
-                Nobody can sign up with a blacklisted name (on the website, in TumThai or in osu!(stable)), or rename to it.
+                Nobody can sign up with a blacklisted name (on the website, in osu!lazer or in osu!(stable)), or rename to it.
                 Case doesn't matter, and <code>%</code> means "anything": <code>%admin%</code> blocks every name with "admin" in it.
                 Players who already have the name keep it.
             </p>
