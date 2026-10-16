@@ -78,7 +78,8 @@
             class="ranking-page-table-main__link js-usercard"
             data-tooltip-position="right center"
             data-user-id="{{ $object->getKey() }}"
-            href="{{ route('users.show', ['user' => $object->getKey(), 'mode' => $params['mode']]) }}"
+            {{-- TomYum: from a Relax/Autopilot ranking, the profile opens on that mode (osurx, osuap, ...). --}}
+            href="{{ route('users.show', ['user' => $object->getKey(), 'mode' => isset(App\Http\Controllers\RankingController::TOMYUM_VARIANTS[$params['mode']][$params['variant'] ?? '']) ? $params['mode'].$params['variant'] : $params['mode']]) }}"
         >
             @if ($showAvatar ?? false)
                 <span class="ranking-page-table-main__flag">
