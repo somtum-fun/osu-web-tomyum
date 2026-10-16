@@ -51,6 +51,13 @@ class AuthApi
             \Auth::setUser($user);
             $user->withAccessToken($token);
 
+            // TomYum: lazer builds from before session verification (they report an API version from before
+            // 2024, and have no screen for the code) can't verify a session, so they'd only ever read: with
+            // TOMYUM_OLD_LAZER_SKIP_VERIFICATION their sessions count as verified (a password alone, as stable's).
+            if (!$token->isVerified() && $GLOBALS['cfg']['osu']['user']['tomyum_old_lazer_skip_verification'] && api_version() < 20240101) {
+                $token->markVerified();
+            }
+
             if ($token->isVerified()) {
                 $user->markSessionVerified();
             } else {

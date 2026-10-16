@@ -281,6 +281,8 @@ return [
         'allowed_rename_groups' => explode(' ', env('USER_ALLOWED_RENAME_GROUPS', 'default')),
         'always_require_verification' => get_bool(env('USER_ALWAYS_REQUIRE_VERIFICATION')) ?? false,
         'bypass_verification' => get_bool(env('USER_BYPASS_VERIFICATION')) ?? false,
+        // TomYum: lazer builds too old to verify a session (before 2024) count as verified (Middleware\AuthApi).
+        'tomyum_old_lazer_skip_verification' => get_bool(env('TOMYUM_OLD_LAZER_SKIP_VERIFICATION')) ?? false,
         'inactive_force_password_reset' => get_bool(env('USER_INACTIVE_FORCE_PASSWORD_RESET') ?? false),
         'inactive_seconds_verification' => (get_int(env('USER_INACTIVE_DAYS_VERIFICATION')) ?? 180) * 86400,
         'min_plays_for_posting' => get_int(env('USER_MIN_PLAYS_FOR_POSTING')) ?? 10,
