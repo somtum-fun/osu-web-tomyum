@@ -100,9 +100,12 @@ class TomYumConnections
         if ($externalId === '') {
             return "{$label} didn't send your account. Please try again.";
         }
-        $owner = DB::table('tomyum_user_connections')->where('kind', $kind)->where('external_id', $externalId)->value('user_id');
         if ($kind === 'discord') {
-            $owner ??= DB::table('tomyum.discord_links')->where('discord_id', $externalId)->value('user_id');
+            // TomYum: the Discord bot's table is the one that counts. The bot's /link and /unlink change
+            // only that table, so a Discord row here can be left over from an older link.
+            $owner = DB::table('tomyum.discord_links')->where('discord_id', $externalId)->value('user_id');
+        } else {
+            $owner = DB::table('tomyum_user_connections')->where('kind', $kind)->where('external_id', $externalId)->value('user_id');
         }
         if ($owner !== null && (int) $owner !== $user->getKey()) {
             return "That {$label} account is already linked to another account here.";
@@ -110,6 +113,14 @@ class TomYumConnections
 
         $now = Carbon::now();
         $data = $kind === 'osu_bancho' ? static::osuData($profile, null, $now) : null;
+        if ($kind === 'discord') {
+            // A left-over row for someone else would block this one (one row per Discord account).
+            DB::table('tomyum_user_connections')
+                ->where('kind', $kind)
+                ->where('external_id', $externalId)
+                ->where('user_id', '<>', $user->getKey())
+                ->delete();
+        }
         DB::table('tomyum_user_connections')->updateOrInsert(
             ['user_id' => $user->getKey(), 'kind' => $kind],
             [
