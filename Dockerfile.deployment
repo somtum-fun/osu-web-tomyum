@@ -115,6 +115,11 @@ RUN printf "%s" "$GIT_SHA" > version
 
 FROM runenv as run
 
+# TomYum: distrust the roots behind the compromised eMudhra intermediates (CVE-2026-111943), as
+# RHEL/Oracle's ca-certificates do, until AlmaLinux ships its own fix.
+COPY docker/deployment/ca-blocklist/ /etc/pki/ca-trust/source/blocklist/
+RUN update-ca-trust
+
 COPY --from=build /app /app
 WORKDIR /app
 
