@@ -7,10 +7,11 @@
   "name": "example team",
   "short_name": "TEAM",
   "cover_url": "https://assets.ppy.sh/teams/header/1/33e5b115557a4a44377d2c8510a55badd7dd014173595192ad2f82ee053a3302.jpeg",
-  "created_at": "2025-12-30T00:48:32+00:00",
+  "created_at": "2025-12-30T00:48:32Z",
   "default_ruleset_id": 0,
   "description": "[b]example description[/b]",
   "is_open": true,
+  "url": "https://example.com",
   "empty_slots": 7,
   "leader": {
     "avatar_url": "https://osu.ppy.sh/images/layout/avatar-guest@2x.png",
@@ -22,7 +23,7 @@
     "is_deleted": false,
     "is_online": false,
     "is_supporter": false,
-    "last_visit": "2025-12-30T20:16:49+00:00",
+    "last_visit": "2025-12-30T20:16:49Z",
     "pm_friends_only": false,
     "profile_colour": null,
     "username": "osuuser",
@@ -54,7 +55,7 @@
       "is_deleted": false,
       "is_online": false,
       "is_supporter": false,
-      "last_visit": "2025-12-30T20:16:49+00:00",
+      "last_visit": "2025-12-30T20:16:49Z",
       "pm_friends_only": false,
       "profile_colour": null,
       "username": "osuuser2",
@@ -76,7 +77,6 @@
       }
     }
   ],
-  "members_count": 1,
   "statistics": {
     "play_count": 123,
     "ranked_score": 63742331,
@@ -95,6 +95,7 @@ Represents a team. Extends [Team](#team) object with additional attributes.
 | default_ruleset_id | integer                           |                                                             |
 | description        | string?                           |                                                             |
 | is_open            | boolean                           | Whether the team is currently accepting member applications |
+| url                | string?                           | The URL displayed on the team's profile page                |
 
 
 

@@ -8,13 +8,20 @@
 
   background: hsl(var(--hsl-b4));
 
+  &__active-user-count {
+    display: grid;
+    gap: 5px;
+    grid-template-columns: auto 1fr;
+    align-items: baseline;
+  }
+
   &__channel {
     .reset-input();
     .link-plain();
 
     display: grid;
     grid-template-columns: subgrid;
-    grid-column: span 4; // TomYum: and the member count
+    grid-column: span 4;
     color: hsl(var(--hsl-l3));
     text-align: left;
     padding: 5px 10px;

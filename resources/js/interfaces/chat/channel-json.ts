@@ -12,6 +12,7 @@ export function filterSupportedChannelTypes(json: ChannelJson[]) {
 }
 
 export default interface ChannelJson {
+  active_user_count?: number;
   channel_id: number;
   current_user_attributes?: {
     can_list_users: boolean;
@@ -22,7 +23,6 @@ export default interface ChannelJson {
   description?: string;
   icon?: string;
   last_message_id?: number;
-  member_count?: number; // TomYum: the public channel list only
   message_length_limit: number;
   name: string;
   type: ChannelType;

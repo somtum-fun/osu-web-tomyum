@@ -80,6 +80,20 @@ function blade_safe($html): HtmlString
     return new HtmlString($html);
 }
 
+function cache_get_or_set(bool $checkExisting, string $key, int $seconds, callable $callback): mixed
+{
+    if ($checkExisting) {
+        $value = \Cache::get($key);
+    }
+
+    if (!isset($value)) {
+        $value = $callback();
+        \Cache::put($key, $value, $seconds);
+    }
+
+    return $value;
+}
+
 /**
  * Like cache_remember_with_fallback but with a mutex that only allows a single process to run the callback.
  */
@@ -546,7 +560,8 @@ function json_date(?DateTimeInterface $date): ?string
 
 function json_time(?DateTimeInterface $time): ?string
 {
-    return $time === null ? null : $time->format(DateTime::ATOM);
+    // like DateTime::ATOM but with `Z` for UTC timezone
+    return $time === null ? null : $time->format('Y-m-d\TH:i:sp');
 }
 
 function log_error($exception, ?array $sentryTags = null): void

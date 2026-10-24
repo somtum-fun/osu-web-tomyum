@@ -20,7 +20,7 @@ import { observer } from 'mobx-react';
 import * as moment from 'moment';
 import * as React from 'react';
 import { getDiffColour } from 'utils/beatmap-helper';
-import { getArtist, getTitle, toggleFavourite } from 'utils/beatmapset-helper';
+import { getArtist, getTitle, showVisual, toggleFavourite } from 'utils/beatmapset-helper';
 import { makeUrl } from 'utils/beatmapset-discussion-helper';
 import { classWithModifiers } from 'utils/css';
 import { formatDuration, formatNumber } from 'utils/html';
@@ -122,6 +122,7 @@ export class Header extends React.Component<Props> {
           />
         )}
         <HeaderV4
+          backgroundImage={showVisual(this.beatmapset) ? this.beatmapset.covers.slimcover : null}
           links={headerLinks('discussions', this.beatmapset)}
           linksAppend={(
             <PlaymodeTabs

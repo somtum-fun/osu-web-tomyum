@@ -221,10 +221,7 @@ class UserCompactTransformer extends TransformerAbstract
 
     public function includeBlocks(User $user)
     {
-        return $this->collection(
-            $user->relations()->blocks()->get(),
-            new UserRelationTransformer()
-        );
+        return $this->collection($user->blocks, new UserRelationTransformer());
     }
 
     public function includeCommentsCount(User $user)
@@ -306,7 +303,7 @@ class UserCompactTransformer extends TransformerAbstract
     public function includeFriends(User $user)
     {
         return $this->collection(
-            $user->relationFriends,
+            $user->friendsWithMutual,
             new UserRelationTransformer()
         );
     }
@@ -381,10 +378,7 @@ class UserCompactTransformer extends TransformerAbstract
 
     public function includeKudosu(User $user): ResourceInterface
     {
-        return $this->primitive([
-            'available' => $user->osu_kudosavailable,
-            'total' => $user->osu_kudostotal,
-        ]);
+        return $this->item($user, new UserKudosuTransformer());
     }
 
     public function includeLovedBeatmapsetCount(User $user)

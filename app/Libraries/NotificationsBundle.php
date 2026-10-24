@@ -178,8 +178,8 @@ class NotificationsBundle
         });
 
         $last = $heads->last();
-        $cursor = $last !== null ? ['id' => $last->max_id] : null;
-        $this->types[$type] = [
+        $cursor = $last !== null ? ['id' => $last->getRawAttribute('max_id')] : null;
+        $this->types[$type ?? ''] = [
             'cursor' => $cursor,
             'name' => $type,
             'total' => $this->getTotalNotificationCount($type),
@@ -209,7 +209,7 @@ class NotificationsBundle
                 ->groupBy('notifiable_type')
                 ->selectRaw('count(*) type_count, notifiable_type')
                 ->get()
-                ->mapWithKeys(fn ($agg) => [$agg->notifiable_type => $agg->type_count])
+                ->mapWithKeys(fn ($agg) => [$agg->notifiable_type => $agg->getRawAttribute('type_count')])
                 ->all();
         }
 

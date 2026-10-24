@@ -50,14 +50,9 @@ function Channel({ channel, onClick, status }: ChannelProps) {
       <span className='chat-join-channel__status'>{statusElement}</span>
       <span className='chat-join-channel__name'>{channel.name}</span>
       <span className='chat-join-channel__description'>{channel.description}</span>
-      <span className='chat-join-channel__members' title='members'>
-        {channel.member_count != null && (
-          <>
-            <span className='fas fa-user' />
-            {' '}
-            {formatNumber(channel.member_count)}
-          </>
-        )}
+      <span className='chat-join-channel__active-user-count'>
+        <span className='fas fa-user' />
+        <span>{formatNumber(channel.active_user_count ?? 0)}</span>
       </span>
     </a>
   );

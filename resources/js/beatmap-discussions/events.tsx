@@ -5,6 +5,8 @@ import BeatmapsetEvent from 'components/beatmapset-event';
 import BeatmapsetDiscussionJson from 'interfaces/beatmapset-discussion-json';
 import BeatmapsetEventJson from 'interfaces/beatmapset-event-json';
 import UserJson from 'interfaces/user-json';
+import { computed, makeObservable } from 'mobx';
+import { observer } from 'mobx-react';
 import moment from 'moment';
 import React from 'react';
 import { trans } from 'utils/lang';
@@ -15,27 +17,40 @@ interface Props {
   users: Map<number | null | undefined, UserJson>;
 }
 
+@observer
 export class Events extends React.PureComponent<Props> {
-  render() {
-    const events = this.props.events.filter((event) => event.type !== 'nomination_reset_received');
+  @computed
+  get events() {
+    return this.props.events
+      .filter((event) => event.type !== 'nomination_reset_received')
+      .sort((a, b) => b.created_at === a.created_at
+        ? b.id > a.id ? 1 : -1
+        : b.created_at > a.created_at ? 1 : -1);
+  }
 
+  constructor(props: Props) {
+    super(props);
+    makeObservable(this);
+  }
+
+
+  render() {
     return (
       <div className='beatmapset-events'>
-        {events.length === 0 ? (
+        {this.events.length === 0 ? (
           <div className='beatmapset-events__empty'>
             {trans('beatmap_discussions.events.empty')}
           </div>
-        ) : this.renderEvents(events)}
+        ) : this.renderEvents()}
       </div>
     );
   }
 
-  // TomYum: each day in its own card (the design proposal's history).
-  private renderEvents(events: BeatmapsetEventJson[]) {
+  // TomYum: each day in its own card (the design proposal's history), newest first.
+  private renderEvents() {
     const days: { events: React.ReactNode[]; title: string }[] = [];
 
-    for (let i = events.length - 1; i >= 0; i--) {
-      const event = events[i];
+    for (const event of this.events) {
       const createdAtString = moment(event.created_at).format('LL');
       if (days.length === 0 || days[days.length - 1].title !== createdAtString) {
         days.push({ events: [], title: createdAtString });

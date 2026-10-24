@@ -9,6 +9,7 @@ use App\Models\Chat\Channel;
 use App\Models\Chat\Message;
 use App\Models\User;
 use App\Transformers\TransformerAbstract;
+use League\Fractal\Resource\ResourceInterface;
 
 class ChannelTransformer extends TransformerAbstract
 {
@@ -24,6 +25,7 @@ class ChannelTransformer extends TransformerAbstract
     ];
 
     protected array $availableIncludes = [
+        'active_user_count',
         'current_user_attributes',
         'last_message_id',
         'last_read_id', // TODO: deprecated
@@ -54,12 +56,12 @@ class ChannelTransformer extends TransformerAbstract
             'uuid' => $channel->uuid,
         ];
 
-        // TomYum: only where it was counted (the public channel list).
-        if ($channel->memberCount !== null) {
-            $ret['member_count'] = $channel->memberCount;
-        }
-
         return $ret;
+    }
+
+    public function includeActiveUserCount(Channel $channel): ResourceInterface
+    {
+        return $this->primitive($channel->activeUserCount);
     }
 
     public function includeCurrentUserAttributes(Channel $channel)

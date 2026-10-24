@@ -120,17 +120,19 @@ class Beatmap extends Model implements AfterCommit
 
         $lookupMap ??= array_flip(static::MODES);
 
-        return $lookupMap[$int] ?? null;
+        return $lookupMap[$int ?? ''] ?? null;
     }
 
     public function baseDifficultyRatings()
     {
-        return $this->difficulty()->where('mods', 0);
+        // the noop ruleset filter is to match primary key of the table
+        return $this->difficulty()->whereIn('mode', array_values(static::MODES))->where('mods', 0);
     }
 
     public function baseMaxCombo()
     {
-        return $this->difficultyAttribs()->noMods()->maxCombo();
+        // the noop ruleset filter is to match primary key of the table
+        return $this->difficultyAttribs()->whereIn('mode', array_values(static::MODES))->noMods()->maxCombo();
     }
 
     public function beatmapOwners()
@@ -383,11 +385,6 @@ class Beatmap extends Model implements AfterCommit
         return $maxCombo?->value;
     }
 
-    public function preloadTopTagIds(array $data): void
-    {
-        $this->memoized['topTagIds'] = $data;
-    }
-
     public function slowTopTagIds(): array
     {
         return $this->memoize(__FUNCTION__, function () {
@@ -413,17 +410,15 @@ class Beatmap extends Model implements AfterCommit
         return array_search($this->approved, Beatmapset::STATES, true);
     }
 
-    public function topTagIds()
+    public function topTagIds(bool $checkExistingCache = true): array
     {
         // can be preloaded across single beatmapset with App\Libraries\Beatmapset\PreloadBeatmapTopTagIds
-        return $this->memoize(
-            __FUNCTION__,
-            fn () => \Cache::remember(
-                static::TOP_TAG_IDS_CACHE_PREFIX.$this->getKey(),
-                $GLOBALS['cfg']['osu']['beatmap_tags']['cache_duration'],
-                fn () => $this->beatmapTags()->topTagIds()->limit($GLOBALS['cfg']['osu']['beatmap_tags']['top_count'])->get()->toArray(),
-            ),
-        );
+        return $this->memoize(__FUNCTION__, fn () => cache_get_or_set(
+            $checkExistingCache,
+            static::TOP_TAG_IDS_CACHE_PREFIX.$this->getKey(),
+            $GLOBALS['cfg']['osu']['beatmap_tags']['cache_duration'],
+            fn () => $this->beatmapTags()->topTagIds()->limit($GLOBALS['cfg']['osu']['beatmap_tags']['top_count'])->get()->toArray(),
+        ));
     }
 
     private function getDifficultyrating()

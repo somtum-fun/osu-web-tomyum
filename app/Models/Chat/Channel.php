@@ -48,7 +48,7 @@ class Channel extends Model
     use Validatable;
 
     const ANNOUNCE_MESSAGE_LENGTH_LIMIT = 1024; // limited by column length
-    const CHAT_ACTIVITY_TIMEOUT = 60; // in seconds.
+    const CHAT_ACTIVITY_TIMEOUT = 300; // in seconds.
     const GROUP_MAX_MEMBERS = 50; // TomYum: group chats, the creator included
 
     const MAX_FIELD_LENGTHS = [
@@ -56,8 +56,7 @@ class Channel extends Model
         'name' => 50,
     ];
 
-    // TomYum: how many have joined it on the website (set for the public channel list).
-    public ?int $memberCount = null;
+    public ?int $activeUserCount = null;
     public ?string $uuid = null;
 
     protected $attributes = [
@@ -92,7 +91,7 @@ class Channel extends Model
         $redis ??= LaravelRedis::client();
         $key = static::getAckKey($channelId);
         $redis->zadd($key, $timestamp, $userId);
-        $redis->expire($key, static::CHAT_ACTIVITY_TIMEOUT * 10);
+        $redis->expire($key, static::CHAT_ACTIVITY_TIMEOUT * 2);
     }
 
     /**
@@ -209,10 +208,25 @@ class Channel extends Model
         return '#pm_'.implode('-', $userIds);
     }
 
+    public static function preloadPublicChannelActiveUserCount(iterable $allPublicChannels): void
+    {
+        $cachedCount = \Cache::remember('chat_channels:public_channel_users', 600, function () use ($allPublicChannels) {
+            $count = [];
+            foreach ($allPublicChannels as $channel) {
+                $count[$channel->getKey()] = count($channel->activeUserIds());
+            }
+            return $count;
+        });
+
+        foreach ($allPublicChannels as $channel) {
+            $channel->activeUserCount = $cachedCount[$channel->getKey()] ?? 0;
+        }
+    }
+
     public function activeUserIds()
     {
         return $this->isPublic()
-            ? LaravelRedis::zrangebyscore(static::getAckKey($this->getKey()), now()->subSeconds(static::CHAT_ACTIVITY_TIMEOUT)->timestamp, 'inf')
+            ? LaravelRedis::zrangebyscore(static::getAckKey($this->getKey()), time() - static::CHAT_ACTIVITY_TIMEOUT, 'inf')
             : $this->userIds();
     }
 
@@ -429,8 +443,15 @@ class Channel extends Model
 
         $userId = $user->getKey();
 
-        return $this->memoize(__FUNCTION__.':'.$userId, function () use ($userId) {
-            return $this->users()->firstWhere('user_id', '<>', $userId);
+        return $this->memoize(__FUNCTION__.':'.$userId, function () use ($user, $userId) {
+            foreach ($this->userIds() as $targetId) {
+                if ($targetId !== $userId) {
+                    return $this->users()->firstWhere('user_id', $targetId);
+                }
+            }
+
+            // all ids point to self
+            return $user;
         });
     }
 

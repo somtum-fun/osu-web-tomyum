@@ -35,10 +35,11 @@ class ChannelsController extends Controller
      *
      * ### Response Format
      *
-     * Returns an array of [ChatChannel](#chatchannel)
+     * Returns an array of [ChatChannel](#chatchannel) with `active_user_count` attribute included
      *
      * @response [
      *   {
+     *     "active_user_count": 100,
      *     "channel_id": 5,
      *     "description": "The official osu! channel (english only).",
      *     "icon": "https://a.ppy.sh/2?1519081077.png",
@@ -51,21 +52,9 @@ class ChannelsController extends Controller
     public function index()
     {
         $channels = Channel::public()->get();
+        Channel::preloadPublicChannelActiveUserCount($channels);
 
-        // TomYum: each channel's member count (the chat design's channel list), in one query.
-        $counts = UserChannel::whereIn('channel_id', $channels->pluck('channel_id'))
-            ->where('hidden', false)
-            ->groupBy('channel_id')
-            ->selectRaw('channel_id, COUNT(*) AS member_count')
-            ->pluck('member_count', 'channel_id');
-        foreach ($channels as $channel) {
-            $channel->memberCount = (int) ($counts[$channel->channel_id] ?? 0);
-        }
-
-        return json_collection(
-            $channels,
-            ChannelTransformer::forUser(auth()->user())
-        );
+        return json_collection($channels, ChannelTransformer::forUser(\Auth::user()), ['active_user_count']);
     }
 
     /**
@@ -256,7 +245,7 @@ class ChannelsController extends Controller
      *       "message_id": 1,
      *       "sender_id": 1,
      *       "channel_id": 1,
-     *       "timestamp": "2020-01-01T00:00:00+00:00",
+     *       "timestamp": "2020-01-01T00:00:00Z",
      *       "content": "Happy new year",
      *       "is_action": false,
      *       "sender": {
