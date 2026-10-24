@@ -413,6 +413,86 @@ class Score extends Model implements Traits\ReportableInterface
             $this->ruleset_id,
             array_column($this->data->mods, 'acronym')
         );
+
+        $this->assertPossibleOnBeatmap();
+    }
+
+    /**
+     * TomYum: the client's numbers must fit the map, like stable's ScoreChecks.MapProblem: no more
+     * judgements than the map has objects, no combo over the map's max combo, and no pass faster
+     * than the map can be played. Without these a scripted PUT with made-up statistics earns full
+     * pp (the score processor trusts them). Converts aren't checked (their object count and combo
+     * aren't the map's), nor catch's judgements (every droplet is one) or mania's combo.
+     */
+    private function assertPossibleOnBeatmap(): void
+    {
+        foreach ([$this->data->statistics, $this->data->maximumStatistics] as $statistics) {
+            foreach ($statistics->attributes as $value) {
+                if ($value < 0) {
+                    throw new InvariantException('Invalid statistics.');
+                }
+            }
+        }
+
+        $beatmap = $this->beatmap;
+        if ($beatmap === null || (int) $beatmap->playmode !== (int) $this->ruleset_id) {
+            return;
+        }
+
+        // One basic judgement per object (a slider or spinner is one); a mania hold note judges
+        // its head and its tail.
+        $objects = $beatmap->countNormal + $beatmap->countSpinner
+            + $beatmap->countSlider * ($this->ruleset_id === Beatmap::MODES['mania'] ? 2 : 1);
+        if ($this->ruleset_id !== Beatmap::MODES['fruits'] && $objects > 0) {
+            foreach ([$this->data->statistics, $this->data->maximumStatistics] as $statistics) {
+                $judged = 0;
+                foreach (['miss', 'meh', 'ok', 'good', 'great', 'perfect'] as $field) {
+                    $judged += $statistics->$field;
+                }
+                if ($judged > $objects) {
+                    throw new InvariantException("{$judged} judgements on a map of {$objects} objects.");
+                }
+            }
+        }
+
+        // Same margin as stable: today's max combo can be a little under what a client counts.
+        $mapCombo = $beatmap->max_combo ?? 0;
+        if ($this->ruleset_id !== Beatmap::MODES['mania'] && $mapCombo > 0 && $this->max_combo > $mapCombo + max(5, intdiv($mapCombo, 50))) {
+            throw new InvariantException("A combo of {$this->max_combo} on a map with {$mapCombo}.");
+        }
+
+        // The token is made when the play starts and the PUT stamped when it arrives, both by us.
+        // A pass needs at least the map's drain time at the fastest rate its mods allow; 80% of it
+        // leaves room for clocks and rounding (real DT plays here take 105% or more).
+        if ($this->passed && $beatmap->hit_length >= 10 && $this->started_at !== null && $this->ended_at !== null) {
+            $seconds = $this->ended_at->getTimestamp() - $this->started_at->getTimestamp();
+            $needed = $beatmap->hit_length / static::fastestRate($this->data->mods) * 0.8;
+            if ($seconds < $needed) {
+                throw new InvariantException('This play ended faster than the beatmap can be played.');
+            }
+        }
+    }
+
+    /** TomYum: the highest playback rate a play's mods reach (rate mods' own settings included). */
+    private static function fastestRate(array $mods): float
+    {
+        $rate = 1.0;
+        foreach ($mods as $mod) {
+            $mod = (array) $mod;
+            $settings = (array) ($mod['settings'] ?? []);
+            $modRate = match ($mod['acronym'] ?? null) {
+                'DT', 'NC' => $settings['speed_change'] ?? 1.5,
+                'HT', 'DC' => $settings['speed_change'] ?? 0.75,
+                'WU', 'WD' => max($settings['initial_rate'] ?? 1.0, $settings['final_rate'] ?? ($mod['acronym'] === 'WU' ? 1.5 : 0.75)),
+                // Adaptive Speed goes as fast as 2x.
+                'AS' => 2.0,
+                default => 1.0,
+            };
+            $rate = max($rate, (float) $modRate);
+        }
+
+        // No rate mod goes past 2x, so made-up settings can't shrink the check.
+        return min($rate, 2.0);
     }
 
     public function getClassicTotalScore(): int
