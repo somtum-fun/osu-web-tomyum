@@ -440,9 +440,11 @@ class Score extends Model implements Traits\ReportableInterface
         }
 
         // One basic judgement per object (a slider or spinner is one); a mania hold note judges
-        // its head and its tail.
-        $objects = $beatmap->countNormal + $beatmap->countSpinner
-            + $beatmap->countSlider * ($this->ruleset_id === Beatmap::MODES['mania'] ? 2 : 1);
+        // its head and its tail. Mania has no sliders or spinners: its hold notes are in one of the
+        // two counts (the game server's uploads put them under spinners).
+        $objects = $this->ruleset_id === Beatmap::MODES['mania']
+            ? $beatmap->countNormal + 2 * ($beatmap->countSlider + $beatmap->countSpinner)
+            : $beatmap->countNormal + $beatmap->countSlider + $beatmap->countSpinner;
         if ($this->ruleset_id !== Beatmap::MODES['fruits'] && $objects > 0) {
             foreach ([$this->data->statistics, $this->data->maximumStatistics] as $statistics) {
                 $judged = 0;
