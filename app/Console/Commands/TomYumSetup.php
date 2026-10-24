@@ -12,6 +12,7 @@ use App\Models\Group;
 use App\Models\User;
 use DB;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Hash;
 
 /**
  * Prepares a fresh osu-web database for running next to TomYum: everything osu!'s production
@@ -312,19 +313,24 @@ class TomYumSetup extends Command
      */
     private function lazerClient(): void
     {
+        // Secrets are kept hashed (Passport checks them with Hash::check), and the grant types are read
+        // from their column: lazer logs in with a password, then refreshes its token.
+        $secret = 'FGc9GAtyHzeQDshWP5Ah7dega8hJACAJpQtw6OXk';
         DB::table('oauth_clients')->upsert([[
             'id' => 5,
             'user_id' => null,
             'name' => 'osu!lazer',
-            'secret' => 'FGc9GAtyHzeQDshWP5Ah7dega8hJACAJpQtw6OXk',
+            'secret' => Hash::make($secret),
+            'secret_hint' => substr($secret, -4),
             'redirect' => '',
+            'grant_types' => json_encode(['password', 'refresh_token']),
             'personal_access_client' => 0,
             'password_client' => 1,
             'revoked' => 0,
             'provider' => 'users',
             'created_at' => now(),
             'updated_at' => now(),
-        ]], ['id'], ['name', 'secret', 'password_client', 'revoked', 'provider', 'updated_at']);
+        ]], ['id'], ['name', 'secret', 'secret_hint', 'grant_types', 'password_client', 'revoked', 'provider', 'updated_at']);
 
         if (!file_exists(storage_path('oauth-private.key'))) {
             $this->warn("No Passport keys: run php artisan passport:keys, or lazer (and API logins) can't sign in.");
