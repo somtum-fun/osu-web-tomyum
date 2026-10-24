@@ -171,7 +171,7 @@ class TomYumModeScores
         $userIds = match ($type) {
             'global' => null,
             'country' => $viewer === null ? [] : User::default()->where('country_acronym', $viewer->country_acronym)->pluck('user_id')->all(),
-            'friend' => $viewer === null ? [] : [...$viewer->friends()->allRelatedIds(), $viewer->getKey()],
+            'friend' => $viewer === null ? [] : [...$viewer->friends()->pluck('zebra_id'), $viewer->getKey()],
             'team' => $viewer?->team?->members()->pluck('user_id')->all() ?? [],
         };
         if ($userIds === []) {
