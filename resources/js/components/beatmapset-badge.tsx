@@ -25,7 +25,7 @@ export default function BeatmapsetBadge(props: Props) {
     case 'nsfw':
       if (!props.beatmapset.nsfw) return null;
 
-      url = wikiUrl('Rules/Explicit_content');
+      url = ppyWikiUrl('Rules/Explicit_content');
       break;
     case 'spotlight':
       if (!props.beatmapset.spotlight) return null;
