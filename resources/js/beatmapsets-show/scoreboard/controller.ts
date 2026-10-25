@@ -9,6 +9,8 @@ import core from 'osu-core-singleton';
 import ScoreboardType, { supporterTypes } from './scoreboard-type';
 
 interface SetOptions {
+  // TomYum: a custom lazer ruleset's board (its slug), or null for osu!'s own.
+  customRuleset?: string | null;
   forceReload?: boolean;
   resetMods?: boolean;
   sort?: ScoreboardSort;
@@ -51,6 +53,7 @@ interface BeatmapScoresJson {
 interface StoredState {
   allData: Partial<Record<string, BeatmapScoresJson>>;
   currentType: ScoreboardType;
+  customRuleset?: string | null;
   enabledMods: string[];
   sort?: ScoreboardSort;
   variant?: ScoreboardVariant;
@@ -61,6 +64,8 @@ export default class Controller {
   @observable enabledMods = new Set<string>();
   @observable sort: ScoreboardSort = 'score';
   @observable variant: ScoreboardVariant = 'vn';
+  // TomYum: a custom lazer ruleset's board (by score, from the website's own scores), on osu! maps.
+  @observable customRuleset: string | null = null;
 
   @observable private allData: Partial<Record<string, BeatmapScoresJson>> = {};
   private readonly disposers = new Set<(() => void) | undefined>();
@@ -75,7 +80,7 @@ export default class Controller {
   get currentDataKey() {
     const beatmap = this.beatmap;
 
-    return `${beatmap.id}-${beatmap.mode}-${[...this.enabledMods].sort().join(':')}-${this.currentType}-${this.variant}-${this.sort}`;
+    return `${beatmap.id}-${beatmap.mode}-${[...this.enabledMods].sort().join(':')}-${this.currentType}-${this.variant}-${this.sort}-${this.customRuleset ?? ''}`;
   }
 
   @computed
@@ -116,6 +121,7 @@ export default class Controller {
       this.allData = storedState.allData;
       this.enabledMods = new Set(storedState.enabledMods);
       this.variant = storedState.variant ?? 'vn';
+      this.customRuleset = storedState.customRuleset ?? null;
       this.sort = storedState.sort != null && sortsFor(this.variant).includes(storedState.sort) ? storedState.sort : defaultSort(this.variant);
     }
 
@@ -129,6 +135,8 @@ export default class Controller {
     this.disposers.add(reaction(
       () => `${this.beatmap.mode}:${this.beatmap.id}`,
       () => this.setCurrent({
+        // TomYum: keep a custom ruleset's board on another osu! difficulty.
+        customRuleset: this.beatmap.mode === 'osu' ? this.customRuleset : null,
         resetMods: true,
         type: 'global',
         // Keep Relax/Autopilot when the new ruleset has it (osu! → taiko keeps RX, loses AP).
@@ -168,7 +176,18 @@ export default class Controller {
       this.currentType = options.type;
     }
 
+    if (options.customRuleset !== undefined) {
+      this.customRuleset = options.customRuleset;
+      if (options.customRuleset != null) {
+        this.variant = 'vn';
+        this.sort = 'score';
+      }
+    }
+
     if (options.variant != null) {
+      if (options.customRuleset === undefined) {
+        this.customRuleset = null;
+      }
       // Each board starts in its own order (pp for Relax/Autopilot, score for Vanilla).
       if (options.variant !== this.variant) {
         this.sort = defaultSort(options.variant);
@@ -191,11 +210,11 @@ export default class Controller {
     const dataKey = this.currentDataKey;
     this.xhr = $.ajax(route('beatmaps.scores', { beatmap: beatmap.id }), {
       data: {
-        mode: beatmap.mode,
+        mode: this.customRuleset ?? beatmap.mode,
         mods: [...this.enabledMods],
-        sort: this.sort,
+        sort: this.customRuleset != null ? 'score' : this.sort,
         type: this.currentType,
-        variant: this.variant === 'vn' ? undefined : this.variant,
+        variant: this.variant === 'vn' || this.customRuleset != null ? undefined : this.variant,
       },
       dataType: 'JSON',
       method: 'GET',
@@ -212,6 +231,7 @@ export default class Controller {
     const state: StoredState = {
       allData: this.allData,
       currentType: this.currentType,
+      customRuleset: this.customRuleset,
       enabledMods: [...this.enabledMods],
       sort: this.sort,
       variant: this.variant,

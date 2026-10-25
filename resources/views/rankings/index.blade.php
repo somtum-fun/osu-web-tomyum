@@ -36,6 +36,11 @@
         @include('objects._ruleset_selector', [
             'currentRuleset' => $params['mode'],
             'urlFn' => $rulesetSelectorUrlFn,
+            // TomYum: custom lazer rulesets' own rankings (by ranked score).
+            'customRulesetLinks' => array_values(array_map(
+                fn ($r) => [$r->name, route('rankings.custom-rulesets', ['slug' => $r->slug])],
+                App\Libraries\TomYumCustomRulesets::enabled(),
+            )),
         ])
     @endsection
 @endif

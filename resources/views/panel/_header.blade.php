@@ -39,6 +39,7 @@
             ['Daily challenge', 'panel.admin.daily-challenge.index', ['panel.admin.daily-challenge.']],
             ['Ranked Play', 'panel.admin.matchmaking.index', ['panel.admin.matchmaking.']],
             ['Ranked mods', 'panel.admin.mods.index', ['panel.admin.mods.']],
+            ['Custom rulesets', 'panel.admin.rulesets.index', ['panel.admin.rulesets.']], // TomYum
             ['Badges', 'panel.admin.badges.index', ['panel.admin.badges.']],
             ['Assets', 'panel.admin.assets.index', ['panel.admin.assets.']],
             ['Titles', 'panel.admin.titles.index', ['panel.admin.titles.']],

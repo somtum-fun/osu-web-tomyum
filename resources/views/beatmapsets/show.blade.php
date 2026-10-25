@@ -70,6 +70,11 @@
         {!! json_encode($languages) !!}
     </script>
 
+    {{-- TomYum: custom lazer rulesets, for the leaderboard's "Other rulesets" (osu! maps). --}}
+    <script id="json-tomyum-custom-rulesets" type="application/json">
+        {!! json_encode(array_values(array_map(fn ($r) => ['slug' => $r->slug, 'name' => $r->name], App\Libraries\TomYumCustomRulesets::enabled()))) !!}
+    </script>
+
     @include('beatmapsets._recommended_star_difficulty_all')
     @include('layout._react_js', ['src' => 'js/beatmapsets-show.js'])
 @endsection

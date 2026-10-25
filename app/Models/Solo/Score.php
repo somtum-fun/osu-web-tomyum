@@ -129,6 +129,10 @@ class Score extends Model implements Traits\ReportableInterface
         if (static::hasRelaxMod($mods)) {
             return false;
         }
+        // TomYum: a custom ruleset has no ranked mods list; its automation mods are never ranked.
+        if (\App\Libraries\TomYumCustomRulesets::isCustomId($rulesetId)) {
+            return \App\Libraries\TomYumCustomRulesets::modsRanked($mods);
+        }
 
         // Kept a minute (the site's workers live long; staff changes apply within it). false: no list.
         $ranked = \Cache::remember("tomyum_ranked_mods:{$rulesetId}", 60, function () use ($rulesetId) {
@@ -163,7 +167,10 @@ class Score extends Model implements Traits\ReportableInterface
         $params['maximum_statistics'] ??= [];
         $params['statistics'] ??= [];
 
-        $params['mods'] = app('mods')->parseInputArray($scoreToken->ruleset_id, $params['mods'] ?? []);
+        // TomYum: a custom ruleset's mods are its own (osu-web's mod list doesn't know them): kept as sent, cleaned.
+        $params['mods'] = \App\Libraries\TomYumCustomRulesets::isCustomId($scoreToken->ruleset_id)
+            ? \App\Libraries\TomYumCustomRulesets::cleanMods($params['mods'] ?? [])
+            : app('mods')->parseInputArray($scoreToken->ruleset_id, $params['mods'] ?? []);
 
         $params['beatmap_id'] = $scoreToken->beatmap_id;
         $params['build_id'] = $scoreToken->build_id;
@@ -409,10 +416,13 @@ class Score extends Model implements Traits\ReportableInterface
             throw new InvariantException("field cannot be empty: 'statistics'");
         }
 
-        app('mods')->assertValidExclusivity(
-            $this->ruleset_id,
-            array_column($this->data->mods, 'acronym')
-        );
+        // TomYum: osu-web doesn't know a custom ruleset's mods, so which go together is the ruleset's own business.
+        if (!\App\Libraries\TomYumCustomRulesets::isCustomId($this->ruleset_id)) {
+            app('mods')->assertValidExclusivity(
+                $this->ruleset_id,
+                array_column($this->data->mods, 'acronym')
+            );
+        }
 
         $this->assertPossibleOnBeatmap();
     }
@@ -435,7 +445,15 @@ class Score extends Model implements Traits\ReportableInterface
         }
 
         $beatmap = $this->beatmap;
-        if ($beatmap === null || (int) $beatmap->playmode !== (int) $this->ruleset_id) {
+        if ($beatmap === null) {
+            return;
+        }
+        // A custom ruleset's judgements and combo aren't the map's own, but how long it takes to play is.
+        if ((int) $beatmap->playmode !== (int) $this->ruleset_id) {
+            if (\App\Libraries\TomYumCustomRulesets::isCustomId($this->ruleset_id)) {
+                $this->assertPlayLength($beatmap);
+            }
+
             return;
         }
 
@@ -463,9 +481,16 @@ class Score extends Model implements Traits\ReportableInterface
             throw new InvariantException("A combo of {$this->max_combo} on a map with {$mapCombo}.");
         }
 
-        // The token is made when the play starts and the PUT stamped when it arrives, both by us.
-        // A pass needs at least the map's drain time at the fastest rate its mods allow; 80% of it
-        // leaves room for clocks and rounding (real DT plays here take 105% or more).
+        $this->assertPlayLength($beatmap);
+    }
+
+    /**
+     * TomYum: the token is made when the play starts and the PUT stamped when it arrives, both by us. A pass needs at
+     * least the map's drain time at the fastest rate its mods allow; 80% of it leaves room for clocks and rounding
+     * (real DT plays here take 105% or more).
+     */
+    private function assertPlayLength(Beatmap $beatmap): void
+    {
         if ($this->passed && $beatmap->hit_length >= 10 && $this->started_at !== null && $this->ended_at !== null) {
             $seconds = $this->ended_at->getTimestamp() - $this->started_at->getTimestamp();
             $needed = $beatmap->hit_length / static::fastestRate($this->data->mods) * 0.8;
@@ -499,6 +524,11 @@ class Score extends Model implements Traits\ReportableInterface
 
     public function getClassicTotalScore(): int
     {
+        // TomYum: a custom ruleset's score has no classic form here: it's its own total.
+        if (\App\Libraries\TomYumCustomRulesets::isCustomId($this->ruleset_id)) {
+            return $this->total_score;
+        }
+
         return ScoringMode::convertToClassic(
             Ruleset::from($this->ruleset_id),
             $this->total_score,
@@ -508,7 +538,8 @@ class Score extends Model implements Traits\ReportableInterface
 
     public function getMode(): string
     {
-        return Beatmap::modeStr($this->ruleset_id);
+        // TomYum: a custom ruleset plays converted osu! maps; anything that needs one of osu!'s modes gets that one.
+        return Beatmap::modeStr($this->ruleset_id) ?? 'osu';
     }
 
     public function isLegacy(): bool
@@ -609,7 +640,8 @@ class Score extends Model implements Traits\ReportableInterface
             'user_id' => $this->user_id,
         ]);
 
-        switch (Ruleset::from($this->ruleset_id)) {
+        // TomYum: a custom ruleset's judgements are counted as osu!'s (great, ok, meh).
+        switch (Ruleset::tryFrom($this->ruleset_id) ?? Ruleset::osu) {
             case Ruleset::osu:
                 $score->count300 = $statistics->great;
                 $score->count100 = $statistics->ok;

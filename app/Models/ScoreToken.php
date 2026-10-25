@@ -95,6 +95,14 @@ class ScoreToken extends Model
         if ($rulesetId === null) {
             throw new InvariantException('missing ruleset_id');
         }
+        // TomYum: a custom lazer ruleset staff turned on (TomYumCustomRulesets) plays converted osu! maps.
+        if (\App\Libraries\TomYumCustomRulesets::isCustomId($rulesetId)) {
+            if (\App\Libraries\TomYumCustomRulesets::find($rulesetId) === null || (int) $beatmap->playmode !== Beatmap::MODES['osu']) {
+                throw new InvariantException('invalid ruleset_id');
+            }
+
+            return;
+        }
         if (Beatmap::modeStr($rulesetId) === null || !$beatmap->canBeConvertedTo($rulesetId)) {
             throw new InvariantException('invalid ruleset_id');
         }

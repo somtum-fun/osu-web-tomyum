@@ -13,6 +13,7 @@ import * as React from 'react';
 import { shouldShowPp } from 'utils/beatmap-helper';
 import { classWithModifiers } from 'utils/css';
 import { trans } from 'utils/lang';
+import { parseJsonNullable } from 'utils/json';
 import { SwitchError } from 'utils/switch-never';
 import Controller, { ScoreboardSort, ScoreboardVariant, sortsFor, variantsByRuleset } from './controller';
 import Mod from './mod';
@@ -31,6 +32,13 @@ const legacyMods = {
 const maniaConvertMods = new Set(['1K', '2K', '3K', '4K', '5K', '6K', '7K', '8K', '9K', '10K', 'DS']);
 const variantLabels: Record<ScoreboardVariant, string> = { ap: 'Autopilot', rx: 'Relax', vn: 'Vanilla' };
 const sortLabels: Record<ScoreboardSort, string> = { pp: 'pp', score: 'Score' };
+
+// TomYum: the custom lazer rulesets staff turned on (they play osu! maps), from the page.
+interface CustomRulesetJson {
+  name: string;
+  slug: string;
+}
+const customRulesets = parseJsonNullable<CustomRulesetJson[]>('json-tomyum-custom-rulesets') ?? [];
 
 interface Props {
   beatmap: BeatmapExtendedJson;
@@ -78,6 +86,10 @@ export default class Main extends React.Component<Props> {
     makeObservable(this);
   }
 
+  private get showCustomRulesets() {
+    return this.controller.beatmap.mode === 'osu' && customRulesets.length > 0;
+  }
+
   render() {
     return (
       <div className='beatmapset-scoreboard'>
@@ -93,7 +105,7 @@ export default class Main extends React.Component<Props> {
 
         {this.renderOptions()}
 
-        {this.controller.beatmap.is_scoreable &&
+        {this.controller.beatmap.is_scoreable && this.controller.customRuleset == null &&
           <div className={classWithModifiers('beatmapset-scoreboard__mods', { initial: this.controller.enabledMods.size === 0 })}>
             {this.mods.map((mod) => <Mod key={mod} controller={this.controller} mod={mod} />)}
           </div>
@@ -112,6 +124,11 @@ export default class Main extends React.Component<Props> {
     const variant = e.currentTarget.dataset.variant as ScoreboardVariant;
     // The mod lists differ (lazer's on Vanilla, stable's on Relax/Autopilot): start without a filter.
     this.controller.setCurrent({ resetMods: true, variant });
+  };
+
+  private readonly onChangeCustomRuleset = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    // A custom ruleset's mods are its own: start without a filter.
+    this.controller.setCurrent({ customRuleset: e.currentTarget.value === '' ? null : e.currentTarget.value, resetMods: true });
   };
 
   private readonly onClickSort = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -186,7 +203,7 @@ export default class Main extends React.Component<Props> {
             {variants.map((variant) => (
               <button
                 key={variant}
-                className={classWithModifiers('sort__item', 'button', { active: this.controller.variant === variant })}
+                className={classWithModifiers('sort__item', 'button', { active: this.controller.customRuleset == null && this.controller.variant === variant })}
                 data-variant={variant}
                 onClick={this.onClickVariant}
                 type='button'
@@ -197,7 +214,23 @@ export default class Main extends React.Component<Props> {
           </div>
         }
 
-        {sortsFor(this.controller.variant).length > 1 &&
+        {this.showCustomRulesets &&
+          <div className='sort__items'>
+            <select
+              className={classWithModifiers('sort__item', 'button', { active: this.controller.customRuleset != null })}
+              onChange={this.onChangeCustomRuleset}
+              title='Custom lazer rulesets, played in TumThai: ranked by score'
+              value={this.controller.customRuleset ?? ''}
+            >
+              <option value=''>Other rulesets…</option>
+              {customRulesets.map((ruleset) => (
+                <option key={ruleset.slug} value={ruleset.slug}>{ruleset.name}</option>
+              ))}
+            </select>
+          </div>
+        }
+
+        {this.controller.customRuleset == null && sortsFor(this.controller.variant).length > 1 &&
         <div className='sort__items'>
           <span className='sort__item sort__item--title'>{trans('sort._')}</span>
           {sortsFor(this.controller.variant).map((sort) => (

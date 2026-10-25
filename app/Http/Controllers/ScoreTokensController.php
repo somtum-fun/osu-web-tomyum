@@ -33,6 +33,8 @@ class ScoreTokensController extends BaseController
             abort(403, 'bot accounts can\'t submit scores');
         }
         $request = \Request::instance();
+        // TomYum: a custom ruleset's play submits only on the file staff pinned (TumThai sends its hash).
+        \App\Libraries\TomYumCustomRulesets::refuseUnpinned($request->input('ruleset_id'), $request->input('ruleset_hash'));
 
         $scoreToken = new ScoreToken([
             'beatmap_id' => $beatmap->getKey(),

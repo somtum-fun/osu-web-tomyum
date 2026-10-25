@@ -271,6 +271,10 @@ Route::group(['middleware' => ['web']], function () {
             Route::post('news/{post}/remove', 'NewsController@destroy')->name('news.destroy');
             Route::get('mods', 'ModsController@index')->name('mods.index');
             Route::post('mods', 'ModsController@update')->name('mods.update');
+            // TomYum: custom lazer rulesets from rulesets.info (TomYumCustomRulesets).
+            Route::get('rulesets', 'RulesetsController@index')->name('rulesets.index');
+            Route::post('rulesets/{slug}/pin', 'RulesetsController@pin')->name('rulesets.pin');
+            Route::post('rulesets/{slug}/disable', 'RulesetsController@disable')->name('rulesets.disable');
             Route::get('matchmaking', 'MatchmakingController@index')->name('matchmaking.index');
             Route::post('matchmaking', 'MatchmakingController@store')->name('matchmaking.store');
             Route::post('matchmaking/{pool}', 'MatchmakingController@update')->name('matchmaking.update');
@@ -622,6 +626,8 @@ Route::group(['middleware' => ['web']], function () {
     Route::resource('rankings/daily-challenge', 'Ranking\DailyChallengeController', ['only' => ['index', 'show']]);
     Route::get('rankings/ranked-play/{mode?}/{pool?}', 'Ranking\MatchmakingController@show')->name('rankings.matchmaking');
     Route::get('rankings/top-plays/{mode?}', 'Ranking\TopPlaysController@show')->name('rankings.top-plays');
+    // TomYum: custom lazer rulesets' rankings, by ranked score (TomYumCustomRulesetScores).
+    Route::get('rankings/rulesets/{slug?}', 'TomYumRulesetsController@rankings')->name('rankings.custom-rulesets');
     Route::get('rankings/{mode?}/{type?}/{sort?}', 'RankingController@index')->name('rankings');
 
     Route::resource('reports', 'ReportsController', ['only' => ['store']]);
@@ -913,6 +919,9 @@ Route::group(['as' => 'api.', 'prefix' => 'api', 'middleware' => ['api', Throttl
         Route::apiResource('rooms', 'Multiplayer\RoomsController', ['only' => ['index', 'show', 'store', 'destroy']]);
 
         Route::apiResource('seasonal-backgrounds', 'SeasonalBackgroundsController', ['only' => ['index']]);
+
+        //  GET /api/v2/tomyum/rulesets (TomYum: custom lazer rulesets, their pinned DLLs; TumThai reads it)
+        Route::get('tomyum/rulesets', 'TomYumRulesetsController@index')->name('tomyum.rulesets');
 
         Route::group(['prefix' => 'scores', 'as' => 'scores.'], function () {
             Route::get('{score}/download', 'ScoresController@download')->middleware(ThrottleRequests::getApiThrottle('scores_download'))->name('download');
