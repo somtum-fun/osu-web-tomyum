@@ -43,7 +43,7 @@
                         @foreach ($listing as $entry)
                             @php
                                 $slug = (string) ($entry['slug'] ?? '');
-                                $ours = $ours[$slug] ?? null;
+                                $mine = $ours[$slug] ?? null;
                                 $downloadable = ($entry['can_download'] ?? false) && str_ends_with(strtolower((string) parse_url((string) ($entry['direct_download_link'] ?? ''), PHP_URL_PATH)), '.dll');
                             @endphp
                             <tr>
@@ -55,28 +55,28 @@
                                 </td>
                                 <td>{{ $entry['status']['latest_version'] ?? '-' }}</td>
                                 <td>
-                                    @if ($ours === null)
+                                    @if ($mine === null)
                                         <span class="tomyum-panel__hint" style="margin: 0">off</span>
                                     @else
-                                        @if ($ours->enabled)
+                                        @if ($mine->enabled)
                                             <span class="tomyum-panel__badge tomyum-panel__badge--success">ON</span>
                                         @else
                                             <span class="tomyum-panel__badge">OFF</span>
                                         @endif
-                                        id <code>{{ $ours->id }}</code>, {{ $ours->version ?? 'unversioned file' }}
-                                        <br><span class="tomyum-panel__hint" style="margin: 0"><code>{{ substr($ours->sha256, 0, 16) }}…</code>, {{ number_format($ours->size / 1024) }} KB, {{ $ours->pinned_at?->diffForHumans() }}</span>
+                                        id <code>{{ $mine->id }}</code>, {{ $mine->version ?? 'unversioned file' }}
+                                        <br><span class="tomyum-panel__hint" style="margin: 0"><code>{{ substr($mine->sha256, 0, 16) }}…</code>, {{ number_format($mine->size / 1024) }} KB, {{ $mine->pinned_at?->diffForHumans() }}</span>
                                     @endif
                                 </td>
                                 <td>
                                     @if ($downloadable)
                                         <form method="POST" action="{{ route('panel.admin.rulesets.pin', ['slug' => $slug]) }}" style="display: inline">
                                             @csrf
-                                            <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">{{ $ours?->enabled ? 'Pin again' : 'Turn on' }}</button>
+                                            <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">{{ $mine?->enabled ? 'Pin again' : 'Turn on' }}</button>
                                         </form>
                                     @else
                                         <span class="tomyum-panel__hint" style="margin: 0">no DLL to download</span>
                                     @endif
-                                    @if ($ours?->enabled)
+                                    @if ($mine?->enabled)
                                         <form method="POST" action="{{ route('panel.admin.rulesets.disable', ['slug' => $slug]) }}" style="display: inline">
                                             @csrf
                                             <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--panel-secondary" type="submit" onclick="return confirm('Stop new plays of this ruleset submitting?')">Turn off</button>
