@@ -23,12 +23,14 @@
     .link-white();
     padding: 5px;
 
-    width: 100px;
+    // TomYum: our stream names are longer than ppy's ("Somtum Launcher (Windows)"), so an item grows to fit its
+    // name instead of running into the next one.
+    min-width: 100px;
     display: block;
     will-change: opacity;
 
     &--featured {
-      width: 200px;
+      min-width: 200px;
     }
   }
 
@@ -60,6 +62,7 @@
     &--name {
       font-size: @font-size--normal;
       font-weight: bold;
+      white-space: nowrap;
     }
 
     &--users {
