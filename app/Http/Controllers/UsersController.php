@@ -712,7 +712,7 @@ class UsersController extends Controller
             $highest = $statistics['rank_highest'] ?? null;
             unset($statistics['rank_history'], $statistics['rank_highest']);
             $userArray['statistics'] = $statistics;
-            $userArray['rank_history'] = $userArray['rankHistory'] = $history === null ? null : ['mode' => $currentMode, 'data' => $history];
+            $userArray['rank_history'] = $userArray['rankHistory'] = $history === null ? null : ['mode' => $currentMode, 'data' => \App\Libraries\TomYumRankHistory::drawable($history)];
             $userArray['rank_highest'] = $highest;
             // The profile's list headings count TomYum's plays in that mode.
             foreach (['best' => 'scores_best_count', 'firsts' => 'scores_first_count', 'recent' => 'scores_recent_count'] as $type => $key) {

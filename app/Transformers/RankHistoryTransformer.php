@@ -13,7 +13,8 @@ class RankHistoryTransformer extends TransformerAbstract
     {
         return [
             'mode' => $rankHistory->ruleset,
-            'data' => $rankHistory->data,
+            // TomYum: one ranked day still draws (TomYumRankHistory).
+            'data' => \App\Libraries\TomYumRankHistory::drawable($rankHistory->data),
         ];
     }
 }
