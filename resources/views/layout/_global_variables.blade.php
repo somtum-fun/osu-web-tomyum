@@ -9,6 +9,8 @@
     var ticketsDomain = {!! json_encode(App\Libraries\TomYumTickets::domain()) !!};
     {{-- TomYum: this server's name, ":brand" in the texts (TomYumBranding). --}}
     var brandName = {!! json_encode(App\Libraries\TomYumBranding::name()) !!};
+    {{-- TomYum: accounts before this UTC date (YYYY-MM-DD) show "Here since the beginning" (null: off). --}}
+    var firstMembersBefore = {!! json_encode(App\Libraries\TomYumBranding::firstMembersBefore()) !!};
 </script>
 
 @include ('layout._current_user')

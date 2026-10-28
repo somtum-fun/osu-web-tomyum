@@ -35,6 +35,7 @@ interface ScrollToOptions {
 }
 
 interface Window {
+  firstMembersBefore?: string | null;
   newBody?: HTMLElement;
   newUrl?: URL | Location | null;
 }
@@ -55,3 +56,5 @@ declare const currentLocale: string;
 declare const ticketsDomain: string;
 // TomYum: this server's name, ":brand" in the texts (layout/_global_variables).
 declare const brandName: string;
+// TomYum: accounts before this UTC date (YYYY-MM-DD) show "Here since the beginning" (layout/_global_variables).
+declare const firstMembersBefore: string | null;

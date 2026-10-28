@@ -82,7 +82,9 @@ const textMapping: Record<TextKey, (user: UserExtendedJson) => StringWithCompone
     let pattern: string;
     let text: string;
 
-    if (joinDate.isBefore(moment.utc([2008]))) {
+    // Accounts before the Branding page's date show "Here since the beginning" (off when unset; osu! uses 2008-01-01).
+    const cutoff = typeof firstMembersBefore === 'string' && firstMembersBefore !== '' ? firstMembersBefore : null;
+    if (cutoff !== null && joinDate.isBefore(moment.utc(cutoff))) {
       pattern = ':date';
       text = trans('users.show.first_members');
     } else {
