@@ -49,6 +49,7 @@ class BrandingController extends Controller
             'saved' => $saved,
             'name' => TomYumBranding::name(),
             'emailDomain' => TomYumBranding::emailDomain(),
+            'firstMembersBefore' => TomYumBranding::firstMembersBefore(),
             'logoChoice' => isset(TomYumBranding::LOGOS[$logo]) ? $logo : 'custom',
             'logoUrl' => isset(TomYumBranding::LOGOS[$logo]) ? '' : $logo,
             'logo' => TomYumBranding::logo(),
@@ -99,6 +100,12 @@ class BrandingController extends Controller
             return $this->back('error', 'The email domain should look like example.com (no @).');
         }
         $put('email_domain', $domain === null ? null : strtolower($domain));
+
+        $firstMembersBefore = $plain('first_members_before');
+        if ($firstMembersBefore !== null && !TomYumBranding::isValidDate($firstMembersBefore)) {
+            return $this->back('error', 'The "Here since the beginning" date should be YYYY-MM-DD (or empty to turn it off).');
+        }
+        $put('first_members_before', $firstMembersBefore);
 
         $logo = (string) Request::input('logo');
         if ($logo === 'custom') {

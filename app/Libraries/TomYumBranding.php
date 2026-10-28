@@ -83,7 +83,7 @@ class TomYumBranding
 
     /** Every setting the Branding page edits, with what an empty one means. */
     public const FIELDS = [
-        'name', 'email_domain', 'logo', 'favicon',
+        'name', 'email_domain', 'logo', 'favicon', 'first_members_before',
         'landing_video_url', 'download_video_url',
         'support_note', 'support_signature', 'invoice_seller', 'invoice_contact', 'keywords', 'footer',
         'support_team', 'downloads_client_name', 'downloads_patcher_name',
@@ -110,6 +110,23 @@ class TomYumBranding
     public static function email(string $local): string
     {
         return $local.'@'.static::emailDomain();
+    }
+
+    /** Accounts before this UTC date (YYYY-MM-DD) show "Here since the beginning" on their profile; null when off. */
+    public static function firstMembersBefore(): ?string
+    {
+        $date = static::setting('first_members_before') ?? $GLOBALS['cfg']['tomyum']['branding']['first_members_before'] ?? null;
+
+        return $date !== null && static::isValidDate($date) ? $date : null;
+    }
+
+    public static function isValidDate(string $value): bool
+    {
+        if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $value, $matches) !== 1) {
+            return false;
+        }
+
+        return checkdate((int) $matches[2], (int) $matches[3], (int) $matches[1]);
     }
 
     /** The logo setting: a built-in's key (text, osu) or an image's address. */

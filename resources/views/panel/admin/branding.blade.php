@@ -108,6 +108,20 @@
             </div>
 
             <div class="tomyum-panel__card">
+                <h2><i class="fas fa-history"></i>Original players</h2>
+                <div class="tomyum-panel__row">
+                    <label class="input-container tomyum-panel__field" style="flex: 0 1 260px">
+                        <span class="input-container__label">"Here since the beginning" before (UTC)</span>
+                        <input class="input-text" type="date" name="first_members_before" value="{{ $saved['first_members_before'] ?? '' }}">
+                    </label>
+                </div>
+                <p class="tomyum-panel__hint">
+                    Accounts registered before this date show "{{ osu_trans('users.show.first_members') }}" on their profile instead of a join month (hovering still shows the exact date). Leave it empty to show everyone's join month (or <code>BRAND_FIRST_MEMBERS_BEFORE</code>).
+                    Now: <strong>{{ $firstMembersBefore !== null ? "before {$firstMembersBefore} UTC" : 'off' }}</strong>.
+                </p>
+            </div>
+
+            <div class="tomyum-panel__card">
                 <h2><i class="fas fa-paragraph"></i>Texts</h2>
                 <p class="tomyum-panel__hint">
                     <code>:brand</code> is the name, <code>:year</code> this year, <code>:vote_url</code> the vote page.

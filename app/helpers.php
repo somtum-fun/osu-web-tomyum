@@ -1430,7 +1430,9 @@ function display_regdate($user)
 
     $formattedDate = i18n_date($user->user_regdate, transPattern: 'year_month');
 
-    if ($user->user_regdate < Carbon\Carbon::createFromDate(2008, 1, 1)) {
+    // Accounts before the Branding page's date show "Here since the beginning" (off when unset; osu! uses 2008-01-01).
+    $cutoff = App\Libraries\TomYumBranding::firstMembersBefore();
+    if ($cutoff !== null && $user->user_regdate < Carbon\Carbon::createFromFormat('!Y-m-d', $cutoff, 'UTC')) {
         return '<div title="'.$tooltipDate.'">'.osu_trans('users.show.first_members').'</div>';
     }
 
