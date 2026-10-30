@@ -13,8 +13,8 @@ use Request;
 
 /**
  * Admin panel: user titles, the line under a player's name on their profile (osu!'s "rank": phpbb_ranks,
- * pointed at by phpbb_users.user_rank). Make titles (optionally linking somewhere), give them to
- * players, take them away.
+ * pointed at by phpbb_users.user_rank). Make titles (optionally linking somewhere), edit them, give
+ * them to players, take them away.
  */
 class TitlesController extends Controller
 {
@@ -49,17 +49,37 @@ class TitlesController extends Controller
     public function store()
     {
         $title = trim((string) Request::input('title'));
-        if ($title === '' || mb_strlen($title) > 100) {
-            return $this->back('error', 'A title needs 1 to 100 characters.');
-        }
         $url = presence(trim((string) Request::input('url')));
-        if ($url !== null && !preg_match('#^https?://#', $url)) {
-            return $this->back('error', 'The link should be a web address (https://…).');
+        $error = $this->invalid($title, $url);
+        if ($error !== null) {
+            return $this->back('error', $error);
         }
         $rank = Rank::create(['rank_title' => $title, 'rank_min' => 0, 'rank_special' => 1, 'rank_image' => '', 'url' => $url]);
         $this->staffLog('title.add', $rank->getKey(), "Made the title \"{$title}\"");
 
         return $this->back('success', "Made \"{$title}\". Give it to someone below.");
+    }
+
+    public function update(string $title)
+    {
+        $rank = Rank::where('rank_special', 1)->findOrFail((int) $title);
+        $name = trim((string) Request::input('title'));
+        $url = presence(trim((string) Request::input('url')));
+        $error = $this->invalid($name, $url);
+        if ($error !== null) {
+            return $this->back('error', $error);
+        }
+
+        // Groups find their title by its name (AdminController::groupTitle).
+        $old = $rank->rank_title;
+        if ($name !== $old && array_intersect([$name, $old], AdminController::GROUP_TITLES) !== []) {
+            return $this->back('error', "\"{$old}\" can't be called \"{$name}\": group titles keep their names, because the group finds its title by name.");
+        }
+
+        $rank->update(['rank_title' => $name, 'url' => $url]);
+        $this->staffLog('title.edit', $rank->getKey(), $name === $old ? "Changed the link of the title \"{$name}\"" : "Renamed the title \"{$old}\" to \"{$name}\"");
+
+        return $this->back('success', "Saved \"{$name}\".");
     }
 
     public function destroy(string $title)
@@ -101,6 +121,18 @@ class TitlesController extends Controller
         $this->staffLog('user.title', $user->getKey(), "Gave {$user->username} the {$which} \"{$rank->rank_title}\"");
 
         return $this->back('success', "{$user->username}'s {$which} is \"{$rank->rank_title}\" now.");
+    }
+
+    private function invalid(string $title, ?string $url): ?string
+    {
+        if ($title === '' || mb_strlen($title) > 100) {
+            return 'A title needs 1 to 100 characters.';
+        }
+        if ($url !== null && (mb_strlen($url) > 255 || !preg_match('#^https?://#', $url))) {
+            return 'The link should be a web address (https://…).';
+        }
+
+        return null;
     }
 
     private function back(string $type, string $message)

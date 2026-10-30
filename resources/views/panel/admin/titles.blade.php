@@ -60,16 +60,60 @@
                     <tr><th>Title</th>@if ($withLinks)<th>Link</th>@endif<th>Players</th><th></th></tr>
                     @foreach ($titles as $title)
                         <tr>
-                            <td><span class="tomyum-panel__pill tomyum-panel__pill--pink">{{ $title->rank_title }}</span></td>
+                            <td>
+                                <span class="tomyum-panel__pill tomyum-panel__pill--pink">{{ $title->rank_title }}</span>
+                                <details style="margin-top: 8px">
+                                    <summary>Edit</summary>
+                                    <form method="POST" action="{{ route('panel.admin.titles.update', ['title' => $title->getKey()]) }}" class="tomyum-panel__row">
+                                        @csrf
+                                        <label class="input-container tomyum-panel__field">
+                                            <span class="input-container__label">Title</span>
+                                            <input class="input-text" type="text" name="title" required maxlength="100" value="{{ $title->rank_title }}">
+                                        </label>
+                                        <label class="input-container tomyum-panel__field">
+                                            <span class="input-container__label">Link when clicked (optional)</span>
+                                            <input class="input-text" type="text" name="url" maxlength="255" placeholder="https://…" value="{{ $title->url }}">
+                                        </label>
+                                        <div><button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Save</button></div>
+                                    </form>
+                                </details>
+                            </td>
                             @if ($withLinks)
                                 <td>@if (present($title->url))<a href="{{ $title->url }}" rel="nofollow noopener" target="_blank"><i class="fas fa-external-link-alt"></i> link</a>@endif</td>
                             @endif
                             <td>
                                 @forelse ($holders[$title->getKey()] ?? [] as $holder)
-                                    <a href="{{ route('users.show', ['user' => $holder->getKey()]) }}">{{ $holder->username }}</a>@if (!$loop->last), @endif
+                                    <form method="POST" action="{{ route('panel.admin.titles.assign') }}" style="display: inline-block; margin-right: 10px"
+                                        onsubmit="return confirm('Take this title from {{ $holder->username }}?')">
+                                        @csrf
+                                        <input type="hidden" name="user" value="{{ $holder->getKey() }}">
+                                        <input type="hidden" name="title" value="0">
+                                        <input type="hidden" name="slot" value="{{ (int) $holder->user_rank === $title->getKey() ? 1 : 2 }}">
+                                        <a href="{{ route('users.show', ['user' => $holder->getKey()]) }}">{{ $holder->username }}</a>
+                                        <button type="submit" title="Take this title from {{ $holder->username }}" style="all: unset; cursor: pointer"><i class="fas fa-times"></i></button>
+                                    </form>
                                 @empty
                                     <span class="tomyum-panel__hint">nobody</span>
                                 @endforelse
+                                <details style="margin-top: 8px">
+                                    <summary>Add a player</summary>
+                                    <form method="POST" action="{{ route('panel.admin.titles.assign') }}" class="tomyum-panel__row">
+                                        @csrf
+                                        <input type="hidden" name="title" value="{{ $title->getKey() }}">
+                                        <label class="input-container tomyum-panel__field">
+                                            <span class="input-container__label">Player (name or id)</span>
+                                            <input class="input-text" type="text" name="user" required>
+                                        </label>
+                                        <label class="input-container input-container--select tomyum-panel__field" style="flex: 0 1 170px">
+                                            <span class="input-container__label">As their</span>
+                                            <select class="input-text" name="slot">
+                                                <option value="1">first title</option>
+                                                <option value="2">second title</option>
+                                            </select>
+                                        </label>
+                                        <div><button class="btn-osu-big btn-osu-big--rounded-thin" type="submit">Add</button></div>
+                                    </form>
+                                </details>
                             </td>
                             <td style="text-align: right">
                                 <form method="POST" action="{{ route('panel.admin.titles.destroy', ['title' => $title->getKey()]) }}"

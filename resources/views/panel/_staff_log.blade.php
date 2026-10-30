@@ -32,6 +32,7 @@
         'beatmapset.upload' => ['Upload set', 'good'],
         'beatmapset.status' => ['Set status', 'info'],
         'title.add' => ['New title', 'pink'],
+        'title.edit' => ['Edit title', 'pink'],
         'title.remove' => ['Remove title', 'pink'],
         'news.save' => ['News post', 'pink'],
         'news.remove' => ['Remove news', 'pink'],

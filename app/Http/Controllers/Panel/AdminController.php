@@ -35,7 +35,7 @@ class AdminController extends Controller
     private const UNASSIGNABLE_GROUPS = ['default', 'bot'];
 
     // TomYum: groups that come with a title (see groupTitle): identifier => the title.
-    private const GROUP_TITLES = ['tc' => 'Tournament Committee', 'featured_artist' => 'Featured Artist'];
+    public const GROUP_TITLES = ['tc' => 'Tournament Committee', 'featured_artist' => 'Featured Artist'];
 
     private const PLAYMODES = ['osu' => 'osu!', 'taiko' => 'osu!taiko', 'fruits' => 'osu!catch', 'mania' => 'osu!mania'];
 
