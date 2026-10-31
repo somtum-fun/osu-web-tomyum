@@ -15,7 +15,8 @@ use Request;
 /**
  * TomYum: staff flags on an account (tomyum_account_flags) and its login history
  * (tomyum_login_history). The game server reads the same tables: a locked account can't log in to
- * stable either, and a whitelisted one is left alone by anti-cheat.
+ * stable either, a banned one can't log in anywhere and neither can other accounts on its hardware,
+ * and a whitelisted one is left alone by anti-cheat.
  */
 class TomYumAccount
 {
@@ -31,6 +32,20 @@ class TomYumAccount
     public static function isLocked(int $userId): bool
     {
         return DB::table('tomyum_account_flags')->where('user_id', $userId)->whereNotNull('locked_at')->exists();
+    }
+
+    public static function isBanned(int $userId): bool
+    {
+        return DB::table('tomyum_account_flags')->where('user_id', $userId)->whereNotNull('banned_at')->exists();
+    }
+
+    public static function setBanned(User $user, ?User $actor, ?string $reason): void
+    {
+        static::setFlag($user->getKey(), [
+            'banned_at' => $reason === null ? null : Carbon::now(),
+            'banned_by' => $reason === null ? null : $actor?->getKey(),
+            'ban_reason' => $reason === null ? null : mb_substr($reason, 0, 500),
+        ]);
     }
 
     public static function setLocked(User $user, ?User $actor, ?string $reason): void

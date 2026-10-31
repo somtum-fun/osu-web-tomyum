@@ -5,6 +5,7 @@
 
 namespace App\Http\Controllers\Panel;
 
+use App\Libraries\TomYumAccount;
 use App\Libraries\TomYumAppeals;
 use App\Libraries\TomYumCountryStats;
 use App\Libraries\TomYumReports;
@@ -175,6 +176,75 @@ class GmtController extends Controller
     }
 
     /**
+     * TomYum: the ban button (admins only): like Restrict, but they also can't log in on the website or
+     * in any client, and their hardware is banned with them (the game server refuses every other account
+     * seen on it, and stable gets -3).
+     * Nobody really needs this any more, unless you're an Akatsuki dev banning people for no reason, to tell them "we went on your profile and clicked the ban user button" 🙏
+     */
+    public function ban(string $user)
+    {
+        $this->ensure(static::canUseAdmin(Auth::user()));
+        $target = $this->moderatable($user);
+        $reason = $this->reason();
+        if ($reason === null) {
+            return $this->back($target, 'error', 'Give a reason.');
+        }
+        if ($target->getKey() === Auth::user()->getKey()) {
+            return $this->back($target, 'error', 'You can\'t ban your own account.');
+        }
+        if ($target->isBot() || $target->isPrivileged() || $target->isGMT() || $target->isNAT()) {
+            return $this->back($target, 'error', 'Bots and staff can\'t be banned: take their groups away first, or lock the account.');
+        }
+        if (TomYumAccount::isBanned($target->getKey())) {
+            return $this->back($target, 'error', 'Already banned.');
+        }
+
+        $offense = Request::input('offense');
+        $offense = array_key_exists($offense, TomYumAppeals::OFFENSES) ? $offense : 'other';
+        $appealAfter = static::appealDate();
+        DB::transaction(function () use ($target, $reason, $offense, $appealAfter) {
+            TomYumAccount::setBanned($target, Auth::user(), $reason);
+            if ($target->isRestricted()) {
+                $this->history($target, UserAccountHistory::TYPES['note'], "Banned: {$reason}");
+            } else {
+                $target->update(['user_warnings' => 1]);
+                $this->history($target, UserAccountHistory::TYPES['restriction'], "Banned: {$reason}", 0, true);
+                TomYumAppeals::restricted($target, $offense, Auth::user()->getKey(), $appealAfter, $reason);
+            }
+        });
+        TomYumCountryStats::recalculate($target->country_acronym);
+
+        try {
+            $this->tomyum()->post("/users/{$target->getKey()}/disconnect", ['message' => 'Your account was banned by staff.']);
+        } catch (\Throwable $e) {
+            log_error($e);
+        }
+
+        return $this->done($target, 'user.ban', "Banned {$target->username}: {$reason}", 'Banned: signed out everywhere, no logins, and every account on their hardware is refused at stable login.');
+    }
+
+    /** TomYum: lifts a ban and the hardware ban with it. A restriction stays until it's lifted by itself. */
+    public function unban(string $user)
+    {
+        $this->ensure(static::canUseAdmin(Auth::user()));
+        $target = $this->moderatable($user);
+        $reason = $this->reason();
+        if ($reason === null) {
+            return $this->back($target, 'error', 'Give a reason.');
+        }
+        if (!TomYumAccount::isBanned($target->getKey())) {
+            return $this->back($target, 'error', 'Not banned.');
+        }
+
+        DB::transaction(function () use ($target, $reason) {
+            TomYumAccount::setBanned($target, Auth::user(), null);
+            $this->history($target, UserAccountHistory::TYPES['note'], "Unbanned: {$reason}");
+        });
+
+        return $this->done($target, 'user.unban', "Unbanned {$target->username}: {$reason}", 'Unbanned: they and their hardware can log in again. They\'re still restricted until you unrestrict them.');
+    }
+
+    /**
      * TomYum: a restricted player's appeal cooldown: another offense (it starts again from today), or
      * a date set by hand.
      */
@@ -215,6 +285,9 @@ class GmtController extends Controller
         }
         if (!$target->user_warnings) {
             return $this->back($target, 'error', 'Not restricted (a banned account type is changed from the admin panel).');
+        }
+        if (TomYumAccount::isBanned($target->getKey())) {
+            return $this->back($target, 'error', 'They\'re banned: unban them first (admin panel).');
         }
 
         DB::transaction(function () use ($target, $reason) {

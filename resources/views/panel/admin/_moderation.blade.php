@@ -5,10 +5,11 @@
 {{-- TomYum: moderation on the admin panel's account page. --}}
 @php
     $historyTypes = [0 => 'Note', 1 => 'Restriction', 2 => 'Silence', 3 => 'Tournament ban'];
-    $resultLabels = ['ok' => 'Logged in', 'held' => 'Device to verify', 'locked' => 'Refused (locked)', 'bad_password' => 'Wrong password', 'bot' => 'Refused (bot)', 'maintenance' => 'Refused (maintenance)'];
+    $resultLabels = ['ok' => 'Logged in', 'held' => 'Device to verify', 'locked' => 'Refused (locked)', 'banned' => 'Refused (banned)', 'banned_device' => 'Refused (banned hardware)', 'bad_password' => 'Wrong password', 'bot' => 'Refused (bot)', 'maintenance' => 'Refused (maintenance)'];
     $locked = $flags?->locked_at !== null;
+    $banned = $flags?->banned_at !== null;
     $whitelisted = $flags?->whitelisted_at !== null;
-    $actorNames = App\Http\Controllers\Panel\GmtController::userNames([$flags?->locked_by, $flags?->whitelisted_by]);
+    $actorNames = App\Http\Controllers\Panel\GmtController::userNames([$flags?->locked_by, $flags?->whitelisted_by, $flags?->banned_by]);
     $silenceOptions = function () use ($silenceLengths) {
         $html = '';
         foreach ($silenceLengths as $seconds => $label) {
@@ -27,6 +28,9 @@
         @endif
         @if ($silencedUntil !== null)
             <span class="tomyum-panel__badge tomyum-panel__badge--error">Silenced until {{ $silencedUntil->toDayDateTimeString() }} UTC</span>
+        @endif
+        @if ($banned)
+            <span class="tomyum-panel__badge tomyum-panel__badge--error">Banned (with hardware)</span>
         @endif
         @if ($locked)
             <span class="tomyum-panel__badge tomyum-panel__badge--error">Locked</span>
@@ -70,6 +74,32 @@
             </form>
         @endif
     </div>
+
+    {{-- TomYum: the ban: restricted, no logins anywhere, hardware banned too (GmtController@ban). --}}
+    @if ($banned)
+        <p style="margin-top: 10px">Banned {!! timeago(Carbon\Carbon::parse($flags->banned_at)) !!} by {{ $actorNames[$flags->banned_by] ?? '—' }}: {{ $flags->ban_reason }}</p>
+        <form method="POST" action="{{ route('panel.gmt.users.unban', ['user' => $userId]) }}" class="tomyum-panel__row" style="align-items: flex-end">
+            @csrf
+            <input type="hidden" name="from" value="admin">
+            <label class="input-container tomyum-panel__field">
+<span class="input-container__label">Unban: reason</span>
+<input class="input-text" type="text" name="reason" required></label>
+            <button class="btn-osu-big btn-osu-big--rounded-thin" type="submit"><i class="fas fa-check"></i>Unban</button>
+        </form>
+        <p class="tomyum-panel__hint">Lifts the ban and the hardware ban. A restriction stays until you unrestrict them.</p>
+    @else
+        <form method="POST" action="{{ route('panel.gmt.users.ban', ['user' => $userId]) }}" class="tomyum-panel__row" style="align-items: flex-end; margin-top: 10px"
+            onsubmit="return confirm('Ban {{ $target->username }}? They can\'t log in anywhere, and every other account seen on their hardware is refused at stable login too.')">
+            @csrf
+            <input type="hidden" name="from" value="admin">
+            <label class="input-container tomyum-panel__field">
+<span class="input-container__label">Ban: reason</span>
+<input class="input-text" type="text" name="reason" required></label>
+            @include('panel.gmt._appeal_offense')
+            <button class="btn-osu-big btn-osu-big--rounded-thin btn-osu-big--danger" type="submit" @disabled($isSelf)><i class="fas fa-gavel"></i>Ban</button>
+        </form>
+        <p class="tomyum-panel__hint">Restricts {{ $target->username }}, signs them out, and blocks logins on the website and in every client. Every other account on their stable hardware gets refused too (staff aren't; the anti-cheat whitelist lets an innocent player through on a shared machine). Lazer doesn't send hardware, so only the account itself is banned there.</p>
+    @endif
 
     <div class="tomyum-panel__row" style="align-items: flex-end; margin-top: 10px">
         @if ($silencedUntil !== null)

@@ -786,9 +786,10 @@ class User extends Model implements AfterCommit, AuthenticatableContract, HasLoc
 
     public function isLoginBlocked()
     {
-        // TomYum: or locked by staff (the admin panel): no logins anywhere until unlocked.
+        // TomYum: or locked or banned by staff (the admin panel): no logins anywhere until that's lifted.
         return $this->user_email === null
-            || $this->memoize(__FUNCTION__, fn () => \App\Libraries\TomYumAccount::isLocked($this->getKey()));
+            || $this->memoize(__FUNCTION__, fn () => \App\Libraries\TomYumAccount::isLocked($this->getKey())
+                || \App\Libraries\TomYumAccount::isBanned($this->getKey()));
     }
 
     public function isSpecial()
