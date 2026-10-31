@@ -79,7 +79,7 @@ class TomYumSeo
             $lines[] = "Disallow: {$path}";
         }
         $lines[] = '';
-        $lines[] = 'Sitemap: '.route('tomyum.sitemap');
+        $lines[] = 'Sitemap: '.static::onCanonicalHost(fn () => route('tomyum.sitemap'));
 
         return implode("\n", $lines)."\n";
     }
@@ -113,8 +113,29 @@ class TomYumSeo
         return substr(hash('sha256', $GLOBALS['cfg']['app']['key'].'|indexnow'), 0, 32);
     }
 
+    /**
+     * Runs $callback with URLs built on APP_URL rather than the request's host. The sitemap is cached
+     * and shared, so one built for a request on another host would list that host's URLs for everyone.
+     */
+    private static function onCanonicalHost(callable $callback)
+    {
+        $url = app('url');
+        $url->forceRootUrl($GLOBALS['cfg']['app']['url']);
+
+        try {
+            return $callback();
+        } finally {
+            $url->forceRootUrl(null);
+        }
+    }
+
     /** [url, lastmod (W3C date) or null] for each page. */
     private static function urls(): array
+    {
+        return static::onCanonicalHost(fn () => static::collectUrls());
+    }
+
+    private static function collectUrls(): array
     {
         $urls = [];
         $add = function (string $url, $lastmod = null) use (&$urls) {
