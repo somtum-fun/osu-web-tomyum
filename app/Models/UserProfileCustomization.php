@@ -35,6 +35,7 @@ class UserProfileCustomization extends Model
         'level_colours' => self::LEVEL_COLOURS[0],
         'profile_cover_expanded' => true,
         'profile_detail_v2' => true, // TomYum: the new profile cards (with Ranked Play) by default
+        'profile_pinned_badge' => null,
         'scoring_mode' => self::SCORING_MODES[0],
         'tomyum_default_variant' => null, // TomYum: Relax/Autopilot as the default mode (osurx, ...)
         'tomyum_favorite_modes' => [], // TomYum: starred modes (ruleset or variant: osu, osurx, osuap, ...)
@@ -144,6 +145,7 @@ class UserProfileCustomization extends Model
             'level_colours',
             'profile_cover_expanded',
             'profile_detail_v2',
+            'profile_pinned_badge',
             'scoring_mode',
             'tomyum_default_variant',
             'tomyum_favorite_modes',
@@ -260,6 +262,11 @@ class UserProfileCustomization extends Model
     public function setProfileDetailV2Attribute($value)
     {
         $this->setOption('profile_detail_v2', get_bool($value));
+    }
+
+    public function setProfilePinnedBadgeAttribute(mixed $value): void
+    {
+        $this->setOption('profile_pinned_badge', presence(substr(get_string($value) ?? '', 0, 255)));
     }
 
     public function setScoringModeAttribute($value): void
