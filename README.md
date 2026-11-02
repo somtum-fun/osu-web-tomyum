@@ -23,6 +23,20 @@ the code, not the osu! name, logo or artwork.
 >
 > We're not lawyers and this isn't legal advice; if in doubt, ask ppy or a lawyer first.
 
+## Running it
+
+This website runs as part of a TomYum server, from TomYum-OSS's Docker Compose stack, which builds it from a
+checkout of this repository next to TomYum. The installer does everything (clones this repository, settings,
+build, database, start):
+
+```bash
+git clone https://github.com/somtum-fun/TomYum-OSS.git && cd TomYum-OSS/deploy/production
+./setup.sh --local                                          # try it on this machine
+./setup.sh --domain example.com --tunnel-token <token>      # a real server behind a Cloudflare Tunnel
+```
+
+Step by step, and every setting: [docs.somtum.fun/guide/production](https://docs.somtum.fun/guide/production).
+
 Known gaps: the store's prices and currency are still baht/US$ (`SupporterTag`, `store_currency()`).
 
 ## Community
