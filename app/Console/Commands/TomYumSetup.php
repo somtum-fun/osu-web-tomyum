@@ -13,6 +13,7 @@ use App\Models\User;
 use DB;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Prepares a fresh osu-web database for running next to TomYum: everything osu!'s production
@@ -316,7 +317,9 @@ class TomYumSetup extends Command
         // Secrets are kept hashed (Passport checks them with Hash::check), and the grant types are read
         // from their column: lazer logs in with a password, then refreshes its token.
         $secret = 'FGc9GAtyHzeQDshWP5Ah7dega8hJACAJpQtw6OXk';
-        DB::table('oauth_clients')->upsert([[
+        // TomYum: ppy dropped personal_access_client and password_client (2026-10-16); older databases still
+        // have them, so only the columns this one has are written.
+        $row = [
             'id' => 5,
             'user_id' => null,
             'name' => 'osu!lazer',
@@ -330,7 +333,11 @@ class TomYumSetup extends Command
             'provider' => 'users',
             'created_at' => now(),
             'updated_at' => now(),
-        ]], ['id'], ['name', 'secret', 'secret_hint', 'grant_types', 'password_client', 'revoked', 'provider', 'updated_at']);
+        ];
+        $columns = array_flip(Schema::getColumnListing('oauth_clients'));
+        $row = array_intersect_key($row, $columns);
+        $update = array_values(array_intersect(['name', 'secret', 'secret_hint', 'grant_types', 'password_client', 'revoked', 'provider', 'updated_at'], array_keys($row)));
+        DB::table('oauth_clients')->upsert([$row], ['id'], $update);
 
         if (!file_exists(storage_path('oauth-private.key'))) {
             $this->warn("No Passport keys: run php artisan passport:keys, or lazer (and API logins) can't sign in.");
