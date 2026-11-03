@@ -11,7 +11,7 @@ build_id                 | integer?                            | The ID of the g
 classic_total_score      | integer                             | Total score calculated using lazer's "classic scoring" variant. Only present for `solo_score` type.
 ended_at                 | [Timestamp](#timestamp)             | When the user finished playing.
 has_replay               | boolean                             | Whether an online replay exists for this score.
-id                       | integer                             | The ID of this score.
+id                       | integer                             | The ID of this score. A [Relax/Autopilot](#ruleset-relax-and-autopilot) play from stable is numbered from 1000000000000 (see [their score ids](#ruleset-their-score-ids)).
 is_perfect_combo         | boolean                             | Whether the user has achieved perfect combo using lazer logic.<sup>1</sup>
 legacy_perfect           | boolean                             | Whether the user has achieved perfect combo using stable logic.<sup>1</sup>
 legacy_score_id          | integer?                            | Only present on scores set in stable. The ID of this score in the old ID scheme preceding lazer.
@@ -40,6 +40,8 @@ user_id                  | integer                             | The ID of the u
 <sup>2</sup> This value is intended for internal use, to allow future lossless rebalances of score multipliers. It is only guaranteed to be present on lazer scores with at least one mod because:
 - For stable scores, `total_score` and `total_score_without_mods` are both calculated via [a conversion algorithm](https://github.com/ppy/osu/blob/8c3c1b544bd6bbbd1d9065c76035e87f515a887d/osu.Game/Database/StandardisedScoreMigrationTools.cs#L124-L351) which uses `legacy_total_score` as the source of truth, so in that case `total_score_without_mods` is redundant information.
 - For lazer scores without mods, it is assumed that scores without no mods always have a flat score multiplier of 1, so `total_score_without_mods` is redundant information.
+
+<a id="score-initial-version"></a>
 
 ### Initial version
 

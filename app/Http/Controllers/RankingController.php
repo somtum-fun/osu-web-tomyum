@@ -208,7 +208,7 @@ class RankingController extends Controller
      * @queryParam cursor [Cursor](#cursor). No-example
      * @queryParam filter Either `all` (default) or `friends`. Example: all
      * @queryParam spotlight The id of the spotlight if `type` is `charts`. Ranking for latest spotlight will be returned if not specified. No-example
-     * @queryParam variant Filter ranking to specified mode variant. For `ruleset` of `mania`, it's either `4k` or `7k`. Only available for `type` of `global`. Example: 4k
+     * @queryParam variant Filter ranking to specified mode variant. For `ruleset` of `mania`, it's either `4k` or `7k`. Only available for `type` of `global`. For `osu`, `taiko` and `fruits` with `type` `performance` or `score`: `rx` (Relax) or `ap` (Autopilot, `osu` only), see [Relax and Autopilot](#ruleset-relax-and-autopilot). Example: 4k
      */
     public function index(?string $mode = null, ?string $type = null, ?string $sort = null)
     {
