@@ -54,6 +54,10 @@ class ScoresController extends Controller
         if ($legacyId === null && ($tomyumId = \App\Libraries\TomYumModeScores::tomyumId($rulesetOrId)) !== null) {
             return app(TomYumScoresController::class)->download($tomyumId);
         }
+        // TomYum: the same play by the number on its page (/scores/rx/{id}/download), for API clients.
+        if (($tomyumId = \App\Libraries\TomYumModeScores::prefixedId($rulesetOrId, $legacyId)) !== null) {
+            return app(TomYumScoresController::class)->download($tomyumId);
+        }
 
         if ($legacyId === null) {
             $score = Score::where('has_replay', true)->findOrFail(static::parseIdOrFail($rulesetOrId));
@@ -204,7 +208,9 @@ class ScoresController extends Controller
     public function show($rulesetOrSoloId, $legacyId = null)
     {
         // TomYum: a Relax/Autopilot play, on its own page (or as json for lazer's results screen).
-        if ($legacyId === null && ($tomyumId = \App\Libraries\TomYumModeScores::tomyumId($rulesetOrSoloId)) !== null) {
+        // TomYum: also by the number on its page (/scores/rx/{id}, "ap" too), so API v2 clients can use that.
+        $tomyumId = \App\Libraries\TomYumModeScores::prefixedId($rulesetOrSoloId, $legacyId);
+        if ($tomyumId !== null || ($legacyId === null && ($tomyumId = \App\Libraries\TomYumModeScores::tomyumId($rulesetOrSoloId)) !== null)) {
             return is_json_request()
                 ? (\App\Libraries\TomYumModeScores::one($tomyumId)[0] ?? abort(404))
                 : ujs_redirect(route('scores.tomyum', ['score' => $tomyumId]));

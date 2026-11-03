@@ -37,6 +37,15 @@ class TomYumModeScores
         return $id !== null && $id >= static::ID_OFFSET ? $id - static::ID_OFFSET : null;
     }
 
+    /**
+     * TomYum's id from a path that names it as the website's page does (/scores/rx/{id}; "ap" too),
+     * so API clients can use the page's number: null when $prefix isn't one of those.
+     */
+    public static function prefixedId(mixed $prefix, mixed $id): ?int
+    {
+        return in_array($prefix, ['rx', 'ap'], true) ? get_int($id) : null;
+    }
+
     /** lazer's Relax/Autopilot "rulesets" → [the ruleset, TomYum's mode]. */
     public const MODES = [
         'osurx' => ['osu', 4],
